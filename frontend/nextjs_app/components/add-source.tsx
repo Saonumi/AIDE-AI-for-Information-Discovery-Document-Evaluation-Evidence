@@ -15,7 +15,7 @@ import {
 const TYPE_LABEL: Record<string, string> = {
   REGULATION: "Quy định",
   AMENDMENT: "Văn bản sửa đổi",
-  INTERNAL_POLICY: "Policy nội bộ",
+  INTERNAL_POLICY: "Quy trình nội bộ",
   DECISION: "Quyết định",
   CIRCULAR: "Thông tư",
 }
@@ -26,7 +26,22 @@ const TASK_LABEL: Record<string, string> = {
   REFERENCE_REVIEW: "Kiểm tra tham chiếu",
   CONFLICT_REVIEW: "Kiểm tra xung đột",
   IMPACT_REVIEW: "Kiểm tra tác động",
-  INJECTION_REVIEW: "Cảnh báo prompt injection",
+  INJECTION_REVIEW: "Cảnh báo chèn lệnh độc hại",
+}
+
+const APPROVAL_LABEL: Record<string, string> = {
+  PENDING: "Chờ duyệt",
+  APPROVED: "Đã duyệt",
+  REJECTED: "Từ chối",
+  ARCHIVED: "Đã lưu trữ",
+}
+
+const PROCESSING_LABEL: Record<string, string> = {
+  QUARANTINED: "Chờ xử lý",
+  PROCESSING: "Đang xử lý",
+  PARSED: "Đã bóc tách",
+  INDEXED: "Đã lập chỉ mục",
+  FAILED: "Lỗi xử lý",
 }
 
 function extractReasons(e: unknown): string[] {
@@ -58,8 +73,8 @@ export function AddSourceTab() {
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Trust rule — vì sao phải review trước khi nguồn được dùng */}
         <div className="border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-600 dark:text-amber-300 leading-relaxed">
-          Nguồn upload ở đây là <strong>AUTHORITY_SOURCE_CANDIDATE</strong> — chưa được dùng
-          làm căn cứ pháp lý. Chỉ nguồn <strong>APPROVED + ACTIVE</strong> (đã qua kiểm tra
+          Nguồn upload ở đây là <strong>tài liệu chờ xác minh</strong> — chưa được dùng
+          làm căn cứ pháp lý. Chỉ nguồn <strong>đã duyệt &amp; đang hoạt động</strong> (đã qua kiểm tra
           của cán bộ) mới xuất hiện trong kết quả tra cứu và nhận xét tài liệu bên tab RAG.
         </div>
 
@@ -112,7 +127,7 @@ function UploadCard({ onUploaded }: { onUploaded: () => void }) {
   return (
     <section className="border border-border bg-card">
       <header className="px-4 py-3 border-b border-border">
-        <h2 className="text-sm font-semibold">Upload nguồn pháp lý</h2>
+        <h2 className="text-sm font-semibold">Tải lên nguồn pháp lý</h2>
         <p className="text-xs text-muted-foreground mt-0.5">
           Thông tư, quyết định, văn bản sửa đổi — AI trích xuất, cán bộ kiểm tra rồi mới kích hoạt.
         </p>
@@ -140,7 +155,7 @@ function UploadCard({ onUploaded }: { onUploaded: () => void }) {
           </select>
           <Button className="bg-orange-500 hover:bg-orange-600 text-white"
                   onClick={upload} disabled={!file || busy}>
-            {busy ? "Đang upload & trích xuất…" : "Upload & Trích xuất"}
+            {busy ? "Đang tải lên & trích xuất…" : "Tải lên & Trích xuất"}
           </Button>
         </div>
         {notice && <p className={`border px-3 py-2 text-xs ${noticeTone[notice.tone]}`}>{notice.text}</p>}
@@ -172,7 +187,7 @@ function PendingReviewSection({ tasks, docs, onDecided }: {
       {tasks === null && <ListSkeleton rows={2} />}
       {tasks?.length === 0 && (
         <EmptyRow>
-          Không có mục nào chờ kiểm tra. Upload nguồn mới ở trên — kết quả trích xuất sẽ vào đây.
+          Không có mục nào chờ kiểm tra. Tải lên nguồn mới ở trên — kết quả trích xuất sẽ vào đây.
         </EmptyRow>
       )}
       <div className="space-y-2">
@@ -353,18 +368,18 @@ function PendingDocRow({ doc, onActivated }: { doc: DocumentRow; onActivated: ()
         <div className="min-w-0 flex-1">
           <div className="text-sm font-medium truncate">{doc.document_number || doc.filename}</div>
           <div className="text-[11px] text-muted-foreground truncate">
-            {TYPE_LABEL[doc.type] ?? doc.type} · {doc.filename} · {doc.processing_status}
+            {TYPE_LABEL[doc.type] ?? doc.type} · {doc.filename} · {PROCESSING_LABEL[doc.processing_status] ?? doc.processing_status}
           </div>
         </div>
         {doc.injection_suspected && (
           <Badge variant="outline" className="text-[10px] text-red-500 border-red-500/40 shrink-0">
-            Injection?
+            Nghi chèn lệnh?
           </Badge>
         )}
         <Badge variant="outline" className={`text-[10px] shrink-0 ${
           rejected ? "text-red-500 border-red-500/40" : "text-amber-500 border-amber-500/40"
         }`}>
-          {doc.approval_status}
+          {APPROVAL_LABEL[doc.approval_status] ?? doc.approval_status}
         </Badge>
         {!rejected && (
           <Button size="sm" variant="outline" onClick={activate} disabled={busy}
@@ -405,7 +420,7 @@ function ActiveSourcesSection({ docs, loaded }: { docs: DocumentRow[]; loaded: b
               </div>
             </div>
             <Badge variant="outline" className="text-[10px] text-emerald-600 dark:text-emerald-400 border-emerald-500/40 shrink-0">
-              ACTIVE
+              Đang hoạt động
             </Badge>
           </div>
         ))}

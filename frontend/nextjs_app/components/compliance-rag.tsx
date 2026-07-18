@@ -31,8 +31,8 @@ function Icon({ icon, className }: { icon: IconT; className?: string }) {
 type Tab = "add-source" | "rag"
 
 const TABS: { id: Tab; label: string; hint: string }[] = [
-  { id: "add-source", label: "Add Source", hint: "Bổ sung & xác minh nguồn pháp lý" },
-  { id: "rag", label: "RAG", hint: "Tra cứu quy định · Nhận xét tài liệu" },
+  { id: "add-source", label: "Thêm nguồn", hint: "Bổ sung & xác minh nguồn pháp lý" },
+  { id: "rag", label: "Tra cứu & Nhận xét", hint: "Tra cứu quy định · Nhận xét tài liệu" },
 ]
 
 // Vai trò backend (EMPLOYEE) → nhãn tiếng Việt

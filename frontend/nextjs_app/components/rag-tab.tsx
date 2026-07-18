@@ -80,7 +80,7 @@ export function RagTab() {
         <span className="text-[11px] text-muted-foreground hidden lg:block">
           {mode === "ask"
             ? "Hỏi đáp trên kho quy định đã duyệt & đang hiệu lực · mỗi cuộc trò chuyện có bộ nhớ riêng"
-            : "Upload policy/báo cáo để đối chiếu quy định · kết quả khóa theo từng lần đánh giá"}
+            : "Tải lên chính sách/báo cáo để đối chiếu quy định · kết quả khóa theo từng lần đánh giá"}
         </span>
       </div>
       {/* Cả hai mode luôn mounted nhưng ẩn — state không rò rỉ giữa hai loại RAG,
@@ -210,13 +210,13 @@ function AskMode() {
               <div className="flex gap-1.5 flex-wrap">
                 {attachments.map((a) => (
                   <Badge key={a.id} variant="outline" className="text-[10px] text-amber-600 dark:text-amber-400 border-amber-500/40">
-                    {a.filename} · context cục bộ, không phải nguồn pháp lý
+                    {a.filename} · ngữ cảnh cục bộ, không phải nguồn pháp lý
                   </Badge>
                 ))}
               </div>
             )}
             <PromptShell>
-              <label className="cursor-pointer shrink-0 rounded-full p-2 text-muted-foreground hover:text-orange-500 hover:bg-muted/60 transition-colors" title="Đính kèm file context cục bộ (.txt/.md)" aria-label="Thêm file">
+              <label className="cursor-pointer shrink-0 rounded-full p-2 text-muted-foreground hover:text-orange-500 hover:bg-muted/60 transition-colors" title="Đính kèm file ngữ cảnh cục bộ (.txt/.md)" aria-label="Thêm file">
                 <IconPlus />
                 <input type="file" accept=".txt,.md" className="hidden"
                   onChange={(e) => e.target.files?.[0] && attach(e.target.files[0])} />
@@ -475,7 +475,7 @@ function ReviewIntake({ onSingle, onBatch }: {
           <input type="file" accept=".txt,.md,.pdf,.docx" multiple className="hidden"
                  onChange={(e) => e.target.files && addFiles(e.target.files)} />
           <span className="block text-sm font-medium">Chọn file</span>
-          <span className="block text-xs mt-1">1 file = Single Review · nhiều file = Batch (tối đa 5)</span>
+          <span className="block text-xs mt-1">1 file = rà soát đơn · nhiều file = rà soát hàng loạt (tối đa 5)</span>
         </label>
 
         {files.length > 0 && (
@@ -535,7 +535,7 @@ function SingleResult({ run, setRun, onNew }: {
   if (!report) {
     return (
       <div className="flex-1 flex items-center justify-center p-6 text-sm text-muted-foreground">
-        Review Run {run.review_run_id} — trạng thái {run.state}. Chưa có báo cáo.
+        Lần rà soát {run.review_run_id} — trạng thái {run.state}. Chưa có báo cáo.
         <Button size="sm" variant="outline" className="ml-3" onClick={onNew}>Nhận xét tài liệu khác</Button>
       </div>
     )
@@ -580,15 +580,15 @@ function ReviewDocPanel({ report, onNew, onRerun, rerunning }: {
       </div>
       <div className="p-3 text-[11px] text-muted-foreground space-y-1 border-b border-border">
         <div>Ngày đánh giá: <span className="text-foreground">{report.assessment_date}</span></div>
-        <div className="truncate">Snapshot: {report.knowledge_snapshot_id}</div>
-        <div>Prompt {report.versions.prompt} · Schema {report.versions.schema}</div>
+        <div className="truncate">Bản chụp kho: {report.knowledge_snapshot_id}</div>
+        <div>Phiên bản xử lý {report.versions.prompt} · Phiên bản cấu trúc {report.versions.schema}</div>
         <Badge variant="outline" className="text-[9px] text-amber-600 dark:text-amber-400 border-amber-500/40 mt-1">
           Kết quả đã khóa
         </Badge>
       </div>
       <div className="p-2 mt-auto space-y-1.5">
         <Button size="sm" variant="outline" className="w-full" onClick={onRerun} disabled={rerunning}>
-          {rerunning ? "Đang tạo…" : "Đánh giá lại (Run mới)"}
+          {rerunning ? "Đang tạo…" : "Đánh giá lại (lần mới)"}
         </Button>
         <Button size="sm" variant="ghost" className="w-full" onClick={onNew}>Tài liệu khác</Button>
       </div>
@@ -724,7 +724,7 @@ function BatchResult({ batch, setBatch, onNew }: {
     <div className="flex flex-1 overflow-hidden min-h-0">
       <aside className="w-64 border-r border-border flex flex-col shrink-0">
         <div className="p-3 border-b border-border">
-          <div className="text-sm font-semibold">Batch Review</div>
+          <div className="text-sm font-semibold">Rà soát hàng loạt</div>
           <div className="text-[11px] text-muted-foreground mt-1">
             {batch.completed_documents}/{batch.total_documents} hoàn tất
             {batch.failed_documents > 0 && ` · ${batch.failed_documents} lỗi`}
@@ -735,7 +735,7 @@ function BatchResult({ batch, setBatch, onNew }: {
                 {busy ? "…" : "Chạy lại file lỗi"}
               </Button>
             )}
-            <Button size="sm" variant="ghost" onClick={onNew}>Batch khác</Button>
+            <Button size="sm" variant="ghost" onClick={onNew}>Đợt khác</Button>
           </div>
         </div>
         <div className="flex-1 overflow-y-auto">
@@ -892,7 +892,7 @@ function FollowUpChat({ placeholder, ask, onNewRun }: {
                 </Badge>
               )}
               {e.action === "CREATE_NEW_REVIEW_RUN" && onNewRun && (
-                <Button size="sm" variant="outline" className="mt-1" onClick={onNewRun}>Tạo Review Run mới</Button>
+                <Button size="sm" variant="outline" className="mt-1" onClick={onNewRun}>Tạo lần rà soát mới</Button>
               )}
             </div>
           ))}
