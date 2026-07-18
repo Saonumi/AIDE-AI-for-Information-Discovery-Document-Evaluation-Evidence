@@ -39,12 +39,14 @@ class Settings(BaseSettings):
     embedding_dim: int = 1024
 
     # --- LLM ---
-    llm_provider: str = "google"        # "google" | "openai" | "anthropic" | "mock"
+    llm_provider: str = "google"        # "google" | "openai" | "anthropic" | "openrouter" | "mock"
     llm_model: str = "gemini-flash-latest"
     google_api_key: str | None = None   # Google AI Studio (Gemini) API key
     anthropic_api_key: str | None = None
     openai_api_key: str | None = None
+    openrouter_api_key: str | None = None  # OpenAI-compatible; model dạng "anthropic/claude-sonnet-4.5"
     llm_temperature: float = 0.0
+    llm_throttle_s: float = 0.0  # pacing giữa các call LLM (tránh 429 RPM free-tier khi batch eval)
 
     # --- Auth ---
     jwt_secret: str = "change-me-in-prod"

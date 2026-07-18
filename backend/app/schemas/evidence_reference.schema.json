@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "evidence_reference.schema.json",
+  "title": "EvidenceReference",
+  "version": "evidence-reference-1.0",
+  "type": "object",
+  "properties": {
+    "source_id": {"type": "string"},
+    "document_number": {"type": ["string", "null"]},
+    "article": {"type": ["string", "null"]},
+    "clause": {"type": ["string", "null"]},
+    "page": {"type": ["integer", "null"]},
+    "effective_from": {"type": ["string", "null"], "format": "date"},
+    "quoted_text": {"type": ["string", "null"]}
+  },
+  "required": ["source_id"]
+}

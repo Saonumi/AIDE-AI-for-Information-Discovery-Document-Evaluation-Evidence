@@ -29,6 +29,10 @@ class TrustClass(str, Enum):
     INTERNAL_APPROVED = "INTERNAL_APPROVED"
     REVIEW_TARGET = "REVIEW_TARGET"
     UNVERIFIED = "UNVERIFIED"
+    # Mode spec §4 — chat-scope classes; NONE of these is ever legal evidence.
+    CONVERSATION_ATTACHMENT = "CONVERSATION_ATTACHMENT"
+    USER_MESSAGE = "USER_MESSAGE"
+    REVIEW_RESULT = "REVIEW_RESULT"
 
 
 class UploadPurpose(str, Enum):

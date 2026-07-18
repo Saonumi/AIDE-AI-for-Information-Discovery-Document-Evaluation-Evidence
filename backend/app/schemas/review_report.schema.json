@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "review_report.schema.json",
+  "title": "ReviewRunReport",
+  "version": "review-report-1.0",
+  "type": "object",
+  "properties": {
+    "review_run_id": {"type": "string"},
+    "conversation_id": {"type": ["string", "null"]},
+    "assessment_date": {"type": "string", "format": "date"},
+    "knowledge_snapshot_id": {"type": "string"},
+    "target_document": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "string"},
+        "filename": {"type": ["string", "null"]},
+        "trust_class": {"const": "REVIEW_TARGET"}
+      },
+      "required": ["id", "trust_class"]
+    },
+    "versions": {
+      "type": "object",
+      "properties": {
+        "parser": {"type": "string"},
+        "prompt": {"type": "string"},
+        "schema": {"type": "string"}
+      },
+      "required": ["parser", "prompt", "schema"]
+    },
+    "summary": {"type": "object", "additionalProperties": {"type": "integer"}},
+    "assessments": {"type": "array", "items": {"$ref": "claim_assessment.schema.json"}}
+  },
+  "required": ["review_run_id", "assessment_date", "knowledge_snapshot_id",
+               "target_document", "versions", "summary", "assessments"]
+}

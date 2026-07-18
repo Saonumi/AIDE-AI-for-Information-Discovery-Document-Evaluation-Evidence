@@ -3,742 +3,1088 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Compliance Regulatory Knowledge & Document Review Platform — UI Sketch</title>
+<title>Compliance RAG Platform — UI Sketch v2</title>
 <style>
-  :root {
-    --bg: #f4f6f9;
-    --sidebar-bg: #1a2332;
-    --sidebar-active: #2d4a6e;
-    --sidebar-hover: #243447;
-    --primary: #2563eb;
-    --primary-dark: #1d4ed8;
-    --success: #16a34a;
-    --warning: #d97706;
-    --danger: #dc2626;
-    --info: #0891b2;
-    --muted: #6b7280;
-    --border: #e5e7eb;
-    --card: #fff;
-    --text: #111827;
-    --text-sm: #374151;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; font-size: 14px; }
+:root {
+  --sidebar: #0f172a;
+  --sidebar-w: 220px;
+  --a-color: #3b82f6;   /* Workflow A — blue */
+  --b-color: #10b981;   /* Workflow B — emerald */
+  --border: #e2e8f0;
+  --bg: #f8fafc;
+  --card: #fff;
+  --text: #0f172a;
+  --muted: #64748b;
+  --radius: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; font-size: 14px; }
 
-  /* SIDEBAR */
-  .sidebar { width: 240px; min-width: 240px; background: var(--sidebar-bg); display: flex; flex-direction: column; height: 100vh; overflow-y: auto; }
-  .sidebar-logo { padding: 20px 16px 16px; border-bottom: 1px solid #2d3f55; }
-  .sidebar-logo .brand { font-size: 11px; font-weight: 700; color: #94a3b8; letter-spacing: 1px; text-transform: uppercase; }
-  .sidebar-logo .name { font-size: 13px; font-weight: 600; color: #e2e8f0; margin-top: 4px; line-height: 1.4; }
-  .sidebar-section { padding: 12px 8px 4px; font-size: 10px; font-weight: 700; color: #4b6080; text-transform: uppercase; letter-spacing: 1px; }
-  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; cursor: pointer; color: #94a3b8; border-radius: 6px; margin: 1px 6px; transition: background 0.15s, color 0.15s; font-size: 13px; }
-  .nav-item:hover { background: var(--sidebar-hover); color: #e2e8f0; }
-  .nav-item.active { background: var(--sidebar-active); color: #fff; font-weight: 500; }
-  .nav-item .nav-icon { width: 16px; text-align: center; font-style: normal; flex-shrink: 0; }
-  .nav-badge { margin-left: auto; background: #dc2626; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px; }
-  .sidebar-footer { margin-top: auto; padding: 12px 16px; border-top: 1px solid #2d3f55; }
-  .user-info { display: flex; align-items: center; gap: 10px; }
-  .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: #2d4a6e; display: flex; align-items: center; justify-content: center; color: #7dd3fc; font-weight: 700; font-size: 13px; flex-shrink: 0; }
-  .user-name { font-size: 12px; color: #94a3b8; }
-  .user-role { font-size: 10px; color: #4b6080; }
+/* ── SIDEBAR ─────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--sidebar);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+.sb-logo {
+  padding: 18px 14px 14px;
+  border-bottom: 1px solid #1e293b;
+}
+.sb-logo .tag { font-size: 10px; font-weight: 700; color: #475569; letter-spacing: 1px; text-transform: uppercase; }
+.sb-logo .title { font-size: 12px; font-weight: 600; color: #cbd5e1; margin-top: 3px; line-height: 1.4; }
 
-  /* MAIN */
-  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-  .topbar { background: #fff; border-bottom: 1px solid var(--border); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-  .topbar-title { font-size: 16px; font-weight: 600; color: var(--text); }
-  .topbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .health-chip { display: flex; align-items: center; gap: 5px; font-size: 11px; padding: 4px 9px; border-radius: 20px; border: 1px solid var(--border); white-space: nowrap; }
-  .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-  .dot.green { background: #16a34a; }
-  .dot.yellow { background: #d97706; }
-  .dot.red { background: #dc2626; }
-  .content { flex: 1; overflow-y: auto; padding: 24px; }
+/* nav groups */
+.sb-group { padding: 16px 10px 4px; }
+.sb-group-label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase;
+  padding: 4px 8px 4px;
+  border-radius: 4px;
+}
+.sb-group-label.a { color: var(--a-color); border-left: 2px solid var(--a-color); padding-left: 8px; }
+.sb-group-label.b { color: var(--b-color); border-left: 2px solid var(--b-color); padding-left: 8px; }
+.sb-group-label.sys { color: #475569; }
 
-  /* VIEWS */
-  .view { display: none; }
-  .view.active { display: block; }
+.nav-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 10px;
+  margin: 1px 0;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #94a3b8;
+  font-size: 13px;
+  transition: background .12s, color .12s;
+  user-select: none;
+}
+.nav-item:hover { background: #1e293b; color: #e2e8f0; }
+.nav-item.active { background: #1e3a5f; color: #fff; font-weight: 500; }
+.nav-item.active.a { background: #1e3a8a; color: #93c5fd; }
+.nav-item.active.b { background: #064e3b; color: #6ee7b7; }
+.nav-item .ico { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
+.nav-badge { margin-left: auto; background: #dc2626; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px; }
 
-  /* CARDS */
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
-  .card-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 14px; }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.sb-footer {
+  margin-top: auto;
+  padding: 12px 14px;
+  border-top: 1px solid #1e293b;
+  display: flex; align-items: center; gap: 9px;
+}
+.avatar { width: 30px; height: 30px; border-radius: 50%; background: #1e3a8a; color: #93c5fd; font-weight: 700; font-size: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.user-name { font-size: 12px; color: #94a3b8; }
+.user-role { font-size: 10px; color: #475569; }
 
-  /* BADGES */
-  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap; }
-  .badge-authority { background: #dcfce7; color: #14532d; }
-  .badge-candidate { background: #fef3c7; color: #92400e; }
-  .badge-review-target { background: #dbeafe; color: #1e40af; }
-  .badge-unverified { background: #f3f4f6; color: #6b7280; }
-  .badge-active { background: #dcfce7; color: #14532d; }
-  .badge-pending { background: #fef9c3; color: #854d0e; }
-  .badge-rejected { background: #fee2e2; color: #991b1b; }
-  .badge-mock { background: #fce7f3; color: #9d174d; }
+/* ── MAIN ─────────────────────────────────── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
 
-  /* STAT CARDS */
-  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
-  .stat-label { font-size: 12px; color: var(--muted); font-weight: 500; margin-bottom: 6px; }
-  .stat-value { font-size: 28px; font-weight: 700; color: var(--text); }
-  .stat-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
-  .stat-card.danger .stat-value { color: var(--danger); }
-  .stat-card.warning .stat-value { color: var(--warning); }
-  .stat-card.success .stat-value { color: var(--success); }
+.topbar {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  height: 52px;
+  display: flex; align-items: center; padding: 0 20px;
+  gap: 12px; flex-shrink: 0;
+}
+.topbar-title { font-size: 15px; font-weight: 600; flex: 1; }
+.chip { display: flex; align-items: center; gap: 4px; font-size: 11px; padding: 3px 9px; border-radius: 20px; border: 1px solid var(--border); white-space: nowrap; color: var(--muted); }
+.dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.dot.g { background: #16a34a; }
+.dot.y { background: #d97706; }
+.demo-badge { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
 
-  /* ACTION CARDS */
-  .action-card { background: var(--card); border: 2px solid var(--border); border-radius: 14px; padding: 32px 28px; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; gap: 12px; }
-  .action-card:hover { border-color: var(--primary); box-shadow: 0 4px 24px rgba(37,99,235,0.12); }
-  .action-card .icon { font-size: 32px; }
-  .action-card .title { font-size: 18px; font-weight: 700; }
-  .action-card .desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
-  .action-card .note { font-size: 11px; color: #92400e; background: #fffbeb; border: 1px solid #fde68a; padding: 8px 12px; border-radius: 6px; }
+/* ── VIEWS ───────────────────────────────── */
+.view { display: none; flex: 1; overflow: hidden; }
+.view.active { display: flex; flex-direction: column; }
 
-  /* BUTTONS */
-  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: background 0.15s; }
-  .btn-primary { background: var(--primary); color: #fff; }
-  .btn-primary:hover { background: var(--primary-dark); }
-  .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
-  .btn-outline:hover { background: var(--bg); }
-  .btn-success { background: var(--success); color: #fff; }
-  .btn-danger { background: var(--danger); color: #fff; }
-  .btn-warning { background: var(--warning); color: #fff; }
+/* ── CHAT VIEW ───────────────────────────── */
+.chat-layout { display: flex; flex: 1; overflow: hidden; }
 
-  /* PIPELINE */
-  .pipeline { display: flex; align-items: center; overflow-x: auto; padding-bottom: 4px; margin: 16px 0; }
-  .step { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 72px; }
-  .step-circle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; border: 2px solid; }
-  .step.done .step-circle { border-color: var(--success); background: var(--success); color: #fff; }
-  .step.active .step-circle { border-color: var(--primary); background: var(--primary); color: #fff; }
-  .step.pending .step-circle { border-color: var(--border); background: #f9fafb; color: var(--muted); }
-  .step-label { font-size: 10px; color: var(--muted); text-align: center; line-height: 1.3; }
-  .step.done .step-label { color: var(--success); }
-  .step.active .step-label { color: var(--primary); font-weight: 600; }
-  .step-line { flex: 1; height: 2px; background: var(--border); min-width: 16px; margin-bottom: 20px; }
-  .step-line.done { background: var(--success); }
+/* chat sidebar — history */
+.chat-sidebar {
+  width: 220px; min-width: 220px;
+  border-right: 1px solid var(--border);
+  background: var(--card);
+  display: flex; flex-direction: column;
+}
+.cs-header { padding: 14px 14px 10px; border-bottom: 1px solid var(--border); }
+.cs-header .cs-title { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+.new-chat-btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  margin: 10px 10px 0;
+  padding: 8px;
+  background: var(--a-color);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 12px; font-weight: 600;
+  cursor: pointer;
+}
+.new-chat-btn:hover { background: #2563eb; }
+.chat-history { flex: 1; overflow-y: auto; padding: 6px; }
+.chat-hist-item {
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--muted);
+  transition: background .1s;
+  margin-bottom: 2px;
+}
+.chat-hist-item:hover { background: var(--bg); }
+.chat-hist-item.active { background: #eff6ff; color: var(--a-color); font-weight: 500; }
+.chat-hist-date { font-size: 10px; color: #94a3b8; margin-top: 2px; }
 
-  /* SPLIT PANE */
-  .split-pane { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; height: calc(100vh - 144px); }
-  .pane { background: var(--card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
-  .pane-header { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; background: #f9fafb; }
-  .pane-body { flex: 1; overflow-y: auto; padding: 16px; }
+/* filter bar */
+.chat-filter {
+  border-bottom: 1px solid var(--border);
+  padding: 8px 16px;
+  display: flex; align-items: center; gap: 12px;
+  background: #f9fafb; flex-shrink: 0;
+  font-size: 12px;
+}
+.filter-label { color: var(--muted); font-weight: 600; }
+select.filter-sel {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  background: #fff;
+  color: var(--text);
+  outline: none;
+  cursor: pointer;
+}
+.filter-tag { display: flex; align-items: center; gap: 4px; background: #dcfce7; color: #14532d; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
 
-  /* PDF MOCK */
-  .pdf-mock { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 20px; font-size: 12px; line-height: 1.9; color: #374151; font-family: 'Times New Roman', serif; }
-  .pdf-mock .pdf-title { font-weight: 700; font-size: 13px; text-align: center; margin-bottom: 14px; }
-  .pdf-hl { background: #fef08a; padding: 0 2px; border-radius: 2px; }
-  .pdf-hl.red { background: #fecaca; }
-  .pdf-hl.green { background: #bbf7d0; }
-  .page-num { font-size: 10px; color: var(--muted); text-align: right; margin-bottom: 6px; }
+/* messages */
+.chat-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.messages { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
 
-  /* PROPOSAL */
-  .proposal-card { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
-  .proposal-header { padding: 10px 14px; background: #f9fafb; display: flex; align-items: center; justify-content: space-between; }
-  .proposal-op { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
-  .op-replace { background: #dbeafe; color: #1e40af; }
-  .op-insert { background: #d1fae5; color: #065f46; }
-  .op-delete { background: #fee2e2; color: #991b1b; }
-  .proposal-body { padding: 12px 14px; }
-  .diff-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; margin-top: 8px; }
-  .diff-before { background: #fff1f0; border-left: 3px solid #dc2626; padding: 8px 10px; font-size: 12px; border-radius: 0 4px 4px 0; }
-  .diff-after { background: #f0fdf4; border-left: 3px solid #16a34a; padding: 8px 10px; font-size: 12px; border-radius: 0 4px 4px 0; }
-  .ev-chip { display: inline-flex; align-items: center; gap: 4px; background: #eff6ff; border: 1px solid #bfdbfe; padding: 3px 8px; border-radius: 12px; font-size: 11px; color: #1d4ed8; cursor: pointer; }
-  .proposal-footer { padding: 8px 14px; border-top: 1px solid var(--border); display: flex; gap: 8px; background: #fafafa; }
+.msg { display: flex; gap: 10px; max-width: 100%; }
+.msg.user { flex-direction: row-reverse; }
+.msg-bubble {
+  max-width: 65%;
+  padding: 12px 16px;
+  border-radius: 14px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.msg.user .msg-bubble { background: var(--a-color); color: #fff; border-radius: 14px 14px 4px 14px; }
+.msg.bot .msg-bubble { background: var(--card); border: 1px solid var(--border); border-radius: 4px 14px 14px 14px; color: var(--text); }
+.msg-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+.msg.user .msg-avatar { background: var(--a-color); color: #fff; }
+.msg.bot .msg-avatar { background: #f1f5f9; color: var(--muted); }
 
-  /* CLAIM CARDS */
-  .claim-card { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; }
-  .claim-header { padding: 10px 14px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-  .claim-text { font-size: 13px; flex: 1; }
-  .claim-body { padding: 0 14px 12px; }
-  .s-compliant { background: #dcfce7; color: #14532d; }
-  .s-noncompliant { background: #fee2e2; color: #991b1b; }
-  .s-outdated { background: #fef3c7; color: #92400e; }
-  .s-missing { background: #f3f4f6; color: #374151; }
-  .s-needs-review { background: #fce7f3; color: #9d174d; }
-  .ev-block { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 10px 12px; margin-top: 8px; }
-  .ev-meta { font-size: 11px; color: #1d4ed8; font-weight: 600; }
-  .ev-text { font-size: 12px; color: #1e3a5f; margin-top: 4px; font-style: italic; }
-  .excl-block { background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 8px 12px; margin-top: 6px; font-size: 11px; color: #991b1b; }
-  .expl-block { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 8px 12px; margin-top: 6px; font-size: 12px; color: #14532d; }
-  .rec-block { background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 8px 12px; margin-top: 6px; font-size: 12px; color: #92400e; }
+/* citations */
+.citations { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.cite-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: #eff6ff; border: 1px solid #bfdbfe;
+  padding: 4px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 600; color: #1d4ed8;
+  cursor: pointer;
+  transition: background .1s;
+}
+.cite-chip:hover { background: #dbeafe; }
+.cite-chip.active { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
+.cite-meta { font-size: 11px; color: var(--muted); margin-top: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
-  /* TABLE */
-  table { width: 100%; border-collapse: collapse; }
-  th { text-align: left; padding: 9px 12px; font-size: 12px; font-weight: 600; color: var(--muted); background: #f9fafb; border-bottom: 1px solid var(--border); }
-  td { padding: 9px 12px; font-size: 13px; border-bottom: 1px solid #f3f4f6; vertical-align: top; }
-  tr:hover td { background: #f9fafb; }
+/* evidence panel */
+.evidence-panel {
+  width: 320px; min-width: 320px;
+  border-left: 1px solid var(--border);
+  background: var(--card);
+  display: flex; flex-direction: column;
+  transition: width .2s;
+}
+.evidence-panel.hidden { width: 0; min-width: 0; overflow: hidden; }
+.ep-header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+.ep-close { cursor: pointer; color: var(--muted); font-size: 18px; line-height: 1; }
+.ep-body { flex: 1; overflow-y: auto; padding: 14px; }
+.ev-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+.ev-source { font-size: 11px; font-weight: 700; color: #1d4ed8; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ev-text-block { font-size: 12px; line-height: 1.7; color: #1e3a5f; background: #eff6ff; padding: 8px 10px; border-radius: 6px; border-left: 3px solid var(--a-color); }
+.ev-meta-row { font-size: 11px; color: var(--muted); margin-top: 6px; display: flex; gap: 8px; flex-wrap: wrap; }
+.excl-card { background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 10px; font-size: 11px; color: #991b1b; margin-top: 8px; }
 
-  /* FORM */
-  .form-group { margin-bottom: 14px; }
-  .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-sm); margin-bottom: 5px; }
-  .form-input { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; color: var(--text); background: #fff; outline: none; }
-  .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
-  .upload-zone { border: 2px dashed var(--border); border-radius: 8px; padding: 30px; text-align: center; color: var(--muted); cursor: pointer; transition: border-color 0.2s; }
-  .upload-zone:hover { border-color: var(--primary); color: var(--primary); }
-  .upload-icon { font-size: 34px; margin-bottom: 8px; }
-  .warn-banner { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #92400e; display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; }
+/* chat input */
+.chat-input-area {
+  border-top: 1px solid var(--border);
+  padding: 14px 20px;
+  background: var(--card);
+  flex-shrink: 0;
+}
+.chat-input-box {
+  display: flex; align-items: flex-end; gap: 10px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 14px;
+  transition: border-color .15s;
+}
+.chat-input-box:focus-within { border-color: var(--a-color); }
+.chat-input-box textarea {
+  flex: 1; border: none; background: transparent; outline: none;
+  font-size: 13px; resize: none; line-height: 1.5; max-height: 100px;
+  color: var(--text);
+}
+.send-btn {
+  width: 34px; height: 34px; border-radius: 8px;
+  background: var(--a-color); color: #fff;
+  border: none; cursor: pointer; font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background .15s;
+}
+.send-btn:hover { background: #2563eb; }
+.input-hints { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.hint-chip { font-size: 11px; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border); color: var(--muted); cursor: pointer; background: #fff; }
+.hint-chip:hover { border-color: var(--a-color); color: var(--a-color); }
 
-  /* AUDIT / HEALTH */
-  .audit-row { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f3f4f6; }
-  .audit-icon { width: 32px; height: 32px; border-radius: 50%; background: #eff6ff; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
-  .health-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f3f4f6; }
-  .health-ok { color: var(--success); font-size: 12px; font-weight: 600; }
-  .health-warn { color: var(--warning); font-size: 12px; font-weight: 600; }
+/* ── UPLOAD SOURCE VIEW (A) ─────────────── */
+.page-layout { flex: 1; overflow-y: auto; padding: 24px; }
 
-  /* MISC */
-  .section-title { font-size: 13px; font-weight: 700; margin-bottom: 10px; margin-top: 4px; }
-  .gap-8 { display: flex; gap: 8px; align-items: center; }
-  .info-row { display: flex; margin-bottom: 7px; }
-  .info-key { width: 150px; font-size: 12px; color: var(--muted); flex-shrink: 0; }
-  .info-val { font-size: 12px; font-weight: 500; }
-  hr { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
-  .summary-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin: 10px 0; }
-  .legend { display: flex; flex-wrap: wrap; gap: 12px; }
-  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
-  .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
-  .graph-mock { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; min-height: 180px; }
-  .graph-node { background: #fff; border: 2px solid #2563eb; border-radius: 6px; padding: 7px 14px; font-size: 11px; font-weight: 600; color: #1e40af; }
-  .graph-node.doc { border-color: #16a34a; color: #14532d; }
-  .graph-node.change { border-color: #d97706; color: #92400e; }
-  .graph-node.policy { border-color: #7c3aed; color: #4c1d95; }
-  .graph-edge { font-size: 10px; color: var(--muted); }
+.page-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.page-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+
+.warn-block { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #92400e; margin-bottom: 18px; }
+.warn-block.blue { background: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+.card-title { font-size: 13px; font-weight: 700; margin-bottom: 14px; color: var(--text); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+/* pipeline */
+.pipeline { display: flex; align-items: center; margin: 0 0 22px; overflow-x: auto; padding-bottom: 2px; }
+.step { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 68px; }
+.step-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; border: 2px solid; flex-shrink: 0; }
+.step.done .step-dot { border-color: #16a34a; background: #16a34a; color: #fff; }
+.step.active .step-dot { border-color: var(--a-color); background: var(--a-color); color: #fff; }
+.step.wait .step-dot { border-color: #cbd5e1; background: #f8fafc; color: #94a3b8; }
+.step-lbl { font-size: 10px; text-align: center; line-height: 1.3; color: #94a3b8; }
+.step.done .step-lbl { color: #16a34a; }
+.step.active .step-lbl { color: var(--a-color); font-weight: 600; }
+.pipe-line { flex: 1; height: 2px; background: #e2e8f0; min-width: 14px; margin-bottom: 18px; }
+.pipe-line.done { background: #16a34a; }
+
+/* form */
+.form-group { margin-bottom: 14px; }
+.form-label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 5px; }
+.form-input { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 7px; font-size: 13px; outline: none; background: #fff; }
+.form-input:focus { border-color: var(--a-color); }
+.upload-zone { border: 2px dashed #cbd5e1; border-radius: 8px; padding: 28px; text-align: center; color: #94a3b8; cursor: pointer; transition: border-color .2s; }
+.upload-zone:hover { border-color: var(--a-color); color: var(--a-color); }
+
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; }
+.btn-primary { background: var(--a-color); color: #fff; }
+.btn-primary:hover { background: #2563eb; }
+.btn-success { background: #16a34a; color: #fff; }
+.btn-danger { background: #dc2626; color: #fff; }
+.btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-ghost:hover { background: var(--bg); }
+
+/* badge */
+.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap; gap: 3px; }
+.badge-auth { background: #dcfce7; color: #14532d; }
+.badge-cand { background: #fef3c7; color: #92400e; }
+.badge-tgt { background: #eff6ff; color: #1e40af; }
+.badge-ok { background: #dcfce7; color: #14532d; }
+.badge-warn { background: #fef3c7; color: #92400e; }
+.badge-err { background: #fee2e2; color: #991b1b; }
+.badge-gray { background: #f1f5f9; color: #64748b; }
+
+/* ── REVIEW INBOX ───────────────────────── */
+.review-layout { display: flex; flex: 1; overflow: hidden; }
+.review-list { width: 260px; min-width: 260px; border-right: 1px solid var(--border); background: var(--card); overflow-y: auto; }
+.rl-header { padding: 14px 14px 10px; border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 700; }
+.rl-item { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background .1s; }
+.rl-item:hover { background: var(--bg); }
+.rl-item.active { background: #eff6ff; border-left: 3px solid var(--a-color); }
+.rl-item-title { font-size: 13px; font-weight: 600; }
+.rl-item-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+.review-detail { flex: 1; display: flex; overflow: hidden; }
+.pdf-pane { flex: 1; display: flex; flex-direction: column; border-right: 1px solid var(--border); min-width: 0; }
+.pane-hdr { padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; background: #f9fafb; flex-shrink: 0; }
+.pane-body { flex: 1; overflow-y: auto; padding: 16px; }
+.pdf-mock { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 18px; font-size: 12px; line-height: 1.9; color: #374151; font-family: 'Times New Roman', serif; }
+.hl { background: #fef08a; padding: 0 2px; border-radius: 2px; }
+.hl.g { background: #bbf7d0; }
+
+.proposal-pane { width: 380px; min-width: 380px; display: flex; flex-direction: column; overflow: hidden; }
+.prop-card { border-bottom: 1px solid var(--border); }
+.prop-hdr { padding: 10px 14px; background: #f9fafb; display: flex; align-items: center; justify-content: space-between; }
+.op-tag { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
+.op-r { background: #dbeafe; color: #1e40af; }
+.op-i { background: #d1fae5; color: #065f46; }
+.op-d { background: #fee2e2; color: #991b1b; }
+.prop-body { padding: 10px 14px; }
+.diff-lbl { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin: 6px 0 3px; }
+.diff-b { background: #fff1f0; border-left: 3px solid #dc2626; padding: 7px 10px; font-size: 12px; border-radius: 0 4px 4px 0; }
+.diff-a { background: #f0fdf4; border-left: 3px solid #16a34a; padding: 7px 10px; font-size: 12px; border-radius: 0 4px 4px 0; }
+.prop-footer { padding: 8px 14px; display: flex; gap: 6px; background: #fafafa; }
+
+/* ── COMPLIANCE REPORT ──────────────────── */
+.cr-layout { flex: 1; overflow: hidden; display: flex; }
+.claim-list { flex: 1; overflow-y: auto; padding: 20px; min-width: 0; }
+.claim-card { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; background: var(--card); }
+.cc-hdr { padding: 10px 14px; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.cc-text { font-size: 13px; flex: 1; }
+.cc-body { padding: 0 14px 12px; }
+.s-ok { background: #dcfce7; color: #14532d; }
+.s-bad { background: #fee2e2; color: #991b1b; }
+.s-old { background: #fef3c7; color: #92400e; }
+.s-miss { background: #f1f5f9; color: #475569; }
+.s-hmn { background: #fce7f3; color: #9d174d; }
+.ev-inline { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 9px 12px; margin-top: 7px; }
+.ev-inline .ev-src { font-size: 11px; font-weight: 700; color: #1d4ed8; margin-bottom: 4px; }
+.ev-inline .ev-txt { font-size: 12px; color: #1e3a5f; font-style: italic; }
+.excl-inline { background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 7px 10px; margin-top: 5px; font-size: 11px; color: #991b1b; }
+.expl-inline { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 7px 10px; margin-top: 5px; font-size: 12px; color: #14532d; }
+.rec-inline { background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 7px 10px; margin-top: 5px; font-size: 12px; color: #92400e; }
+
+.cr-summary { width: 260px; min-width: 260px; border-left: 1px solid var(--border); background: var(--card); padding: 20px; overflow-y: auto; }
+.sum-title { font-size: 13px; font-weight: 700; margin-bottom: 14px; }
+.sum-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+.sum-num { font-size: 20px; font-weight: 700; }
+.sum-bar { display: flex; height: 7px; border-radius: 4px; overflow: hidden; margin: 10px 0; }
+
+/* table */
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; padding: 9px 12px; font-size: 12px; font-weight: 600; color: var(--muted); background: #f9fafb; border-bottom: 1px solid var(--border); }
+td { padding: 9px 12px; font-size: 13px; border-bottom: 1px solid #f8fafc; vertical-align: top; }
+
+/* health */
+.health-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.h-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; display: flex; align-items: center; gap: 12px; }
+.h-icon { font-size: 20px; }
+.h-name { font-size: 13px; font-weight: 600; }
+.h-detail { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.h-ok { color: #16a34a; font-size: 12px; font-weight: 600; margin-left: auto; }
+.h-warn { color: #d97706; font-size: 12px; font-weight: 600; margin-left: auto; }
 </style>
 </head>
 <body>
 
-<!-- SIDEBAR -->
+<!-- ══ SIDEBAR ══════════════════════════════════════════ -->
 <nav class="sidebar">
-  <div class="sidebar-logo">
-    <div class="brand">SHB · VAIC2026</div>
-    <div class="name">Compliance Regulatory Knowledge &amp; Review Platform</div>
+  <div class="sb-logo">
+    <div class="tag">SHB · VAIC2026</div>
+    <div class="title">Compliance RAG Platform</div>
   </div>
 
-  <div class="sidebar-section">Tổng quan</div>
-  <div class="nav-item active" onclick="show('dashboard')"><i class="nav-icon">◉</i> Dashboard</div>
+  <!-- Main -->
+  <div class="sb-group">
+    <div class="nav-item active" id="nav-chat" onclick="show('chat','chat')">
+      <span class="ico">💬</span> Hỏi đáp & Tra cứu
+    </div>
+  </div>
 
-  <div class="sidebar-section">Workflow A — Nguồn pháp lý</div>
-  <div class="nav-item" onclick="show('add-source')"><i class="nav-icon">⬆</i> Add Regulatory Source</div>
-  <div class="nav-item" onclick="show('review-inbox')"><i class="nav-icon">📋</i> Source Review Inbox <span class="nav-badge">3</span></div>
-  <div class="nav-item" onclick="show('reg-changes')"><i class="nav-icon">⟳</i> Regulatory Changes</div>
-  <div class="nav-item" onclick="show('policy-map')"><i class="nav-icon">🗺</i> Policy Mapping</div>
-  <div class="nav-item" onclick="show('impact-reports')"><i class="nav-icon">📊</i> Regulatory Impact Reports</div>
+  <!-- Workflow A -->
+  <div class="sb-group">
+    <div class="sb-group-label a">Workflow A — Nguồn pháp lý</div>
+    <div class="nav-item" id="nav-upload-a" onclick="show('upload-a','a')">
+      <span class="ico">📥</span> Thêm văn bản
+    </div>
+    <div class="nav-item" id="nav-review" onclick="show('review','a')">
+      <span class="ico">📋</span> Duyệt thay đổi
+      <span class="nav-badge">3</span>
+    </div>
+    <div class="nav-item" id="nav-impact" onclick="show('impact','a')">
+      <span class="ico">📊</span> Báo cáo tác động
+    </div>
+  </div>
 
-  <div class="sidebar-section">Workflow B — Kiểm tra tài liệu</div>
-  <div class="nav-item" onclick="show('check-compliance')"><i class="nav-icon">✓</i> Check Document Compliance</div>
-  <div class="nav-item" onclick="show('compliance-reports')"><i class="nav-icon">📄</i> Compliance Review Reports</div>
+  <!-- Workflow B -->
+  <div class="sb-group">
+    <div class="sb-group-label b">Workflow B — Kiểm tra tài liệu</div>
+    <div class="nav-item" id="nav-upload-b" onclick="show('upload-b','b')">
+      <span class="ico">✓</span> Kiểm tra tài liệu
+    </div>
+    <div class="nav-item" id="nav-report" onclick="show('report','b')">
+      <span class="ico">📄</span> Kết quả kiểm tra
+    </div>
+  </div>
 
-  <div class="sidebar-section">Hỗ trợ</div>
-  <div class="nav-item" onclick="show('evidence-query')"><i class="nav-icon">🔍</i> Tra cứu bằng chứng</div>
-  <div class="nav-item" onclick="show('audit-health')"><i class="nav-icon">⚙</i> Audit &amp; System Health</div>
+  <!-- System -->
+  <div class="sb-group">
+    <div class="sb-group-label sys">Hệ thống</div>
+    <div class="nav-item" id="nav-health" onclick="show('health','sys')">
+      <span class="ico">⚙</span> Health & Audit
+    </div>
+  </div>
 
-  <div class="sidebar-footer">
-    <div class="user-info">
-      <div class="user-avatar">PN</div>
-      <div>
-        <div class="user-name">Phan Nguyệt</div>
-        <div class="user-role">COMPLIANCE_OFFICER</div>
-      </div>
+  <div class="sb-footer">
+    <div class="avatar">PN</div>
+    <div>
+      <div class="user-name">Phan Nguyệt</div>
+      <div class="user-role">COMPLIANCE_OFFICER</div>
     </div>
   </div>
 </nav>
 
-<!-- MAIN -->
+<!-- ══ MAIN ══════════════════════════════════════════════ -->
 <div class="main">
+
+  <!-- TOP BAR -->
   <div class="topbar">
-    <div class="topbar-title" id="page-title">Dashboard</div>
-    <div class="topbar-right">
-      <div class="health-chip"><div class="dot green"></div>PostgreSQL</div>
-      <div class="health-chip"><div class="dot green"></div>OpenSearch</div>
-      <div class="health-chip"><div class="dot yellow"></div>Neo4j: fallback</div>
-      <div class="health-chip"><div class="dot yellow"></div>LLM: mock</div>
-      <span class="badge badge-mock">⚠ DEMO MODE</span>
-    </div>
+    <div class="topbar-title" id="page-title">Hỏi đáp & Tra cứu</div>
+    <div class="chip"><div class="dot g"></div>PostgreSQL</div>
+    <div class="chip"><div class="dot g"></div>OpenSearch</div>
+    <div class="chip"><div class="dot y"></div>Neo4j: fallback</div>
+    <div class="chip"><div class="dot y"></div>LLM: mock</div>
+    <div class="demo-badge">⚠ DEMO MODE</div>
   </div>
 
-  <div class="content">
+  <!-- ══ VIEW: CHAT ═══════════════════════════════════════ -->
+  <div class="view active" id="view-chat">
+    <div class="chat-layout">
 
-    <!-- ===== DASHBOARD ===== -->
-    <div class="view active" id="view-dashboard">
-      <div class="grid-4" style="margin-bottom:20px;">
-        <div class="stat-card success"><div class="stat-label">Nguồn pháp lý ACTIVE</div><div class="stat-value" style="color:var(--success);">12</div><div class="stat-sub">AUTHORITY_SOURCE đã approve</div></div>
-        <div class="stat-card warning"><div class="stat-label">Chờ review</div><div class="stat-value" style="color:var(--warning);">3</div><div class="stat-sub">Critical reviews pending</div></div>
-        <div class="stat-card"><div class="stat-label">Compliance checks</div><div class="stat-value">7</div><div class="stat-sub">Tháng 07/2026</div></div>
-        <div class="stat-card danger"><div class="stat-label">Non-compliant claims</div><div class="stat-value" style="color:var(--danger);">14</div><div class="stat-sub">Cần xử lý</div></div>
-      </div>
-
-      <div style="font-size:15px;font-weight:700;margin-bottom:12px;">Chọn hành động</div>
-      <div class="grid-2" style="margin-bottom:24px;">
-        <div class="action-card" onclick="show('add-source')">
-          <div class="icon">📥</div>
-          <div class="title">Add Regulatory Source</div>
-          <div class="desc">Thêm thông tư, quyết định, văn bản sửa đổi hoặc hợp nhất để cập nhật kho pháp lý đã được xác minh.</div>
-          <div class="note">⚠ Tài liệu phải được review và approve trước khi trở thành ground truth.</div>
-          <div><span class="btn btn-primary">Bắt đầu →</span></div>
-        </div>
-        <div class="action-card" onclick="show('check-compliance')">
-          <div class="icon">✅</div>
-          <div class="title">Check Document Compliance</div>
-          <div class="desc">Upload policy, báo cáo tuân thủ hoặc tài liệu nội bộ để kiểm tra với kho quy định đã phê duyệt.</div>
-          <div class="note">⚠ File không được thêm vào legal knowledge base. Chỉ dùng để kiểm tra.</div>
-          <div><span class="btn btn-primary">Bắt đầu →</span></div>
+      <!-- left: session history -->
+      <div class="chat-sidebar">
+        <div class="cs-header"><div class="cs-title">Phiên hỏi đáp</div></div>
+        <div class="new-chat-btn" onclick="clearChat()">＋ Câu hỏi mới</div>
+        <div class="chat-history">
+          <div class="chat-hist-item active">
+            Hạn mức tín dụng SME hiện hành?
+            <div class="chat-hist-date">Hôm nay 09:12</div>
+          </div>
+          <div class="chat-hist-item">
+            Điều kiện vay mua nhà cá nhân
+            <div class="chat-hist-date">Hôm qua 15:30</div>
+          </div>
+          <div class="chat-hist-item">
+            TT 07/2024 có sửa điều khoản nào?
+            <div class="chat-hist-date">16/07/2026</div>
+          </div>
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-title">Hoạt động gần đây</div>
-        <table>
-          <thead><tr><th>Thời gian</th><th>Loại</th><th>Tài liệu</th><th>Trạng thái</th><th>Người thực hiện</th></tr></thead>
-          <tbody>
-            <tr><td>18/07/2026 09:12</td><td><span class="badge badge-candidate">SOURCE CANDIDATE</span></td><td>06/2025/TT-NHNN</td><td><span class="badge badge-pending">⏳ REVIEW_REQUIRED</span></td><td>Phan Nguyệt</td></tr>
-            <tr><td>17/07/2026 15:40</td><td><span class="badge badge-review-target">CHECK</span></td><td>Policy_TinDung_V3.docx</td><td><span class="badge badge-pending">⏳ CHECKING</span></td><td>Lê Thanh</td></tr>
-            <tr><td>16/07/2026 11:20</td><td><span class="badge badge-authority">SOURCE</span></td><td>07/2024/TT-NHNN</td><td><span class="badge badge-active">✓ ACTIVE</span></td><td>Phan Nguyệt</td></tr>
-          </tbody>
-        </table>
+      <!-- center: chat + evidence -->
+      <div class="chat-main">
+
+        <!-- filter bar -->
+        <div class="chat-filter">
+          <span class="filter-label">Ngày hiệu lực:</span>
+          <input type="date" style="border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:12px;outline:none;" value="2026-07-18">
+          <span class="filter-label">Phạm vi:</span>
+          <select class="filter-sel">
+            <option>Tín dụng — SME</option>
+            <option>Tín dụng — Cá nhân</option>
+            <option>Thanh toán</option>
+            <option>Toàn bộ</option>
+          </select>
+          <div class="filter-tag">✓ Chỉ AUTHORITY_SOURCE đã ACTIVE</div>
+        </div>
+
+        <!-- messages -->
+        <div class="messages" id="messages">
+          <!-- welcome -->
+          <div style="text-align:center; padding: 20px 0 10px; color: var(--muted); font-size: 13px;">
+            <div style="font-size:28px;margin-bottom:8px;">💬</div>
+            <div style="font-weight:600;font-size:15px;color:var(--text);">Hỏi về quy định pháp lý</div>
+            <div style="margin-top:4px;">Hệ thống chỉ dùng nguồn đã được phê duyệt và đang có hiệu lực tại ngày tra cứu.</div>
+          </div>
+
+          <!-- user msg -->
+          <div class="msg user">
+            <div class="msg-avatar">PN</div>
+            <div class="msg-bubble">
+              Hạn mức tín dụng đối với khách hàng SME hiện tại là bao nhiêu?
+            </div>
+          </div>
+
+          <!-- bot msg -->
+          <div class="msg bot">
+            <div class="msg-avatar">🤖</div>
+            <div class="msg-bubble">
+              <p>Theo quy định hiện hành tại ngày <strong>18/07/2026</strong>, hạn mức tín dụng cho khách hàng doanh nghiệp vừa và nhỏ (SME) là:</p>
+              <ul style="margin: 8px 0 8px 16px; line-height: 1.8;">
+                <li>Tối đa <strong>700 triệu đồng</strong>, thời hạn cho vay tối đa 12 tháng.</li>
+                <li>Đối với SME có xếp hạng tín dụng <strong>AA trở lên</strong>, hạn mức có thể nâng lên tối đa <strong>1 tỷ đồng</strong> theo phê duyệt của Giám đốc Chi nhánh.</li>
+              </ul>
+              <p style="font-size:12px;color:var(--muted);"><em>Phiên bản V1 (hạn mức 500 triệu) đã hết hiệu lực từ 01/07/2024 và bị loại khỏi kết quả.</em></p>
+              <div class="citations">
+                <span class="cite-chip active" onclick="togglePanel()">📑 TT 07/2024 · Khoản 2 Điều 7 · V2</span>
+                <span class="cite-chip" onclick="togglePanel()">📑 TT 06/2025 · Khoản 2a Điều 7</span>
+              </div>
+              <div class="cite-meta">
+                <span class="badge badge-auth">AUTHORITY_SOURCE</span>
+                <span>hiệu lực 01/07/2024→∞</span>
+                <span>Confidence: 0.97</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- user 2 -->
+          <div class="msg user">
+            <div class="msg-avatar">PN</div>
+            <div class="msg-bubble">Tỷ lệ nợ xấu tối đa được phép là bao nhiêu?</div>
+          </div>
+
+          <!-- bot 2 -->
+          <div class="msg bot">
+            <div class="msg-avatar">🤖</div>
+            <div class="msg-bubble">
+              <p>Tỷ lệ nợ xấu nội bảng tối đa không được vượt quá <strong>2%</strong> trên tổng dư nợ tín dụng.</p>
+              <div class="citations">
+                <span class="cite-chip" onclick="togglePanel()">📑 TT 02/2023 · Điều 12 · Trang 7</span>
+              </div>
+              <div class="cite-meta">
+                <span class="badge badge-auth">AUTHORITY_SOURCE</span>
+                <span>Confidence: 0.99</span>
+              </div>
+            </div>
+          </div>
+        </div><!-- /messages -->
+
+        <!-- input -->
+        <div class="chat-input-area">
+          <div class="chat-input-box">
+            <textarea id="chat-input" placeholder="Đặt câu hỏi về quy định pháp lý..." rows="1"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"
+              oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+            <button class="send-btn" onclick="sendMsg()">↑</button>
+          </div>
+          <div class="input-hints">
+            <span class="hint-chip" onclick="fillInput('Điều kiện cấp tín dụng SME là gì?')">Điều kiện tín dụng SME</span>
+            <span class="hint-chip" onclick="fillInput('TT 07/2024 sửa đổi những điều khoản nào?')">TT 07/2024 sửa đổi gì?</span>
+            <span class="hint-chip" onclick="fillInput('Hạn mức vay mua nhà cá nhân là bao nhiêu?')">Hạn mức vay nhà</span>
+            <span class="hint-chip" onclick="fillInput('Lịch sử thay đổi Khoản 2 Điều 7')">Lịch sử Khoản 2 Điều 7</span>
+          </div>
+        </div>
+      </div><!-- /chat-main -->
+
+      <!-- evidence panel (toggleable) -->
+      <div class="evidence-panel" id="evidence-panel">
+        <div class="ep-header">
+          Bằng chứng pháp lý
+          <span class="ep-close" onclick="togglePanel()">×</span>
+        </div>
+        <div class="ep-body">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Nhấn vào citation để xem chi tiết. Chỉ hiện bằng chứng APPROVED + ACTIVE tại 18/07/2026.</div>
+
+          <div class="ev-card">
+            <div class="ev-source">
+              <span class="badge badge-auth">AUTHORITY_SOURCE</span>
+              TT 07/2024/TT-NHNN · Khoản 2 Điều 7 · Trang 3
+            </div>
+            <div class="ev-text-block">"Hạn mức tín dụng SME tối đa là <strong>700 triệu đồng</strong>, thời hạn cho vay tối đa 12 tháng."</div>
+            <div class="ev-meta-row">
+              <span>Version: V2</span>
+              <span>valid_from: 2024-07-01</span>
+              <span>valid_to: ∞</span>
+              <span>RRF: 0.82</span>
+            </div>
+          </div>
+
+          <div class="excl-card">
+            🚫 <strong>Đã loại:</strong> V1 (01/2023/TT-NHNN · Khoản 2 Điều 7)<br>
+            Lý do: SUPERSEDED tại 01/07/2024. Không dùng phiên bản lỗi thời.
+          </div>
+
+          <div class="ev-card" style="margin-top:10px;">
+            <div class="ev-source">
+              <span class="badge badge-auth">AUTHORITY_SOURCE</span>
+              TT 06/2025/TT-NHNN · Khoản 2a Điều 7 · Trang 3
+            </div>
+            <div class="ev-text-block">"Đối với SME có xếp hạng tín dụng AA trở lên, hạn mức có thể nâng lên tối đa 1 tỷ đồng theo phê duyệt của Giám đốc Chi nhánh."</div>
+            <div class="ev-meta-row">
+              <span>Version: V1</span>
+              <span>valid_from: 2025-07-01</span>
+              <span>valid_to: ∞</span>
+              <span>RRF: 0.74</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+  </div><!-- /view-chat -->
 
-    <!-- ===== ADD REGULATORY SOURCE ===== -->
-    <div class="view" id="view-add-source">
-      <div class="warn-banner">📌 Tài liệu upload ở đây sẽ có trạng thái <strong>AUTHORITY_SOURCE_CANDIDATE</strong> cho đến khi được review đầy đủ và activate. File <strong>chưa được</strong> dùng làm căn cứ pháp lý.</div>
-
-      <div class="pipeline">
-        <div class="step active"><div class="step-circle">1</div><div class="step-label">Upload<br>File</div></div>
-        <div class="step-line"></div>
-        <div class="step pending"><div class="step-circle">2</div><div class="step-label">Validate<br>Quarantine</div></div>
-        <div class="step-line"></div>
-        <div class="step pending"><div class="step-circle">3</div><div class="step-label">Extract<br>OCR</div></div>
-        <div class="step-line"></div>
-        <div class="step pending"><div class="step-circle">4</div><div class="step-label">Parse<br>Structure</div></div>
-        <div class="step-line"></div>
-        <div class="step pending"><div class="step-circle">5</div><div class="step-label">LLM<br>Extract</div></div>
-        <div class="step-line"></div>
-        <div class="step pending"><div class="step-circle">6</div><div class="step-label">Build<br>Review Pkg</div></div>
-        <div class="step-line"></div>
-        <div class="step pending"><div class="step-circle">7</div><div class="step-label">Human<br>Review</div></div>
-        <div class="step-line"></div>
-        <div class="step pending"><div class="step-circle">8</div><div class="step-label">Activate<br>→ ACTIVE</div></div>
+  <!-- ══ VIEW: UPLOAD SOURCE (A) ══════════════════════════ -->
+  <div class="view" id="view-upload-a">
+    <div class="page-layout">
+      <div class="warn-block">
+        📌 File được upload ở đây sẽ là <strong>AUTHORITY_SOURCE_CANDIDATE</strong> — chưa được dùng làm căn cứ pháp lý cho đến khi được duyệt và activate.
       </div>
-
+      <div class="pipeline">
+        <div class="step active"><div class="step-dot">1</div><div class="step-lbl">Upload</div></div>
+        <div class="pipe-line"></div>
+        <div class="step wait"><div class="step-dot">2</div><div class="step-lbl">Validate<br>Quarantine</div></div>
+        <div class="pipe-line"></div>
+        <div class="step wait"><div class="step-dot">3</div><div class="step-lbl">Extract<br>OCR</div></div>
+        <div class="pipe-line"></div>
+        <div class="step wait"><div class="step-dot">4</div><div class="step-lbl">Parse<br>Điều/Khoản</div></div>
+        <div class="pipe-line"></div>
+        <div class="step wait"><div class="step-dot">5</div><div class="step-lbl">LLM<br>Extract</div></div>
+        <div class="pipe-line"></div>
+        <div class="step wait"><div class="step-dot">6</div><div class="step-lbl">Build<br>Review Pkg</div></div>
+        <div class="pipe-line"></div>
+        <div class="step wait"><div class="step-dot">7</div><div class="step-lbl">Duyệt<br>(HITL)</div></div>
+        <div class="pipe-line"></div>
+        <div class="step wait"><div class="step-dot">8</div><div class="step-lbl">Activate<br>→ ACTIVE</div></div>
+      </div>
       <div class="grid-2">
         <div class="card">
           <div class="card-title">Upload văn bản pháp lý</div>
-          <div class="form-group"><label class="form-label">Upload Purpose</label><select class="form-input"><option>ADD_REGULATORY_SOURCE</option></select></div>
-          <div class="upload-zone"><div class="upload-icon">📎</div><p><strong>Kéo thả hoặc click để chọn</strong></p><p style="font-size:11px;margin-top:4px;">PDF, DOCX — tối đa 25 MB</p></div>
+          <div class="upload-zone">
+            <div style="font-size:32px;margin-bottom:8px;">📎</div>
+            <div style="font-weight:600;font-size:13px;">Kéo thả hoặc click chọn file</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:4px;">PDF, DOCX — tối đa 25 MB</div>
+          </div>
           <div style="margin-top:14px;">
-            <div class="form-group"><label class="form-label">Loại văn bản</label><select class="form-input"><option>Thông tư (CIRCULAR)</option><option>Quyết định (DECISION)</option><option>Văn bản sửa đổi (AMENDMENT)</option><option>Văn bản hợp nhất (CONSOLIDATED)</option></select></div>
-            <div class="form-group"><label class="form-label">Ghi chú (tùy chọn)</label><input type="text" class="form-input" placeholder="VD: Cập nhật hạn mức tín dụng SME..."></div>
-            <button class="btn btn-primary" style="width:100%">⬆ Upload &amp; Bắt đầu xử lý</button>
+            <div class="form-group">
+              <label class="form-label">Loại văn bản</label>
+              <select class="form-input">
+                <option>Thông tư (CIRCULAR)</option>
+                <option>Quyết định (DECISION)</option>
+                <option>Văn bản sửa đổi (AMENDMENT)</option>
+                <option>Văn bản hợp nhất (CONSOLIDATED)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Ghi chú</label>
+              <input type="text" class="form-input" placeholder="VD: Cập nhật hạn mức SME tháng 7...">
+            </div>
+            <button class="btn btn-primary" style="width:100%">⬆ Upload & Xử lý</button>
           </div>
         </div>
         <div class="card">
-          <div class="card-title">Hướng dẫn</div>
-          <div style="font-size:13px;line-height:1.9;color:var(--text-sm);">
-            <p><strong>1.</strong> Upload file PDF/DOCX văn bản pháp lý.</p>
-            <p><strong>2.</strong> Hệ thống parse, trích xuất metadata và điều khoản.</p>
-            <p><strong>3.</strong> Mở <strong>Source Review Inbox</strong> để review từng change proposal.</p>
-            <p><strong>4.</strong> Sau khi approve toàn bộ critical reviews, nhấn <strong>Activate</strong>.</p>
-            <p><strong>5.</strong> Văn bản trở thành <span class="badge badge-authority">AUTHORITY_SOURCE</span> và sẵn sàng cho retrieval.</p>
-            <hr>
-            <p style="color:var(--danger);"><strong>⚠</strong> Activate sẽ thất bại (HTTP 409) nếu còn critical review chưa xử lý.</p>
+          <div class="card-title">Đang xử lý gần nhất</div>
+          <table>
+            <thead><tr><th>File</th><th>Trạng thái</th><th></th></tr></thead>
+            <tbody>
+              <tr>
+                <td>06/2025/TT-NHNN</td>
+                <td><span class="badge badge-warn">⏳ Chờ duyệt</span></td>
+                <td><button class="btn btn-ghost" style="font-size:11px;padding:4px 8px;" onclick="show('review','a')">Duyệt →</button></td>
+              </tr>
+              <tr>
+                <td>07/2024/TT-NHNN</td>
+                <td><span class="badge badge-ok">✓ ACTIVE</span></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ VIEW: REVIEW INBOX (A) ═══════════════════════════ -->
+  <div class="view" id="view-review">
+    <div class="review-layout">
+
+      <!-- list -->
+      <div class="review-list">
+        <div class="rl-header">Chờ duyệt (3)</div>
+        <div class="rl-item active">
+          <div class="rl-item-title">06/2025/TT-NHNN</div>
+          <div class="rl-item-sub">3 proposals · 18/07/2026</div>
+        </div>
+        <div class="rl-item">
+          <div class="rl-item-title">03/2025/QĐ-HĐQT</div>
+          <div class="rl-item-sub">1 proposal · 15/07/2026</div>
+        </div>
+        <div class="rl-item">
+          <div class="rl-item-title">Reference mơ hồ</div>
+          <div class="rl-item-sub">Cần xác minh · 14/07/2026</div>
+        </div>
+      </div>
+
+      <!-- pdf -->
+      <div class="pdf-pane">
+        <div class="pane-hdr">
+          <span>📄 06/2025/TT-NHNN — Trang 3</span>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span class="badge badge-cand">CANDIDATE</span>
+            <button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;">← →</button>
+          </div>
+        </div>
+        <div class="pane-body">
+          <div class="pdf-mock">
+            <div style="font-weight:700;font-size:13px;text-align:center;margin-bottom:12px;">THÔNG TƯ SỐ 06/2025/TT-NHNN</div>
+            <p>Sửa đổi, bổ sung Thông tư 07/2024/TT-NHNN.</p><br>
+            <p><strong>Điều 1.</strong> Sửa đổi Điều 7:</p><br>
+            <p>1. Khoản 2 được <span class="hl">sửa đổi</span> như sau:</p>
+            <p>"2. Hạn mức tín dụng SME tối đa là <span class="hl g">700 triệu đồng</span>, thời hạn 12 tháng."</p><br>
+            <p>2. Bổ sung Khoản 2a:</p>
+            <p>"2a. <span class="hl g">SME xếp hạng AA trở lên: tối đa 1 tỷ đồng, phê duyệt GĐ Chi nhánh.</span>"</p><br>
+            <p><strong>Điều 2.</strong> Hiệu lực: <span class="hl">01/07/2025</span>.</p>
+          </div>
+          <div style="margin-top:10px;padding:8px 10px;background:#fffbeb;border-radius:6px;font-size:11px;color:#92400e;">⚠ OCR quality: 94%</div>
+        </div>
+      </div>
+
+      <!-- proposals -->
+      <div class="proposal-pane">
+        <div class="pane-hdr">
+          <span>📋 3 Proposals</span>
+          <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;" onclick="alert('Activation blocked — HTTP 409\n\nCòn 2 critical reviews chưa approve.')">🔒 Activate</button>
+        </div>
+        <div style="overflow-y:auto;flex:1;">
+          <!-- proposal 1 -->
+          <div class="prop-card">
+            <div class="prop-hdr">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span class="op-tag op-r">REPLACE_PROVISION</span>
+                <strong style="font-size:12px;">Khoản 2 Điều 7</strong>
+              </div>
+              <span class="badge badge-warn" id="p1">⏳ Pending</span>
+            </div>
+            <div class="prop-body">
+              <div class="diff-lbl">Trước</div>
+              <div class="diff-b">Hạn mức SME tối đa là <strong>500 triệu đồng</strong>, thời hạn 12 tháng.</div>
+              <div class="diff-lbl">Sau</div>
+              <div class="diff-a">Hạn mức SME tối đa là <strong>700 triệu đồng</strong>, thời hạn 12 tháng.</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center;">
+                <span class="cite-chip">📑 Trang 3</span>
+                <span class="badge badge-ok">✓ EXACT MATCH</span>
+                <span style="font-size:11px;color:var(--muted);">Hiệu lực: 01/07/2025</span>
+              </div>
+            </div>
+            <div class="prop-footer" id="pf1">
+              <button class="btn btn-success" style="font-size:12px;padding:5px 10px;" onclick="document.getElementById('p1').textContent='✓ Approved';document.getElementById('p1').className='badge badge-ok';document.getElementById('pf1').innerHTML='<span style=&quot;color:#16a34a;font-size:12px;font-weight:600;&quot;>✓ Đã Approve</span>'">✓ Approve</button>
+              <button class="btn btn-ghost" style="font-size:12px;padding:5px 10px;">✏ Edit</button>
+              <button class="btn btn-danger" style="font-size:12px;padding:5px 10px;">✕ Reject</button>
+            </div>
+          </div>
+
+          <!-- proposal 2 -->
+          <div class="prop-card">
+            <div class="prop-hdr">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span class="op-tag op-i">INSERT_AFTER</span>
+                <strong style="font-size:12px;">Khoản 2a Điều 7</strong>
+              </div>
+              <span class="badge badge-warn">⏳ Pending</span>
+            </div>
+            <div class="prop-body">
+              <div class="diff-lbl">Nội dung bổ sung</div>
+              <div class="diff-a">SME xếp hạng AA trở lên: tối đa 1 tỷ đồng, phê duyệt GĐ Chi nhánh.</div>
+              <div style="margin-top:8px;font-size:11px;color:#d97706;">⚠ Cần xác minh vị trí sibling</div>
+            </div>
+            <div class="prop-footer">
+              <button class="btn btn-success" style="font-size:12px;padding:5px 10px;">✓ Approve</button>
+              <button class="btn btn-ghost" style="font-size:12px;padding:5px 10px;">✏ Edit</button>
+              <button class="btn btn-danger" style="font-size:12px;padding:5px 10px;">✕ Reject</button>
+            </div>
+          </div>
+
+          <!-- proposal 3 unresolved -->
+          <div class="prop-card" style="border-color:#fde68a;">
+            <div class="prop-hdr" style="background:#fffbeb;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span class="op-tag" style="background:#fef3c7;color:#92400e;">REFERENCE</span>
+                <strong style="font-size:12px;">Điều 15 · 07/2024</strong>
+              </div>
+              <span class="badge badge-cand">⚠ Unresolved</span>
+            </div>
+            <div class="prop-body">
+              <div style="font-size:12px;color:#92400e;padding:8px;background:#fffbeb;border-radius:4px;">Không tìm thấy Điều 15 trong kho. Upload văn bản gốc trước.</div>
+            </div>
+            <div class="prop-footer">
+              <button class="btn btn-ghost" style="font-size:12px;padding:5px 10px;">🔍 Tìm văn bản</button>
+              <button class="btn btn-danger" style="font-size:12px;padding:5px 10px;">Bỏ qua</button>
+            </div>
+          </div>
+
+          <div style="padding:12px 14px;">
+            <div style="background:#fee2e2;border:1px solid #fecaca;border-radius:7px;padding:10px 12px;font-size:12px;color:#991b1b;">
+              🔒 <strong>Activate bị chặn:</strong> Còn 2 pending reviews. HTTP 409 sẽ trả về nếu cố activate.
+            </div>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- ===== SOURCE REVIEW INBOX (SPLIT PANE) ===== -->
-    <div class="view" id="view-review-inbox">
-      <div class="split-pane">
-        <!-- LEFT PDF -->
-        <div class="pane">
-          <div class="pane-header">
-            <span>📄 06/2025/TT-NHNN — Trang 3 / 18</span>
-            <div class="gap-8"><span class="badge badge-candidate">CANDIDATE</span><button class="btn btn-outline" style="font-size:11px;padding:3px 8px;">← →</button></div>
-          </div>
-          <div class="pane-body">
-            <div class="page-num">Trang 3</div>
-            <div class="pdf-mock">
-              <div class="pdf-title">THÔNG TƯ SỐ 06/2025/TT-NHNN</div>
-              <p>Ngày 15 tháng 03 năm 2025 — Sửa đổi, bổ sung một số điều của Thông tư 07/2024/TT-NHNN.</p><br>
-              <p><strong>Điều 1.</strong> Sửa đổi Điều 7 Thông tư 07/2024/TT-NHNN:</p><br>
-              <p>1. Khoản 2 Điều 7 được <span class="pdf-hl">sửa đổi</span> như sau:</p>
-              <p>"2. Hạn mức tín dụng SME tối đa là <span class="pdf-hl green">700 triệu đồng</span>, thời hạn cho vay tối đa 12 tháng."</p><br>
-              <p>2. Bổ sung Khoản 2a sau Khoản 2:</p>
-              <p>"2a. <span class="pdf-hl green">Đối với SME xếp hạng AA trở lên, hạn mức có thể nâng lên 1 tỷ đồng theo phê duyệt Giám đốc Chi nhánh.</span>"</p><br>
-              <p><strong>Điều 2.</strong> Thông tư có hiệu lực từ <span class="pdf-hl">01 tháng 07 năm 2025</span>.</p>
-            </div>
-            <div style="margin-top:10px;padding:8px;background:#fffbeb;border-radius:6px;font-size:11px;color:#92400e;">⚠ OCR quality: 94% — một số ký số có thể đọc sai</div>
-          </div>
-        </div>
-
-        <!-- RIGHT PROPOSALS -->
-        <div class="pane">
-          <div class="pane-header">
-            <span>📋 Review Package — 3 proposals</span>
-            <button class="btn btn-outline" style="font-size:11px;padding:4px 10px;" onclick="alert('Activation blocked: còn 2 critical reviews chưa approve!\nHTTP 409 REVIEW_NOT_COMPLETED')">🔒 Activate</button>
-          </div>
-          <div class="pane-body">
-            <div class="info-row"><div class="info-key">Số hiệu</div><div class="info-val">06/2025/TT-NHNN</div></div>
-            <div class="info-row"><div class="info-key">Cơ quan ban hành</div><div class="info-val">Ngân hàng Nhà nước VN</div></div>
-            <div class="info-row"><div class="info-key">Ngày hiệu lực</div><div class="info-val">01/07/2025</div></div>
-            <div class="info-row"><div class="info-key">Văn bản sửa đổi</div><div class="info-val">07/2024/TT-NHNN</div></div>
-            <hr>
-
-            <!-- P1 -->
-            <div class="proposal-card">
-              <div class="proposal-header">
-                <div class="gap-8"><span class="proposal-op op-replace">REPLACE_PROVISION</span><strong style="font-size:12px;">Khoản 2 Điều 7</strong></div>
-                <span class="badge badge-pending" id="p1-status">⏳ PENDING</span>
-              </div>
-              <div class="proposal-body">
-                <div class="diff-label">Trước</div>
-                <div class="diff-before">Hạn mức tín dụng SME tối đa là <strong>500 triệu đồng</strong>, thời hạn tối đa 12 tháng.</div>
-                <div class="diff-label">Sau</div>
-                <div class="diff-after">Hạn mức tín dụng SME tối đa là <strong>700 triệu đồng</strong>, thời hạn cho vay tối đa 12 tháng.</div>
-                <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-                  <span class="ev-chip">📑 Trang 3</span>
-                  <span style="font-size:11px;color:var(--muted);">Hiệu lực: 01/07/2025</span>
-                  <span class="badge badge-active">✓ EXACT MATCH</span>
-                </div>
-              </div>
-              <div class="proposal-footer" id="p1-footer">
-                <button class="btn btn-success" style="font-size:12px;padding:5px 12px;" onclick="document.getElementById('p1-status').className='badge badge-active';document.getElementById('p1-status').textContent='✓ APPROVED';document.getElementById('p1-footer').innerHTML='<span style=\'color:var(--success);font-size:12px;font-weight:600;\'>✓ Đã Approve</span>'">✓ Approve</button>
-                <button class="btn btn-outline" style="font-size:12px;padding:5px 12px;">✏ Edit</button>
-                <button class="btn btn-danger" style="font-size:12px;padding:5px 12px;">✕ Reject</button>
-              </div>
-            </div>
-
-            <!-- P2 -->
-            <div class="proposal-card">
-              <div class="proposal-header">
-                <div class="gap-8"><span class="proposal-op op-insert">INSERT_AFTER</span><strong style="font-size:12px;">Khoản 2a sau Khoản 2 Điều 7</strong></div>
-                <span class="badge badge-pending">⏳ PENDING</span>
-              </div>
-              <div class="proposal-body">
-                <div class="diff-label">Nội dung bổ sung</div>
-                <div class="diff-after">Đối với SME xếp hạng AA trở lên, hạn mức có thể nâng lên 1 tỷ đồng theo phê duyệt Giám đốc Chi nhánh.</div>
-                <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-                  <span class="ev-chip">📑 Trang 3</span>
-                  <span style="font-size:11px;color:var(--warning);">⚠ Xác minh vị trí sibling</span>
-                </div>
-              </div>
-              <div class="proposal-footer">
-                <button class="btn btn-success" style="font-size:12px;padding:5px 12px;">✓ Approve</button>
-                <button class="btn btn-outline" style="font-size:12px;padding:5px 12px;">✏ Edit</button>
-                <button class="btn btn-danger" style="font-size:12px;padding:5px 12px;">✕ Reject</button>
-              </div>
-            </div>
-
-            <!-- P3 warning -->
-            <div class="proposal-card" style="border-color:#fde68a;">
-              <div class="proposal-header" style="background:#fffbeb;">
-                <div class="gap-8"><span class="proposal-op" style="background:#fef3c7;color:#92400e;">REFERENCE</span><strong style="font-size:12px;">Điều 15 · 07/2024/TT-NHNN</strong></div>
-                <span class="badge badge-candidate">⚠ NOT_RESOLVED</span>
-              </div>
-              <div class="proposal-body">
-                <div style="font-size:12px;color:#92400e;background:#fffbeb;padding:8px;border-radius:4px;">Không tìm thấy Điều 15 trong kho. Upload văn bản gốc 07/2024/TT-NHNN trước.</div>
-              </div>
-              <div class="proposal-footer">
-                <button class="btn btn-outline" style="font-size:12px;padding:5px 12px;">🔍 Tìm văn bản gốc</button>
-                <button class="btn btn-danger" style="font-size:12px;padding:5px 12px;">Bỏ qua</button>
-              </div>
-            </div>
-
-            <div style="background:#fee2e2;border:1px solid #fecaca;border-radius:8px;padding:12px;font-size:12px;color:#991b1b;margin-top:8px;">
-              🔒 <strong>Activation blocked:</strong> Còn 2 critical reviews chưa resolve. Approve hoặc reject toàn bộ trước khi activate.
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== REGULATORY CHANGES ===== -->
-    <div class="view" id="view-reg-changes">
-      <div class="card" style="margin-bottom:16px;">
-        <div class="card-title">Lịch sử thay đổi quy định</div>
-        <table>
-          <thead><tr><th>Change Event</th><th>Văn bản nguồn</th><th>Target</th><th>Operation</th><th>Hiệu lực</th><th>Version</th></tr></thead>
-          <tbody>
-            <tr><td><code style="font-size:11px;">ce-001</code></td><td>07/2024/TT-NHNN</td><td>Khoản 2 Điều 7 · 01/2023/TT-NHNN</td><td><span class="proposal-op op-replace">REPLACE</span></td><td>01/07/2024</td><td><span class="badge badge-active">V1→V2 ✓</span></td></tr>
-            <tr><td><code style="font-size:11px;">ce-002</code></td><td>03/2025/QĐ-HĐQT</td><td>Điều 3 · Policy/KH2024</td><td><span class="proposal-op op-insert">INSERT</span></td><td>01/04/2025</td><td><span class="badge badge-active">V1→V2 ✓</span></td></tr>
-          </tbody>
-        </table>
-      </div>
+  <!-- ══ VIEW: IMPACT (A) ══════════════════════════════════ -->
+  <div class="view" id="view-impact">
+    <div class="page-layout">
       <div class="card">
-        <div class="card-title">Lineage Graph — ce-001</div>
-        <div class="graph-mock">
-          <div class="graph-node doc">📄 01/2023/TT-NHNN</div>
-          <div class="graph-edge">── HAS_VERSION ──</div>
-          <div style="display:flex;gap:40px;">
-            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-              <div class="graph-node" style="opacity:0.6;">V1 (2023-01-01 → 2024-07-01)</div>
-              <span style="font-size:10px;color:var(--muted);">SUPERSEDED ↓</span>
-            </div>
-            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-              <div class="graph-node" style="border-color:#16a34a;color:#14532d;">V2 (2024-07-01 → ∞)</div>
-              <span style="font-size:10px;color:var(--success);">CURRENT ✓</span>
-            </div>
-          </div>
-          <div class="graph-edge">── AMENDS ──</div>
-          <div class="graph-node change">⟳ ChangeEvent ce-001</div>
-          <div class="graph-edge">── TRIGGERS_IMPACT ──</div>
-          <div class="graph-node policy">📋 Policy KH/2024 · §3.2</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== POLICY MAPPING ===== -->
-    <div class="view" id="view-policy-map">
-      <div class="card">
-        <div class="card-title">Policy Clause ↔ Provision Mapping</div>
-        <table>
-          <thead><tr><th>Policy Clause</th><th>Provision</th><th>Relation</th><th>Evidence</th><th>Confidence</th><th>Review</th></tr></thead>
-          <tbody>
-            <tr>
-              <td>KH/2024 · §3.2<br><span style="font-size:11px;color:var(--muted);">Hạn mức tín dụng SME</span></td>
-              <td>01/2023/TT-NHNN · Khoản 2 Điều 7<br><span class="badge badge-authority" style="margin-top:3px;">AUTHORITY_SOURCE</span></td>
-              <td><span class="badge badge-active">ALIGNED_TO</span></td>
-              <td><span class="ev-chip">Trang 3</span></td>
-              <td>0.94 <span style="color:var(--success);">●</span></td>
-              <td><span class="badge badge-active">APPROVED</span></td>
-            </tr>
-            <tr>
-              <td>KH/2024 · §5.1<br><span style="font-size:11px;color:var(--muted);">Xếp hạng tín dụng</span></td>
-              <td>06/2025/TT-NHNN · Khoản 2a<br><span class="badge badge-candidate" style="margin-top:3px;">CANDIDATE</span></td>
-              <td><span class="badge badge-pending">CANDIDATE</span></td>
-              <td><span class="ev-chip">Trang 3</span></td>
-              <td>0.71 <span style="color:var(--warning);">●</span></td>
-              <td><span class="badge badge-pending">PENDING</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- ===== IMPACT REPORTS ===== -->
-    <div class="view" id="view-impact-reports">
-      <div class="card">
-        <div class="card-title">Regulatory Impact Report — IR-001</div>
-        <div class="grid-2" style="margin-bottom:16px;">
-          <div>
-            <div class="info-row"><div class="info-key">Change Event</div><div class="info-val">ce-001 · 07/2024/TT-NHNN</div></div>
-            <div class="info-row"><div class="info-key">Provision thay đổi</div><div class="info-val">Khoản 2 Điều 7 · 01/2023/TT-NHNN</div></div>
-            <div class="info-row"><div class="info-key">Ngày hiệu lực</div><div class="info-val">01/07/2024</div></div>
-          </div>
-          <div>
-            <div class="info-row"><div class="info-key">Policy bị ảnh hưởng</div><div class="info-val">3 clauses</div></div>
-            <div class="info-row"><div class="info-key">Severity</div><div class="info-val"><span style="color:var(--danger);font-weight:700;">HIGH — Số tiền thay đổi</span></div></div>
-          </div>
-        </div>
+        <div class="card-title">Regulatory Impact Report — ce-001 · 07/2024/TT-NHNN</div>
         <div class="grid-2" style="margin-bottom:16px;">
           <div style="background:#fff1f0;border:1px solid #fecaca;border-radius:8px;padding:14px;">
-            <div style="font-size:11px;font-weight:700;color:#991b1b;margin-bottom:6px;">TRƯỚC — V1 (đến 30/06/2024)</div>
-            <div>Hạn mức tín dụng SME tối đa là <strong>500 triệu đồng</strong>, thời hạn tối đa 12 tháng.</div>
+            <div style="font-size:11px;font-weight:700;color:#991b1b;margin-bottom:5px;">TRƯỚC — V1 (đến 30/06/2024)</div>
+            Hạn mức SME tối đa là <strong>500 triệu đồng</strong>, thời hạn 12 tháng.
           </div>
           <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:14px;">
-            <div style="font-size:11px;font-weight:700;color:#14532d;margin-bottom:6px;">SAU — V2 (từ 01/07/2024)</div>
-            <div>Hạn mức tín dụng SME tối đa là <strong>700 triệu đồng</strong>, thời hạn cho vay tối đa 12 tháng.</div>
+            <div style="font-size:11px;font-weight:700;color:#14532d;margin-bottom:5px;">SAU — V2 (từ 01/07/2024)</div>
+            Hạn mức SME tối đa là <strong>700 triệu đồng</strong>, thời hạn 12 tháng.
           </div>
         </div>
-        <div class="section-title">Policy bị ảnh hưởng</div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:10px;">Policy bị ảnh hưởng</div>
         <table>
-          <thead><tr><th>Policy Clause</th><th>Tác động</th><th>Severity</th><th>Owner</th><th>Action</th></tr></thead>
+          <thead><tr><th>Policy Clause</th><th>Tác động</th><th>Severity</th><th>Action</th></tr></thead>
           <tbody>
-            <tr><td>KH/2024 · §3.2</td><td>Số tiền cứng đã lỗi thời: 500M → 700M</td><td><span style="color:var(--danger);font-weight:700;">HIGH</span></td><td>BP Tín dụng SME</td><td><button class="btn btn-warning" style="font-size:11px;padding:4px 8px;">🔔 Assign</button></td></tr>
-            <tr><td>QT/2024 · §1.1</td><td>Dẫn chiếu phiên bản cũ</td><td><span style="color:var(--warning);font-weight:700;">MEDIUM</span></td><td>BP Pháp chế</td><td><button class="btn btn-warning" style="font-size:11px;padding:4px 8px;">🔔 Assign</button></td></tr>
+            <tr><td>KH/2024 · §3.2 — Hạn mức SME</td><td>Số tiền cứng đã lỗi thời: 500M → 700M</td><td><span style="color:#dc2626;font-weight:700;">HIGH</span></td><td><button class="btn btn-ghost" style="font-size:11px;padding:4px 8px;">🔔 Assign</button></td></tr>
+            <tr><td>QT/2024 · §1.1 — Dẫn chiếu</td><td>Dẫn chiếu phiên bản cũ của thông tư</td><td><span style="color:#d97706;font-weight:700;">MEDIUM</span></td><td><button class="btn btn-ghost" style="font-size:11px;padding:4px 8px;">🔔 Assign</button></td></tr>
           </tbody>
         </table>
       </div>
     </div>
+  </div>
 
-    <!-- ===== CHECK COMPLIANCE ===== -->
-    <div class="view" id="view-check-compliance">
-      <div class="warn-banner">🔒 <strong>File này chỉ được dùng để kiểm tra mức độ tuân thủ.</strong> Không được thêm vào legal knowledge base, không trở thành nguồn pháp lý.</div>
+  <!-- ══ VIEW: UPLOAD CHECK (B) ════════════════════════════ -->
+  <div class="view" id="view-upload-b">
+    <div class="page-layout">
+      <div class="warn-block blue">
+        🔒 File upload ở đây là <strong>REVIEW_TARGET</strong> — chỉ dùng để kiểm tra, <strong>không được</strong> thêm vào legal knowledge base.
+      </div>
       <div class="grid-2">
         <div class="card">
           <div class="card-title">Upload tài liệu cần kiểm tra</div>
-          <div class="form-group"><label class="form-label">Upload Purpose</label><select class="form-input" disabled><option>CHECK_DOCUMENT_COMPLIANCE</option></select></div>
-          <div class="upload-zone"><div class="upload-icon">📋</div><p><strong>Policy, báo cáo hoặc tài liệu nội bộ</strong></p><p style="font-size:11px;margin-top:4px;">PDF, DOCX, TXT</p></div>
+          <div class="upload-zone">
+            <div style="font-size:32px;margin-bottom:8px;">📋</div>
+            <div style="font-weight:600;font-size:13px;">Policy, báo cáo, tài liệu nội bộ</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:4px;">PDF, DOCX, TXT</div>
+          </div>
           <div style="margin-top:14px;">
-            <div class="form-group"><label class="form-label">Review date (ngày áp dụng quy định)</label><input type="date" class="form-input" value="2026-07-18"></div>
-            <div class="form-group"><label class="form-label">Scope / Domain</label><select class="form-input"><option>Tín dụng — SME</option><option>Tín dụng — Cá nhân</option><option>Thanh toán</option><option>Toàn bộ</option></select></div>
-            <button class="btn btn-primary" style="width:100%">✓ Upload &amp; Bắt đầu kiểm tra</button>
+            <div class="form-group">
+              <label class="form-label">Ngày áp dụng quy định (review date)</label>
+              <input type="date" class="form-input" value="2026-07-18">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phạm vi kiểm tra</label>
+              <select class="form-input">
+                <option>Tín dụng — SME</option>
+                <option>Tín dụng — Cá nhân</option>
+                <option>Thanh toán</option>
+              </select>
+            </div>
+            <button class="btn" style="width:100%;background:var(--b-color);color:#fff;">✓ Upload & Kiểm tra</button>
           </div>
         </div>
         <div class="card">
-          <div class="card-title">Đang xử lý: Policy_TinDung_V3.docx</div>
+          <div class="card-title">Đang kiểm tra: Policy_TinDung_V3.docx</div>
           <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
-            <div class="gap-8"><div class="step-circle done" style="width:26px;height:26px;font-size:11px;">✓</div><span style="font-size:12px;color:var(--success);">Extract structure &amp; text</span></div>
-            <div class="gap-8"><div class="step-circle done" style="width:26px;height:26px;font-size:11px;">✓</div><span style="font-size:12px;color:var(--success);">Extract claims (12 claims)</span></div>
-            <div class="gap-8"><div class="step-circle active" style="width:26px;height:26px;font-size:11px;">⟳</div><span style="font-size:12px;color:var(--primary);">Retrieve ACTIVE evidence...</span></div>
-            <div class="gap-8"><div class="step-circle pending" style="width:26px;height:26px;font-size:11px;">4</div><span style="font-size:12px;color:var(--muted);">Compare &amp; classify claims</span></div>
-            <div class="gap-8"><div class="step-circle pending" style="width:26px;height:26px;font-size:11px;">5</div><span style="font-size:12px;color:var(--muted);">Build Compliance Report</span></div>
+            <div style="display:flex;align-items:center;gap:8px;"><div class="step-dot done" style="width:26px;height:26px;font-size:10px;">✓</div><span style="font-size:12px;color:#16a34a;">Extract structure &amp; text</span></div>
+            <div style="display:flex;align-items:center;gap:8px;"><div class="step-dot done" style="width:26px;height:26px;font-size:10px;">✓</div><span style="font-size:12px;color:#16a34a;">Extract claims — 12 claims</span></div>
+            <div style="display:flex;align-items:center;gap:8px;"><div class="step-dot active" style="width:26px;height:26px;font-size:10px;">⟳</div><span style="font-size:12px;color:var(--b-color);">Retrieve ACTIVE evidence...</span></div>
+            <div style="display:flex;align-items:center;gap:8px;"><div class="step-dot wait" style="width:26px;height:26px;font-size:10px;">4</div><span style="font-size:12px;color:#94a3b8;">Compare &amp; classify</span></div>
+            <div style="display:flex;align-items:center;gap:8px;"><div class="step-dot wait" style="width:26px;height:26px;font-size:10px;">5</div><span style="font-size:12px;color:#94a3b8;">Build report</span></div>
           </div>
-          <div style="background:#eff6ff;border-radius:6px;padding:10px;font-size:12px;color:#1e40af;">ℹ Chỉ dùng AUTHORITY_SOURCE APPROVED + ACTIVE tại 18/07/2026.</div>
+          <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:6px;padding:10px;font-size:12px;color:#065f46;">
+            ✓ Chỉ retrieve từ AUTHORITY_SOURCE đang APPROVED + ACTIVE tại 18/07/2026.
+          </div>
+          <div style="margin-top:10px;"><button class="btn" style="width:100%;background:var(--b-color);color:#fff;" onclick="show('report','b')">Xem kết quả →</button></div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- ===== COMPLIANCE REPORTS ===== -->
-    <div class="view" id="view-compliance-reports">
-      <div class="card" style="margin-bottom:16px;">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
+  <!-- ══ VIEW: COMPLIANCE REPORT (B) ══════════════════════ -->
+  <div class="view" id="view-report">
+    <div class="cr-layout">
+      <!-- claims -->
+      <div class="claim-list">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
           <div>
-            <div style="font-size:15px;font-weight:700;">Compliance Review Report — Policy_TinDung_V3.docx</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:4px;">Review date: 18/07/2026 · Scope: Tín dụng SME <span class="badge badge-review-target" style="margin-left:8px;">REVIEW_TARGET</span></div>
+            <div style="font-size:15px;font-weight:700;">Policy_TinDung_V3.docx</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px;">Review date: 18/07/2026 · Scope: Tín dụng SME <span class="badge badge-tgt" style="margin-left:6px;">REVIEW_TARGET</span></div>
           </div>
-          <button class="btn btn-outline">📥 Export JSON</button>
+          <button class="btn btn-ghost" style="font-size:12px;">📥 Export JSON</button>
         </div>
-        <div class="grid-4" style="margin-bottom:12px;">
-          <div style="text-align:center;"><div style="font-size:26px;font-weight:700;color:var(--success);">5</div><div style="font-size:11px;color:var(--muted);">COMPLIANT</div></div>
-          <div style="text-align:center;"><div style="font-size:26px;font-weight:700;color:var(--danger);">2</div><div style="font-size:11px;color:var(--muted);">NON_COMPLIANT</div></div>
-          <div style="text-align:center;"><div style="font-size:26px;font-weight:700;color:var(--warning);">1</div><div style="font-size:11px;color:var(--muted);">OUTDATED</div></div>
-          <div style="text-align:center;"><div style="font-size:26px;font-weight:700;color:var(--muted);">1</div><div style="font-size:11px;color:var(--muted);">MISSING_EVIDENCE</div></div>
+
+        <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;">
+          <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px;">Tất cả (12)</button>
+          <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px;border-color:#dc2626;color:#dc2626;">❌ Non-compliant (2)</button>
+          <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px;border-color:#d97706;color:#d97706;">⚠ Outdated (1)</button>
+          <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px;">Missing (1)</button>
         </div>
-        <div class="summary-bar"><div style="width:42%;background:#16a34a;"></div><div style="width:17%;background:#dc2626;"></div><div style="width:8%;background:#d97706;"></div><div style="width:8%;background:#6b7280;"></div><div style="width:25%;background:#e5e7eb;"></div></div>
-        <div class="legend"><div class="legend-item"><div class="legend-dot" style="background:#16a34a;"></div>Compliant (5)</div><div class="legend-item"><div class="legend-dot" style="background:#dc2626;"></div>Non-compliant (2)</div><div class="legend-item"><div class="legend-dot" style="background:#d97706;"></div>Outdated (1)</div><div class="legend-item"><div class="legend-dot" style="background:#6b7280;"></div>Missing (1)</div><div class="legend-item"><div class="legend-dot" style="background:#e5e7eb;"></div>Needs review (3)</div></div>
+
+        <!-- claim: OUTDATED -->
+        <div class="claim-card">
+          <div class="cc-hdr">
+            <div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:2px;">§3.2 · Claim #1</div>
+              <div class="cc-text">"Hạn mức tín dụng SME tối đa là <strong>500 triệu đồng</strong>, thời hạn 12 tháng."</div>
+            </div>
+            <span class="badge s-old" style="flex-shrink:0;">⚠ OUTDATED</span>
+          </div>
+          <div class="cc-body">
+            <div class="ev-inline">
+              <div class="ev-src"><span class="badge badge-auth">AUTHORITY_SOURCE</span> TT 07/2024 · K2 Đ7 · Trang 3 · V2 · Hiệu lực 01/07/2024→∞</div>
+              <div class="ev-txt">"Hạn mức SME tối đa là <strong>700 triệu đồng</strong>, thời hạn 12 tháng."</div>
+            </div>
+            <div class="excl-inline">🚫 V1 (500 triệu) — SUPERSEDED tại 01/07/2024. Không áp dụng tại 18/07/2026.</div>
+            <div class="expl-inline">💡 Tài liệu dùng hạn mức cũ (V1). Phiên bản hiện hành (V2) quy định 700 triệu.</div>
+            <div class="rec-inline">🔧 Cập nhật §3.2: "500 triệu" → "700 triệu". Nguồn: TT 07/2024 K2 Đ7.</div>
+            <div style="display:flex;gap:6px;margin-top:10px;align-items:center;flex-wrap:wrap;">
+              <span style="font-size:11px;color:var(--muted);">Confidence: 0.96</span>
+              <button class="btn btn-success" style="font-size:11px;padding:4px 8px;">✓ Confirm</button>
+              <button class="btn btn-ghost" style="font-size:11px;padding:4px 8px;">✕ Dismiss</button>
+              <button class="btn btn-ghost" style="font-size:11px;padding:4px 8px;border-color:#d97706;color:#d97706;">🔔 Needs action</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- claim: NON-COMPLIANT -->
+        <div class="claim-card">
+          <div class="cc-hdr">
+            <div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:2px;">§5.1 · Claim #2</div>
+              <div class="cc-text">"Tỷ lệ nợ xấu tối đa được phép là <strong>3%</strong> tổng dư nợ."</div>
+            </div>
+            <span class="badge s-bad" style="flex-shrink:0;">❌ NON_COMPLIANT</span>
+          </div>
+          <div class="cc-body">
+            <div class="ev-inline">
+              <div class="ev-src"><span class="badge badge-auth">AUTHORITY_SOURCE</span> TT 02/2023 · Điều 12 · Trang 7</div>
+              <div class="ev-txt">"Tỷ lệ nợ xấu nội bảng tối đa không vượt quá <strong>2%</strong> tổng dư nợ."</div>
+            </div>
+            <div class="expl-inline">💡 Mâu thuẫn định lượng trực tiếp: tài liệu ghi 3%, quy định yêu cầu ≤ 2%.</div>
+            <div class="rec-inline">🔧 Sửa xuống ≤ 2%. Nguồn: TT 02/2023 Điều 12.</div>
+            <div style="display:flex;gap:6px;margin-top:10px;align-items:center;">
+              <span style="font-size:11px;color:var(--muted);">Confidence: 0.99</span>
+              <button class="btn btn-success" style="font-size:11px;padding:4px 8px;">✓ Confirm</button>
+              <button class="btn btn-ghost" style="font-size:11px;padding:4px 8px;">✕ Dismiss</button>
+              <button class="btn btn-ghost" style="font-size:11px;padding:4px 8px;border-color:#d97706;color:#d97706;">🔔 Needs action</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- claim: MISSING -->
+        <div class="claim-card">
+          <div class="cc-hdr">
+            <div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:2px;">§8.3 · Claim #3</div>
+              <div class="cc-text">"Thời hạn xử lý hồ sơ tín dụng SME tối đa là 5 ngày làm việc."</div>
+            </div>
+            <span class="badge s-miss" style="flex-shrink:0;">⊘ MISSING</span>
+          </div>
+          <div class="cc-body">
+            <div style="background:#f8fafc;border:1px solid var(--border);border-radius:6px;padding:10px;font-size:12px;color:var(--muted);">Không tìm thấy căn cứ trong kho đã duyệt tại 18/07/2026. Không thể xác nhận hoặc bác bỏ.</div>
+            <div style="display:flex;gap:6px;margin-top:10px;">
+              <span style="font-size:11px;color:var(--muted);">Confidence: 0.31</span>
+              <button class="btn btn-ghost" style="font-size:11px;padding:4px 8px;" onclick="show('chat','chat')">🔍 Hỏi thêm →</button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
-        <button class="btn btn-outline" style="font-size:11px;padding:5px 10px;">Tất cả (12)</button>
-        <button class="btn btn-outline" style="font-size:11px;padding:5px 10px;border-color:#dc2626;color:#dc2626;">❌ Non-compliant (2)</button>
-        <button class="btn btn-outline" style="font-size:11px;padding:5px 10px;border-color:#d97706;color:#d97706;">⚠ Outdated (1)</button>
-        <button class="btn btn-outline" style="font-size:11px;padding:5px 10px;">Missing (1)</button>
-      </div>
-
-      <!-- Claim 1: OUTDATED -->
-      <div class="claim-card">
-        <div class="claim-header">
-          <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px;">§3.2 · Claim #1</div><div class="claim-text">"Hạn mức tín dụng SME tối đa là <strong>500 triệu đồng</strong>, thời hạn tối đa 12 tháng."</div></div>
-          <span class="badge s-outdated" style="flex-shrink:0;">⚠ OUTDATED_REFERENCE</span>
+      <!-- summary panel -->
+      <div class="cr-summary">
+        <div class="sum-title">Tổng kết</div>
+        <div class="sum-bar"><div style="width:42%;background:#16a34a;"></div><div style="width:17%;background:#dc2626;"></div><div style="width:8%;background:#d97706;"></div><div style="width:8%;background:#6b7280;"></div><div style="width:25%;background:#e2e8f0;"></div></div>
+        <div class="sum-row"><span>✅ Compliant</span><span class="sum-num" style="color:#16a34a;">5</span></div>
+        <div class="sum-row"><span>❌ Non-compliant</span><span class="sum-num" style="color:#dc2626;">2</span></div>
+        <div class="sum-row"><span>⚠ Outdated</span><span class="sum-num" style="color:#d97706;">1</span></div>
+        <div class="sum-row"><span>⊘ Missing</span><span class="sum-num" style="color:#64748b;">1</span></div>
+        <div class="sum-row"><span>🔍 Needs review</span><span class="sum-num" style="color:#9d174d;">3</span></div>
+        <div style="margin-top:14px;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:10px;font-size:12px;color:#991b1b;">
+          ⚠ 3 vấn đề cần xử lý trước khi ký duyệt tài liệu.
         </div>
-        <div class="claim-body">
-          <div class="ev-block">
-            <div class="ev-meta">📑 Bằng chứng áp dụng — V2 (hiện hành tại 18/07/2026)</div>
-            <div style="margin-top:4px;" class="gap-8"><span class="badge badge-authority">AUTHORITY_SOURCE</span><span style="font-size:11px;color:var(--muted);">07/2024/TT-NHNN · Khoản 2 Điều 7 · Trang 3 · Hiệu lực 01/07/2024→∞</span></div>
-            <div class="ev-text">"Hạn mức tín dụng SME tối đa là <strong>700 triệu đồng</strong>, thời hạn cho vay tối đa 12 tháng."</div>
-          </div>
-          <div class="excl-block">🚫 <strong>Excluded:</strong> V1 (01/2023/TT-NHNN · Khoản 2 Điều 7) — SUPERSEDED tại 01/07/2024. Tài liệu đang dùng phiên bản đã hết hiệu lực.</div>
-          <div class="expl-block">💡 Tài liệu dùng hạn mức 500 triệu từ V1 đã bị thay thế bởi V2 (700 triệu) từ 01/07/2024.</div>
-          <div class="rec-block">🔧 Cập nhật §3.2 từ "500 triệu đồng" → "700 triệu đồng". Dẫn chiếu: 07/2024/TT-NHNN Khoản 2 Điều 7.</div>
-          <div style="display:flex;gap:8px;margin-top:10px;align-items:center;">
-            <span style="font-size:11px;color:var(--muted);">Confidence: 0.96</span>
-            <button class="btn btn-success" style="font-size:11px;padding:4px 8px;">✓ Confirm</button>
-            <button class="btn btn-outline" style="font-size:11px;padding:4px 8px;">✕ Dismiss</button>
-            <button class="btn btn-outline" style="font-size:11px;padding:4px 8px;">✏ Edit</button>
-            <button class="btn btn-warning" style="font-size:11px;padding:4px 8px;">🔔 Needs action</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Claim 2: NON-COMPLIANT -->
-      <div class="claim-card">
-        <div class="claim-header">
-          <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px;">§5.1 · Claim #2</div><div class="claim-text">"Tỷ lệ nợ xấu tối đa được phép là <strong>3%</strong> tổng dư nợ tín dụng."</div></div>
-          <span class="badge s-noncompliant" style="flex-shrink:0;">❌ NON_COMPLIANT</span>
-        </div>
-        <div class="claim-body">
-          <div class="ev-block">
-            <div class="ev-meta">📑 Bằng chứng áp dụng</div>
-            <div style="margin-top:4px;" class="gap-8"><span class="badge badge-authority">AUTHORITY_SOURCE</span><span style="font-size:11px;color:var(--muted);">02/2023/TT-NHNN · Điều 12 · Trang 7</span></div>
-            <div class="ev-text">"Tỷ lệ nợ xấu nội bảng tối đa không được vượt quá <strong>2%</strong> trên tổng dư nợ tín dụng."</div>
-          </div>
-          <div class="expl-block">💡 Tài liệu quy định ngưỡng 3% nhưng quy định hiện hành yêu cầu không quá 2%. Mâu thuẫn trực tiếp về ngưỡng định lượng.</div>
-          <div class="rec-block">🔧 Cập nhật xuống ≤ 2% theo 02/2023/TT-NHNN Điều 12.</div>
-          <div style="display:flex;gap:8px;margin-top:10px;align-items:center;">
-            <span style="font-size:11px;color:var(--muted);">Confidence: 0.99</span>
-            <button class="btn btn-success" style="font-size:11px;padding:4px 8px;">✓ Confirm</button>
-            <button class="btn btn-outline" style="font-size:11px;padding:4px 8px;">✕ Dismiss</button>
-            <button class="btn btn-warning" style="font-size:11px;padding:4px 8px;">🔔 Needs action</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Claim 3: MISSING -->
-      <div class="claim-card">
-        <div class="claim-header">
-          <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px;">§8.3 · Claim #3</div><div class="claim-text">"Thời hạn xử lý hồ sơ tín dụng SME tối đa là 5 ngày làm việc."</div></div>
-          <span class="badge s-missing" style="flex-shrink:0;">⊘ MISSING_EVIDENCE</span>
-        </div>
-        <div class="claim-body">
-          <div style="background:#f9fafb;border:1px solid var(--border);border-radius:6px;padding:10px;font-size:12px;color:var(--muted);">Không tìm thấy căn cứ pháp lý đủ mạnh trong kho AUTHORITY_SOURCE đã duyệt tại 18/07/2026.</div>
-          <div style="display:flex;gap:8px;margin-top:10px;align-items:center;">
-            <span style="font-size:11px;color:var(--muted);">Confidence: 0.31</span>
-            <button class="btn btn-outline" style="font-size:11px;padding:4px 8px;">🔍 Tra cứu thêm</button>
-            <button class="btn btn-warning" style="font-size:11px;padding:4px 8px;">🔔 Needs action</button>
-          </div>
+        <div style="margin-top:10px;">
+          <button class="btn btn-ghost" style="width:100%;font-size:12px;">📥 Export báo cáo</button>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- ===== EVIDENCE QUERY ===== -->
-    <div class="view" id="view-evidence-query">
-      <div class="card" style="margin-bottom:16px;">
-        <div class="card-title">Tra cứu bằng chứng pháp lý</div>
-        <div style="display:flex;gap:10px;margin-bottom:10px;">
-          <input type="text" class="form-input" style="flex:1;" placeholder="Nhập câu hỏi... VD: hạn mức tín dụng SME hiện hành là bao nhiêu?">
-          <input type="date" class="form-input" style="width:140px;" value="2026-07-18">
-          <button class="btn btn-primary">🔍 Tìm</button>
-        </div>
-        <div style="display:flex;gap:16px;font-size:12px;">
-          <label style="display:flex;align-items:center;gap:5px;"><input type="checkbox" checked> Chỉ AUTHORITY_SOURCE</label>
-          <label style="display:flex;align-items:center;gap:5px;"><input type="checkbox" checked> Chỉ APPROVED + ACTIVE</label>
-        </div>
+  <!-- ══ VIEW: HEALTH ══════════════════════════════════════ -->
+  <div class="view" id="view-health">
+    <div class="page-layout">
+      <div class="demo-badge" style="margin-bottom:14px;display:inline-block;">⚠ DEMO_MODE = true — Neo4j &amp; LLM đang dùng fallback</div>
+      <div class="health-grid" style="margin-bottom:20px;">
+        <div class="h-card"><div class="h-icon">🗄</div><div><div class="h-name">PostgreSQL</div><div class="h-detail">Source of truth · metadata, trust, versions</div></div><div class="h-ok">● OK</div></div>
+        <div class="h-card"><div class="h-icon">🔍</div><div><div class="h-name">OpenSearch</div><div class="h-detail">legal_authority_index · source_review_index</div></div><div class="h-ok">● OK</div></div>
+        <div class="h-card"><div class="h-icon">🕸</div><div><div class="h-name">Neo4j</div><div class="h-detail">Graph lineage · impact paths</div></div><div class="h-warn">⚠ Memory fallback</div></div>
+        <div class="h-card"><div class="h-icon">🤖</div><div><div class="h-name">LLM</div><div class="h-detail">Provider: mock (DEMO_MODE)</div></div><div class="h-warn">⚠ Mock mode</div></div>
+        <div class="h-card"><div class="h-icon">⚡</div><div><div class="h-name">Embedding</div><div class="h-detail">BAAI/bge-m3 · dim=1024</div></div><div class="h-ok">● OK</div></div>
+        <div class="h-card"><div class="h-icon">📡</div><div><div class="h-name">Index sync</div><div class="h-detail">Outbox worker · last: 2s ago</div></div><div class="h-ok">● OK</div></div>
       </div>
+
       <div class="card">
-        <div class="ev-block">
-          <div class="ev-meta">📑 07/2024/TT-NHNN · Khoản 2 Điều 7 · Trang 3 <span class="badge badge-authority" style="margin-left:6px;">AUTHORITY_SOURCE</span></div>
-          <div style="font-size:11px;color:var(--muted);margin-top:3px;">valid_from: 2024-07-01 · valid_to: ∞ · RRF score: 0.82</div>
-          <div class="ev-text">"Hạn mức tín dụng SME tối đa là 700 triệu đồng, thời hạn cho vay tối đa 12 tháng."</div>
-        </div>
-        <div class="excl-block" style="margin-top:8px;">🚫 Excluded: V1 (01/2023/TT-NHNN) — SUPERSEDED_AT_QUERY_DATE (2024-07-01)</div>
+        <div class="card-title">Audit Trail gần đây</div>
+        <table>
+          <thead><tr><th>Thời gian</th><th>Hành động</th><th>Entity</th><th>Người thực hiện</th></tr></thead>
+          <tbody>
+            <tr><td>18/07/2026 09:14</td><td><span class="badge badge-err">🔒 Activation blocked</span></td><td>06/2025/TT-NHNN</td><td>Phan Nguyệt</td></tr>
+            <tr><td>16/07/2026 11:22</td><td><span class="badge badge-ok">✓ Activated ACTIVE</span></td><td>07/2024/TT-NHNN → V2</td><td>Phan Nguyệt</td></tr>
+            <tr><td>16/07/2026 11:20</td><td><span class="badge badge-ok">✓ Review approved</span></td><td>ce-001 · K2 Đ7</td><td>Phan Nguyệt</td></tr>
+            <tr><td>17/07/2026 15:40</td><td><span class="badge badge-tgt">📋 Check started</span></td><td>Policy_TinDung_V3.docx</td><td>Lê Thanh</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
+  </div>
 
-    <!-- ===== AUDIT & HEALTH ===== -->
-    <div class="view" id="view-audit-health">
-      <div class="grid-2">
-        <div class="card">
-          <div class="card-title">System Health</div>
-          <div class="health-row"><div><div style="font-weight:600;">PostgreSQL</div><div style="font-size:11px;color:var(--muted);">Source of truth</div></div><div class="health-ok">● Connected</div></div>
-          <div class="health-row"><div><div style="font-weight:600;">OpenSearch</div><div style="font-size:11px;color:var(--muted);">legal_authority_index · source_review_index</div></div><div class="health-ok">● Connected</div></div>
-          <div class="health-row"><div><div style="font-weight:600;">Neo4j</div><div style="font-size:11px;color:var(--muted);">Graph lineage &amp; impact</div></div><div class="health-warn">⚠ Memory fallback</div></div>
-          <div class="health-row"><div><div style="font-weight:600;">Embedding</div><div style="font-size:11px;color:var(--muted);">BAAI/bge-m3 · dim=1024</div></div><div class="health-ok">● Connected</div></div>
-          <div class="health-row"><div><div style="font-weight:600;">LLM</div><div style="font-size:11px;color:var(--muted);">Provider: mock (DEMO_MODE)</div></div><div class="health-warn">⚠ Mock mode</div></div>
-          <div style="margin-top:12px;background:#fef3c7;border:1px solid #fde68a;border-radius:6px;padding:10px;font-size:12px;color:#92400e;">⚠ <strong>DEMO_MODE = true</strong> — Không dùng benchmark production khi đang dùng fallback.</div>
-        </div>
-        <div class="card">
-          <div class="card-title">Audit Trail</div>
-          <div class="audit-row"><div class="audit-icon">🔒</div><div><div style="font-size:13px;font-weight:500;">Activation blocked — REVIEW_NOT_COMPLETED</div><div style="font-size:11px;color:var(--muted);">06/2025/TT-NHNN · Phan Nguyệt · 18/07/2026 09:14:22</div></div></div>
-          <div class="audit-row"><div class="audit-icon">✓</div><div><div style="font-size:13px;font-weight:500;">ReviewTask approved — CHANGE_EVENT_REVIEW</div><div style="font-size:11px;color:var(--muted);">ce-001 · Khoản 2 Điều 7 · 16/07/2026 11:20:05</div></div></div>
-          <div class="audit-row"><div class="audit-icon">⬆</div><div><div style="font-size:13px;font-weight:500;">Document activated → AUTHORITY_SOURCE ACTIVE</div><div style="font-size:11px;color:var(--muted);">07/2024/TT-NHNN · V1→V2 · 16/07/2026 11:22:10</div></div></div>
-          <div class="audit-row"><div class="audit-icon">📋</div><div><div style="font-size:13px;font-weight:500;">Compliance check started — REVIEW_TARGET</div><div style="font-size:11px;color:var(--muted);">Policy_TinDung_V3.docx · Lê Thanh · 17/07/2026 15:40:01</div></div></div>
-        </div>
-      </div>
-    </div>
-
-  </div><!-- /content -->
 </div><!-- /main -->
 
 <script>
-const titles = {
-  dashboard: 'Dashboard',
-  'add-source': 'Add Regulatory Source',
-  'review-inbox': 'Source Review Inbox — 06/2025/TT-NHNN',
-  'reg-changes': 'Regulatory Changes',
-  'policy-map': 'Policy Mapping',
-  'impact-reports': 'Regulatory Impact Reports',
-  'check-compliance': 'Check Document Compliance',
-  'compliance-reports': 'Compliance Review Reports',
-  'evidence-query': 'Tra cứu bằng chứng',
-  'audit-health': 'Audit & System Health',
+const cfg = {
+  'chat':     { title: 'Hỏi đáp & Tra cứu',          nav: 'nav-chat' },
+  'upload-a': { title: 'Thêm văn bản pháp lý (A)',   nav: 'nav-upload-a' },
+  'review':   { title: 'Duyệt thay đổi (A)',          nav: 'nav-review' },
+  'impact':   { title: 'Báo cáo tác động (A)',        nav: 'nav-impact' },
+  'upload-b': { title: 'Kiểm tra tài liệu (B)',       nav: 'nav-upload-b' },
+  'report':   { title: 'Kết quả kiểm tra (B)',        nav: 'nav-report' },
+  'health':   { title: 'Health & Audit',              nav: 'nav-health' },
 };
-function show(id) {
+
+function show(id, wf) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('view-' + id).classList.add('active');
-  document.getElementById('page-title').textContent = titles[id] || id;
-  document.querySelectorAll('.nav-item').forEach(n => {
-    if ((n.getAttribute('onclick') || '').includes("'" + id + "'")) n.classList.add('active');
-  });
+  const v = document.getElementById('view-' + id);
+  if (v) v.classList.add('active');
+  const c = cfg[id];
+  if (c) {
+    document.getElementById('page-title').textContent = c.title;
+    const n = document.getElementById(c.nav);
+    if (n) n.classList.add('active', wf);
+  }
+}
+
+let panelOpen = true;
+function togglePanel() {
+  panelOpen = !panelOpen;
+  document.getElementById('evidence-panel').classList.toggle('hidden', !panelOpen);
+}
+
+function fillInput(text) {
+  const ta = document.getElementById('chat-input');
+  ta.value = text;
+  ta.focus();
+}
+
+const demoReplies = [
+  { text: "Xin lỗi, câu hỏi này chưa có bằng chứng đủ mạnh trong kho đã duyệt tại ngày tra cứu.", cites: [], status: "MISSING_EVIDENCE" },
+  { text: "Theo Điều 5 TT 07/2024/TT-NHNN, điều kiện cấp tín dụng SME bao gồm: có dự án khả thi, không có nợ xấu trên 90 ngày và tỷ lệ vốn tự có tối thiểu 20%.", cites: ["📑 TT 07/2024 · Điều 5 · V1"], status: "ok" },
+];
+let replyIdx = 0;
+
+function sendMsg() {
+  const ta = document.getElementById('chat-input');
+  const text = ta.value.trim();
+  if (!text) return;
+  const msgs = document.getElementById('messages');
+
+  // user msg
+  const uDiv = document.createElement('div');
+  uDiv.className = 'msg user';
+  uDiv.innerHTML = `<div class="msg-avatar">PN</div><div class="msg-bubble">${text}</div>`;
+  msgs.appendChild(uDiv);
+  ta.value = '';
+  ta.style.height = 'auto';
+
+  // bot reply (demo)
+  setTimeout(() => {
+    const r = demoReplies[replyIdx % demoReplies.length]; replyIdx++;
+    const bDiv = document.createElement('div');
+    bDiv.className = 'msg bot';
+    const cites = r.cites.map(c => `<span class="cite-chip" onclick="togglePanel()">${c}</span>`).join('');
+    bDiv.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-bubble"><p>${r.text}</p>${cites ? `<div class="citations" style="margin-top:8px;">${cites}</div>` : ''}<div class="cite-meta" style="margin-top:6px;"><span class="badge badge-auth">AUTHORITY_SOURCE only</span></div></div>`;
+    msgs.appendChild(bDiv);
+    msgs.scrollTop = msgs.scrollHeight;
+  }, 600);
+
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function clearChat() {
+  const msgs = document.getElementById('messages');
+  msgs.innerHTML = '<div style="text-align:center;padding:40px 0;color:var(--muted);font-size:13px;"><div style="font-size:28px;margin-bottom:8px;">💬</div><div style="font-weight:600;font-size:15px;color:var(--text);">Câu hỏi mới</div><div style="margin-top:4px;">Đặt câu hỏi về quy định pháp lý đang hiệu lực.</div></div>';
 }
 </script>
 </body>

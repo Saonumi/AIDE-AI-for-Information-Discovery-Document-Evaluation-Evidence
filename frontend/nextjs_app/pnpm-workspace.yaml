@@ -1,0 +1,9 @@
+allowBuilds:
+  msw: false   # dev mock lib — no build needed
+  sharp: true  # Next.js image optimization native binary
+# Single-package repo. This file exists only to carry the pnpm setting below.
+# minimumReleaseAge=0 disables pnpm's supply-chain "package too new" gate, which
+# otherwise blocks freshly-published deps (e.g. react-hook-form@7.82.0) in the
+# template lockfile. Safe here: hackathon, pinned lockfile. Raise it (minutes)
+# if you want the age check back.
+minimumReleaseAge: 0

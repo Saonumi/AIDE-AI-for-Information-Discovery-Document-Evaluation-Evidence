@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "batch_review_report.schema.json",
+  "title": "BatchReviewReport",
+  "version": "batch-review-report-1.0",
+  "type": "object",
+  "properties": {
+    "batch_review_id": {"type": "string"},
+    "assessment_date": {"type": "string", "format": "date"},
+    "knowledge_snapshot_id": {"type": "string"},
+    "total_documents": {"type": "integer"},
+    "completed_documents": {"type": "integer"},
+    "failed_documents": {"type": "integer"},
+    "summary": {"type": "object", "additionalProperties": {"type": "integer"}},
+    "recurring_issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "finding_type": {"type": "string"},
+          "regulatory_provision_id": {"type": ["string", "null"]},
+          "shared_value": {"type": ["string", "null"]},
+          "occurrence_count": {"type": "integer"},
+          "affected_document_ids": {"type": "array", "items": {"type": "string"}}
+        },
+        "required": ["finding_type", "occurrence_count", "affected_document_ids"]
+      }
+    }
+  },
+  "required": ["batch_review_id", "assessment_date", "knowledge_snapshot_id",
+               "total_documents", "completed_documents", "failed_documents",
+               "summary", "recurring_issues"]
+}
