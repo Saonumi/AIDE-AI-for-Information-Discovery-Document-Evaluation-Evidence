@@ -6,6 +6,7 @@
 import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { login, type Session } from "@/lib/api"
+import dragonArt from "@/lib/dragonArt"
 
 export function LoginView({ onLogin }: { onLogin: (s: Session) => void }) {
   const [username, setUsername] = React.useState("")
@@ -30,8 +31,16 @@ export function LoginView({ onLogin }: { onLogin: (s: Session) => void }) {
     "w-full border border-border bg-background px-3 py-2 text-sm outline-none focus:border-orange-500 transition-colors"
 
   return (
-    <div className="flex h-screen w-full items-center justify-center bg-background text-foreground p-4">
-      <div className="w-full max-w-sm border border-border bg-card">
+    <div className="relative flex h-screen w-full items-center justify-center overflow-hidden bg-background text-foreground p-4">
+      {/* Nền ASCII rồng — mượn từ trang About Us của agriflow-core (dragonArt). Mờ,
+          không tương tác, không chọn được; ô đăng nhập nổi lên trên (z-10). */}
+      <div aria-hidden className="pointer-events-none select-none absolute inset-0 flex items-center justify-center overflow-hidden">
+        <pre className="font-mono leading-none text-[0.2rem] sm:text-[0.3rem] md:text-[0.4rem] text-orange-500/15 dark:text-orange-400/10">
+          {dragonArt}
+        </pre>
+      </div>
+
+      <div className="relative z-10 w-full max-w-sm border border-border bg-card/95 backdrop-blur-sm shadow-xl">
         <div className="p-6 border-b border-border relative">
           <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-60" />
           <div className="text-[9px] font-bold text-muted-foreground tracking-widest uppercase">
