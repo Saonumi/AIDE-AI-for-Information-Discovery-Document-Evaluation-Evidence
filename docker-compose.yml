@@ -59,14 +59,28 @@ services:
       neo4j: { condition: service_healthy }
     command: uvicorn backend.app.api.main:app --host 0.0.0.0 --port 8000
 
+  # Next.js UI (primary). Runs a Node server rather than a static bundle because
+  # /api/* is proxied through Next's rewrite (see frontend/web/next.config.ts).
+  web:
+    build:
+      context: ./frontend/web
+      args:
+        API_PROXY_TARGET: http://api:8000
+    environment:
+      - API_PROXY_TARGET=http://api:8000
+    ports: ["3000:3000"]
+    depends_on: [api]
+
+  # Streamlit UI (kept for the internal/eval views).
   ui:
     build: .
     env_file: .env
     environment:
       - API_BASE_URL=http://api:8000
+      - PYTHONPATH=/app
     ports: ["8501:8501"]
     depends_on: [api]
-    command: streamlit run ui/app.py --server.port 8501 --server.address 0.0.0.0
+    command: streamlit run frontend/streamlit_app/app.py --server.port 8501 --server.address 0.0.0.0
 
 volumes:
   pg_data:

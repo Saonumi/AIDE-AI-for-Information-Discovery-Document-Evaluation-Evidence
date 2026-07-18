@@ -1,0 +1,14 @@
+# SHB brand theme — keep these in sync with frontend/streamlit_app/theme.py
+[theme]
+base = "light"
+primaryColor = "#F58220"
+backgroundColor = "#F5F6F8"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#1B2733"
+font = "sans serif"
+
+[server]
+headless = true
+
+[browser]
+gatherUsageStats = false
