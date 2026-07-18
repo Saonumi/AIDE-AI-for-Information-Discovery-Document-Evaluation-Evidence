@@ -22,8 +22,16 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("vaic")
 
 app = FastAPI(title="VAIC2026 — Temporal Regulatory RAG (SHB1)", version="1.0")
+# CORS: mặc định "*" (mở) cho dev. Production ĐẶT env CORS_ORIGINS = danh sách
+# origin cách nhau dấu phẩy, ví dụ "https://aide.saonumi.io.vn", rồi deploy lại.
+_cors = os.getenv("CORS_ORIGINS", "*").strip()
+_cors_origins = ["*"] if _cors in ("", "*") else [o.strip() for o in _cors.split(",") if o.strip()]
 app.add_middleware(
-    CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
+    CORSMiddleware,
+    allow_origins=_cors_origins,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    allow_credentials=_cors_origins != ["*"],
 )
 
 

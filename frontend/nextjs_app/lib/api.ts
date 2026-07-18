@@ -4,6 +4,26 @@
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
 
+// fetch() chỉ ném TypeError khi request KHÔNG chạm được server (CORS chặn, backend
+// chưa chạy, sai URL, mất mạng) — trình duyệt che nguyên nhân thật vì lý do bảo
+// mật. Bọc lại để báo lỗi tiếng Việt, nêu rõ nguyên nhân thường gặp cho khâu dev.
+async function safeFetch(url: string, init: RequestInit): Promise<Response> {
+  try {
+    return await fetch(url, init)
+  } catch {
+    const origin = typeof window !== "undefined" ? window.location.origin : "(server)"
+    throw new Error(
+      `Không gọi được API: ${init.method ?? "GET"} ${url}.\n` +
+      `Nguyên nhân thường gặp:\n` +
+      `• CORS — backend chưa cho phép origin ${origin} ` +
+      `(sửa: đặt env CORS_ORIGINS ở backend và deploy lại).\n` +
+      `• Backend chưa chạy hoặc sai NEXT_PUBLIC_API_URL (đang trỏ: ${BASE}).\n` +
+      `• Mất mạng.\n` +
+      `Mở DevTools → Network để xem chi tiết.`,
+    )
+  }
+}
+
 // Phiên đăng nhập nội bộ: tài khoản do quản trị viên cấp, backend /login trả
 // {token, role, username}. Lưu localStorage; 401 → xóa phiên, quay về màn đăng nhập.
 export interface Session {
@@ -25,7 +45,7 @@ export function getSession(): Session | null {
 }
 
 export async function login(username: string, password: string): Promise<Session> {
-  const r = await fetch(`${BASE}/login`, {
+  const r = await safeFetch(`${BASE}/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
@@ -76,7 +96,7 @@ async function handle<T>(r: Response): Promise<T> {
 }
 
 async function req<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const r = await fetch(`${BASE}${path}`, {
+  const r = await safeFetch(`${BASE}${path}`, {
     method,
     headers: { "Content-Type": "application/json", ...authHeader() },
     body: body === undefined ? undefined : JSON.stringify(body),
@@ -86,7 +106,7 @@ async function req<T>(method: string, path: string, body?: unknown): Promise<T> 
 
 // multipart — không set Content-Type để browser tự thêm boundary
 async function reqForm<T>(path: string, form: FormData): Promise<T> {
-  const r = await fetch(`${BASE}${path}`, { method: "POST", headers: authHeader(), body: form })
+  const r = await safeFetch(`${BASE}${path}`, { method: "POST", headers: authHeader(), body: form })
   return handle<T>(r)
 }
 
