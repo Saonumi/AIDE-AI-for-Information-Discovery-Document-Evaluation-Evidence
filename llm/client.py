@@ -10,9 +10,17 @@ from __future__ import annotations
 
 import json
 import re
+import time
 from typing import Any, Dict, Optional
 
 from packages.common.config import get_settings
+
+
+def _throttle() -> None:
+    """Optional pacing (LLM_THROTTLE_S env) so free-tier RPM limits don't 429 batch eval."""
+    t = getattr(get_settings(), "llm_throttle_s", 0) or 0
+    if t > 0:
+        time.sleep(t)
 
 _client = None
 _BRACKET = re.compile(r"\[([^\]\s]+)\]\s*(?:\([^)]*\)\s*)?(.*)")
@@ -49,6 +57,7 @@ class GoogleClient:
 
     def complete(self, system: str, user: str, temperature: Optional[float] = None) -> str:
         from google.genai import types
+        _throttle()
         cfg = types.GenerateContentConfig(
             system_instruction=system,
             temperature=self.temperature if temperature is None else temperature,
@@ -58,6 +67,7 @@ class GoogleClient:
 
     def complete_json(self, system: str, user: str, schema: Optional[dict] = None) -> Dict[str, Any]:
         from google.genai import types
+        _throttle()
         cfg = types.GenerateContentConfig(
             system_instruction=system + "\nTrả về DUY NHẤT JSON hợp lệ.",
             temperature=0.0,
@@ -94,9 +104,12 @@ class AnthropicClient:
 class OpenAIClient:
     provider = "openai"
 
-    def __init__(self, api_key: str, model: str, temperature: float):
+    def __init__(self, api_key: str, model: str, temperature: float,
+                 base_url: Optional[str] = None):
         import openai
-        self._c = openai.OpenAI(api_key=api_key)
+        # base_url cho các API OpenAI-compatible (OpenRouter: https://openrouter.ai/api/v1)
+        self._c = openai.OpenAI(api_key=api_key, base_url=base_url) if base_url \
+            else openai.OpenAI(api_key=api_key)
         self.model = model
         self.temperature = temperature
 
@@ -141,14 +154,17 @@ def get_client():
         return _client
     s = get_settings()
     try:
-        if s.demo_mode:
-            _client = MockClient()
-        elif s.llm_provider == "google" and s.google_api_key:
+        # Provider thật thắng nếu có key — kể cả DEMO_MODE=true (store in-memory +
+        # LLM thật là combo demo chuẩn). Mock chỉ là fallback khi thiếu key.
+        if s.llm_provider == "google" and s.google_api_key:
             _client = GoogleClient(s.google_api_key, s.llm_model, s.llm_temperature)
         elif s.llm_provider == "anthropic" and s.anthropic_api_key:
             _client = AnthropicClient(s.anthropic_api_key, s.llm_model, s.llm_temperature)
         elif s.llm_provider == "openai" and s.openai_api_key:
             _client = OpenAIClient(s.openai_api_key, s.llm_model, s.llm_temperature)
+        elif s.llm_provider == "openrouter" and s.openrouter_api_key:
+            _client = OpenAIClient(s.openrouter_api_key, s.llm_model, s.llm_temperature,
+                                   base_url="https://openrouter.ai/api/v1")
         else:
             _client = MockClient()
     except Exception:
