@@ -38,6 +38,9 @@ export function LoginView({ onLogin }: { onLogin: (s: Session) => void }) {
             SHB · VAIC2026
           </div>
           <h1 className="text-lg font-semibold mt-1">AIDE</h1>
+          <p className="text-[10px] text-muted-foreground/80 mt-0.5 leading-snug">
+            (AI for Information Discovery, Document Evaluation &amp; Evidence)
+          </p>
           <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
             Trợ lý pháp chế &amp; tuân thủ — đăng nhập bằng tài khoản nội bộ do quản trị viên cấp.
           </p>

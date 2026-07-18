@@ -7,7 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 const fontSans = JetBrains_Mono({ subsets: ["latin"], variable: "--font-sans" })
 
 export const metadata: Metadata = {
-  title: "AIDE — Trợ lý Tuân thủ SHB",
+  title: "AIDE (AI for Information Discovery, Document Evaluation & Evidence) — Trợ lý Tuân thủ SHB",
   description: "AIDE — Hệ thống hỏi đáp và kiểm tra tuân thủ quy định pháp lý nội bộ SHB",
 }
 
