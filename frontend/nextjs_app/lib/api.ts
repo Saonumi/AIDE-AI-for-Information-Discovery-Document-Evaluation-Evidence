@@ -1,57 +1,96 @@
 // Thin client for the FastAPI backend (VAIC2026 SHB1).
-// Shapes mirror the live /query, /compliance-checks, /impact-report responses.
-// CORS is open on the backend, so the browser calls it directly.
+// Surface = đúng hai tab của UI: Add Source (ingestion + HITL review + activate)
+// và RAG (conversations, review runs, batch reviews). CORS mở, browser gọi thẳng.
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
 
-// ponytail: demo auto-login. No login screen for the hackathon demo — first call
-// grabs a COMPLIANCE_OFFICER token and caches it. Swap to a real login form later.
-const DEMO_CREDS = { username: "compliance", password: "compliance123" }
+// Phiên đăng nhập nội bộ: tài khoản do quản trị viên cấp, backend /login trả
+// {token, role, username}. Lưu localStorage; 401 → xóa phiên, quay về màn đăng nhập.
+export interface Session {
+  token: string
+  username: string
+  role: string
+}
 
-let _token: string | null = null
+const SESSION_KEY = "shb-session"
 
-async function getToken(): Promise<string> {
-  if (_token) return _token
+export function getSession(): Session | null {
+  if (typeof window === "undefined") return null
+  try {
+    const raw = localStorage.getItem(SESSION_KEY)
+    return raw ? (JSON.parse(raw) as Session) : null
+  } catch {
+    return null
+  }
+}
+
+export async function login(username: string, password: string): Promise<Session> {
   const r = await fetch(`${BASE}/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(DEMO_CREDS),
+    body: JSON.stringify({ username, password }),
   })
-  if (!r.ok) throw new Error(`login failed (${r.status})`)
-  _token = (await r.json()).token as string
-  return _token
+  if (!r.ok) {
+    throw new Error(r.status === 401
+      ? "Sai tên đăng nhập hoặc mật khẩu."
+      : `Không đăng nhập được (mã lỗi ${r.status}). Vui lòng thử lại.`)
+  }
+  const data = await r.json()
+  const session: Session = { token: data.token, username: data.username, role: data.role }
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session))
+  return session
 }
 
-async function req<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const token = await getToken()
-  const r = await fetch(`${BASE}${path}`, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  })
+export function logout(): void {
+  localStorage.removeItem(SESSION_KEY)
+}
+
+export class ApiError extends Error {
+  status: number
+  detail: unknown
+  constructor(status: number, detail: unknown) {
+    super(typeof detail === "string" ? detail : JSON.stringify(detail))
+    this.status = status
+    this.detail = detail
+  }
+}
+
+function authHeader(): Record<string, string> {
+  const session = getSession()
+  if (!session) throw new Error("Chưa đăng nhập.")
+  return { Authorization: `Bearer ${session.token}` }
+}
+
+async function handle<T>(r: Response): Promise<T> {
   if (r.status === 401) {
-    _token = null // token expired — retry once with a fresh login
-    return req<T>(method, path, body)
+    logout() // phiên hết hạn — về màn đăng nhập
+    window.location.reload()
+    throw new Error("Phiên đăng nhập đã hết hạn.")
   }
   if (!r.ok) {
     let detail: unknown
     try { detail = await r.json() } catch { detail = await r.text() }
-    throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail))
+    throw new ApiError(r.status, detail)
   }
   return r.json() as Promise<T>
 }
 
-// ─── Types (subset of the real payloads that the UI renders) ──────────────────
-
-export interface Citation {
-  source_id: string
-  document_number: string
-  heading_path: string[]
-  page: number
+async function req<T>(method: string, path: string, body?: unknown): Promise<T> {
+  const r = await fetch(`${BASE}${path}`, {
+    method,
+    headers: { "Content-Type": "application/json", ...authHeader() },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  })
+  return handle<T>(r)
 }
+
+// multipart — không set Content-Type để browser tự thêm boundary
+async function reqForm<T>(path: string, form: FormData): Promise<T> {
+  const r = await fetch(`${BASE}${path}`, { method: "POST", headers: authHeader(), body: form })
+  return handle<T>(r)
+}
+
+// ─── Types (subset of the real payloads that the UI renders) ──────────────────
 
 export interface EvidenceItem {
   source_id: string
@@ -73,43 +112,7 @@ export interface ExcludedEvidence {
   reason: string
 }
 
-export interface ConflictCandidate {
-  provision_a: string
-  provision_b: string
-  reason: string
-  value_a: string
-  value_b: string
-  temporal_overlap: boolean
-  scope_overlap: boolean
-  human_review: string
-}
-
-export interface Answer {
-  text: string
-  citations: Citation[]
-  status: string
-  query_date: string
-  timeline: unknown[]
-  conflict_candidates: ConflictCandidate[]
-  impact_candidates: unknown[]
-  excluded_evidence: ExcludedEvidence[]
-  check_failures: unknown[]
-}
-
-export interface QueryResponse {
-  answer: Answer
-  evidence: {
-    query: string
-    query_date: string
-    intent: string
-    valid_evidence: EvidenceItem[]
-    excluded_evidence: ExcludedEvidence[]
-    reference_paths: unknown[]
-    change_paths: unknown[]
-    conflict_candidates: ConflictCandidate[]
-    impact_candidates: unknown[]
-  }
-}
+// ─── Add Source: documents + HITL review tasks ────────────────────────────────
 
 export interface DocumentRow {
   document_id: string
@@ -122,80 +125,34 @@ export interface DocumentRow {
   created_at: string
 }
 
-export interface HealthDetails {
-  demo_mode: boolean
-  postgres: string
-  opensearch: string
-  neo4j: string
-  embedding: string
-  llm: string
-  status: string
-}
-
-export interface CheckSummary {
-  compliant: number
-  non_compliant: number
-  partially_compliant: number
-  outdated_reference: number
-  missing_evidence: number
-  ambiguous: number
-  needs_human_review: number
-  total_claims: number
-}
-
-export interface Assessment {
-  claim_id: string
-  source_text: string
-  status: string
-  valid_evidence: EvidenceItem[]
-  excluded_evidence: ExcludedEvidence[]
-  findings: string[]
-  explanation: string | null
-  recommendation: string | null
-  confidence: number
-  review_status: string
-}
-
-export interface ComplianceReport {
-  report_id: string
-  target_document_id: string
-  review_date: string
-  summary: CheckSummary
-  assessments: Assessment[]
-  status: string
-}
-
-export interface ImpactReport {
-  report_id: string
+export interface UploadResponse {
   document_id: string
-  document_number: string
-  executive_summary: string
-  changes: {
-    change_event_id: string
-    operation: string
-    target_document_number: string
-    target_locator: string
-    before_text: string
-    after_text: string
-    effective_date: string
-    review_status: string
-  }[]
-  impacted_policies: {
-    artifact_id: string
-    title: string
-    reason: string
-    severity: string
-    regulation_value: string
-    internal_policy_value: string
-    review_status: string
-  }[]
-  max_severity: string
-  status: string
+  filename: string
+  file_hash: string
+  processing_status: string
+  approval_status: string
+  injection_suspected: boolean
 }
 
-// ─── Endpoints ────────────────────────────────────────────────────────────────
+export interface ReviewTask {
+  task_id: string
+  task_type: string
+  document_id: string | null
+  source_ref: string | null
+  extracted: Record<string, unknown>
+  diff_before: string | null
+  diff_after: string | null
+  confidence: number
+  valid_from: string | null
+  status: string
+  decision: string | null
+  decided_by: string | null
+  created_at: string | null
+}
 
-// ─── Mode-based chat + Review Runs (Mode spec §12.2) ─────────────────────────
+export type ReviewDecision = "APPROVE" | "EDIT" | "REJECT"
+
+// ─── RAG: mode-based chat + Review Runs (Mode spec §12.2) ────────────────────
 
 export type ChatMode = "REGULATORY_ASSISTANT" | "DOCUMENT_REVIEW"
 
@@ -208,11 +165,19 @@ export interface Conversation {
   last_activity_at: string
 }
 
+export interface ChatCitation {
+  source_id: string
+  document_number?: string | null
+  heading_path?: string[]
+  page?: number
+  valid_from?: string
+}
+
 export interface ChatTurnT {
   id: string
   role: string
   content: string
-  citations: { source_id: string; document_number?: string | null }[]
+  citations: ChatCitation[]
 }
 
 export interface ReviewRunAssessment {
@@ -273,16 +238,40 @@ export interface BatchReview {
 
 export interface ExplainerAnswer {
   answer: string
-  citations: { source_id: string; document_number?: string | null }[]
+  citations: ChatCitation[]
   action?: string
   result_locked?: boolean
   claim_id?: string
 }
 
+export interface PostMessageResponse {
+  answer: string
+  citations: ChatCitation[]
+  mode: string
+  resolved_query?: string | null
+  action?: string
+  result_locked?: boolean
+}
+
+// ─── Endpoints ────────────────────────────────────────────────────────────────
+
 export const api = {
-  query: (text: string, query_date?: string) =>
-    req<QueryResponse>("POST", "/query", { text, query_date }),
-  // chat modes
+  // Add Source — nguồn pháp lý (AUTHORITY_SOURCE_CANDIDATE → APPROVED + ACTIVE)
+  uploadDocument: (file: File, type: string) => {
+    const form = new FormData()
+    form.append("file", file)
+    form.append("type", type)
+    return reqForm<UploadResponse>("/documents", form)
+  },
+  documents: () => req<DocumentRow[]>("GET", "/documents"),
+  activateDocument: (documentId: string) =>
+    req<Record<string, unknown>>("POST", `/documents/${documentId}/activate`),
+  reviewTasks: (status?: string) =>
+    req<ReviewTask[]>("GET", `/review-tasks${status ? `?status=${status}` : ""}`),
+  decideReviewTask: (taskId: string, decision: ReviewDecision, edited_payload?: Record<string, unknown>) =>
+    req<ReviewTask>("POST", `/review-tasks/${taskId}/decision`, { decision, edited_payload }),
+
+  // RAG — chat modes
   createConversation: (mode: ChatMode, title?: string) =>
     req<Conversation>("POST", "/conversations", { mode, title }),
   listConversations: () => req<Conversation[]>("GET", "/conversations"),
@@ -290,13 +279,13 @@ export const api = {
     req<{ conversation: Conversation; turns: ChatTurnT[]; attachments: { id: string; filename: string }[] }>(
       "GET", `/conversations/${id}`),
   postMessage: (id: string, text: string, query_date?: string) =>
-    req<{ answer: string; citations: ChatTurnT["citations"]; mode: string; resolved_query?: string | null; action?: string; result_locked?: boolean }>(
-      "POST", `/conversations/${id}/messages`, { text, query_date }),
+    req<PostMessageResponse>("POST", `/conversations/${id}/messages`, { text, query_date }),
   addAttachment: (id: string, filename: string, text: string) =>
     req<{ attachment_id: string; notice: string }>(
       "POST", `/conversations/${id}/attachments`, { filename, text }),
   deleteConversation: (id: string) => req<unknown>("DELETE", `/conversations/${id}`),
-  // review runs
+
+  // RAG — review runs (Nhận xét tài liệu)
   createReviewRun: (filename: string, text: string, assessment_date?: string, conversation_id?: string) =>
     req<ReviewRunResult>("POST", "/review-runs", { filename, text, assessment_date, conversation_id }),
   getReviewRun: (id: string) => req<ReviewRunResult>("GET", `/review-runs/${id}`),
@@ -304,7 +293,8 @@ export const api = {
     req<ExplainerAnswer>("POST", `/review-runs/${id}/questions`, { question, claim_id }),
   rerunReviewRun: (id: string, assessment_date?: string) =>
     req<ReviewRunResult>("POST", `/review-runs/${id}/rerun`, { assessment_date }),
-  // batch reviews
+
+  // RAG — batch reviews (tối đa ~5 file, mỗi file một Review Run độc lập)
   createBatchReview: (files: { filename: string; text: string }[], assessment_date?: string, conversation_id?: string) =>
     req<BatchReview>("POST", "/batch-reviews", { files, assessment_date, conversation_id }),
   getBatchReview: (id: string) => req<BatchReview>("GET", `/batch-reviews/${id}`),
@@ -312,15 +302,4 @@ export const api = {
     req<ExplainerAnswer>("POST", `/batch-reviews/${id}/questions`, { question, scope, review_run_id, claim_ids }),
   rerunBatch: (id: string, full = false, item_id?: string) =>
     req<BatchReview>("POST", `/batch-reviews/${id}/rerun`, { full, item_id }),
-  documents: () => req<DocumentRow[]>("GET", "/documents"),
-  reviewTasks: () => req<unknown[]>("GET", "/review-tasks"),
-  health: () => req<HealthDetails>("GET", "/health/details"),
-  createCheck: (text: string, review_date?: string) =>
-    req<{ check_id: string; status: string; summary: CheckSummary }>(
-      "POST", "/compliance-checks", { text, review_date },
-    ),
-  checkReport: (id: string) =>
-    req<ComplianceReport>("GET", `/compliance-checks/${id}/report`),
-  impactReport: (documentId: string) =>
-    req<ImpactReport>("GET", `/regulatory-sources/${documentId}/impact-report`),
 }

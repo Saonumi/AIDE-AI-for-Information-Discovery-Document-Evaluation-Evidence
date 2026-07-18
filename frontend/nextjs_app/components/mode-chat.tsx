@@ -1,10 +1,10 @@
 "use client"
 
-// Mode-based AI chat (Mode spec §11) — one assistant, two operating modes:
-//   Ask Regulations   multi-turn RAG, isolation per conversation
-//   Document Review   Single/Batch Review Runs + bounded explainer chat
-// Trust rule surfaced in the UI: chat files are LOCAL context, review targets
-// are never legal evidence, results are locked per run.
+// Hai màn RAG, tách rời (không còn "chat mode" gộp):
+//   AskRegulationsView   Hỏi đáp nhiều lượt, mỗi hội thoại cô lập bộ nhớ
+//   DocumentReviewView   Kiểm tra tài liệu (Đơn lẻ | Hàng loạt) + hỏi giải thích
+// Bất biến hiển thị: tệp đính kèm chỉ là ngữ cảnh cục bộ; tài liệu kiểm tra không
+// phải căn cứ pháp lý; kết quả mỗi lượt kiểm tra bị khóa.
 
 import * as React from "react"
 import { Badge } from "@/components/ui/badge"
@@ -14,20 +14,22 @@ import {
   api, type BatchReview, type ChatTurnT, type Conversation, type ReviewRunResult,
 } from "@/lib/api"
 
-const STATUS_TONE: Record<string, string> = {
-  COMPLIANT: "text-emerald-400 border-emerald-500/40 bg-emerald-500/10",
-  NON_COMPLIANT: "text-red-400 border-red-500/40 bg-red-500/10",
-  PARTIALLY_COMPLIANT: "text-amber-400 border-amber-500/40 bg-amber-500/10",
-  OUTDATED_REFERENCE: "text-orange-400 border-orange-500/40 bg-orange-500/10",
-  MISSING_EVIDENCE: "text-zinc-400 border-zinc-500/40 bg-zinc-500/10",
-  AMBIGUOUS: "text-purple-400 border-purple-500/40 bg-purple-500/10",
-  NEEDS_HUMAN_REVIEW: "text-blue-400 border-blue-500/40 bg-blue-500/10",
+// Trạng thái kết luận backend → nhãn tiếng Việt + màu
+const STATUS_META: Record<string, { label: string; tone: string }> = {
+  COMPLIANT: { label: "Tuân thủ", tone: "text-emerald-400 border-emerald-500/40 bg-emerald-500/10" },
+  NON_COMPLIANT: { label: "Không tuân thủ", tone: "text-red-400 border-red-500/40 bg-red-500/10" },
+  PARTIALLY_COMPLIANT: { label: "Tuân thủ một phần", tone: "text-amber-400 border-amber-500/40 bg-amber-500/10" },
+  OUTDATED_REFERENCE: { label: "Tham chiếu lỗi thời", tone: "text-orange-400 border-orange-500/40 bg-orange-500/10" },
+  MISSING_EVIDENCE: { label: "Thiếu căn cứ", tone: "text-zinc-400 border-zinc-500/40 bg-zinc-500/10" },
+  AMBIGUOUS: { label: "Chưa rõ ràng", tone: "text-purple-400 border-purple-500/40 bg-purple-500/10" },
+  NEEDS_HUMAN_REVIEW: { label: "Cần người duyệt", tone: "text-blue-400 border-blue-500/40 bg-blue-500/10" },
 }
 
 function StatusPill({ status }: { status: string }) {
+  const m = STATUS_META[status]
   return (
-    <Badge variant="outline" className={`text-[10px] ${STATUS_TONE[status] ?? ""}`}>
-      {status}
+    <Badge variant="outline" className={`text-[10px] ${m?.tone ?? ""}`}>
+      {m?.label ?? status.replace(/_/g, " ")}
     </Badge>
   )
 }
@@ -35,30 +37,9 @@ function StatusPill({ status }: { status: string }) {
 const inputCls =
   "w-full border border-border bg-background px-2 py-1.5 text-xs focus:outline-none focus:border-orange-500/60"
 
-export function ModeChatView() {
-  const [mode, setMode] = React.useState<"ask" | "review">("ask")
-  return (
-    <div className="flex flex-1 flex-col overflow-hidden min-h-0">
-      {/* §11.1 chat header mode switch */}
-      <div className="flex items-center gap-2 px-4 py-2 border-b border-border shrink-0">
-        <Button size="sm" variant={mode === "ask" ? "default" : "outline"}
-                onClick={() => setMode("ask")}>Ask Regulations</Button>
-        <Button size="sm" variant={mode === "review" ? "default" : "outline"}
-                onClick={() => setMode("review")}>Document Review</Button>
-        <span className="text-[10px] text-muted-foreground ml-2 hidden md:block">
-          {mode === "ask"
-            ? "Multi-turn RAG · chỉ nhớ trong hội thoại hiện tại · attachment = context cục bộ"
-            : "Review Run bất biến · file là REVIEW_TARGET, không vào knowledge base"}
-        </span>
-      </div>
-      {mode === "ask" ? <AskRegulations /> : <DocumentReview />}
-    </div>
-  )
-}
+// ─── Hỏi đáp & Tra cứu ───────────────────────────────────────────────────────
 
-// ─── Mode 1: Ask Regulations ─────────────────────────────────────────────────
-
-function AskRegulations() {
+export function AskRegulationsView() {
   const [convs, setConvs] = React.useState<Conversation[]>([])
   const [convId, setConvId] = React.useState<string | null>(null)
   const [turns, setTurns] = React.useState<ChatTurnT[]>([])
@@ -117,9 +98,9 @@ function AskRegulations() {
 
   return (
     <div className="flex flex-1 overflow-hidden min-h-0">
-      {/* conversation list — isolation boundary made visible (§11.5) */}
+      {/* Danh sách hội thoại — ranh giới cô lập bộ nhớ */}
       <div className="w-52 border-r border-border p-2 space-y-1 overflow-y-auto shrink-0 hidden md:block">
-        <Button size="sm" variant="outline" className="w-full" onClick={newChat}>+ New Chat</Button>
+        <Button size="sm" variant="outline" className="w-full" onClick={newChat}>+ Hội thoại mới</Button>
         {convs.map((c) => (
           <button key={c.id} onClick={() => open(c.id)}
             className={`w-full text-left px-2 py-1.5 text-xs truncate border ${
@@ -133,8 +114,8 @@ function AskRegulations() {
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {turns.length === 0 && (
             <p className="text-xs text-muted-foreground">
-              Hỏi đáp quy định trên kho APPROVED + ACTIVE. New Chat = bộ nhớ rỗng;
-              không hội thoại nào nhìn thấy dữ liệu của hội thoại khác.
+              Hỏi đáp quy định trên kho văn bản đã duyệt và đang hiệu lực. Hội thoại mới bắt đầu
+              với bộ nhớ rỗng; không hội thoại nào nhìn thấy dữ liệu của hội thoại khác.
             </p>
           )}
           {turns.map((t) => (
@@ -160,7 +141,7 @@ function AskRegulations() {
             <div className="flex gap-1 flex-wrap">
               {attachments.map((a) => (
                 <Badge key={a.id} variant="outline" className="text-[9px] text-amber-400 border-amber-500/40">
-                  📎 {a.filename} · context cục bộ — KHÔNG phải nguồn pháp lý
+                  📎 {a.filename} · ngữ cảnh cục bộ — KHÔNG phải nguồn pháp lý
                 </Badge>
               ))}
             </div>
@@ -171,7 +152,7 @@ function AskRegulations() {
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send() } }} />
             <div className="space-y-1 shrink-0">
               <input type="date" className={inputCls} value={queryDate}
-                     onChange={(e) => setQueryDate(e.target.value)} title="Query date (tùy chọn)" />
+                     onChange={(e) => setQueryDate(e.target.value)} title="Ngày tra cứu (tùy chọn)" />
               <div className="flex gap-1">
                 <label className="cursor-pointer text-[10px] border border-border px-2 py-1 hover:bg-muted/50">
                   📎<input type="file" accept=".txt,.md" className="hidden"
@@ -187,17 +168,20 @@ function AskRegulations() {
   )
 }
 
-// ─── Mode 2: Document Review (Single | Batch) ────────────────────────────────
+// ─── Kiểm tra tài liệu (Đơn lẻ | Hàng loạt) ──────────────────────────────────
 
-function DocumentReview() {
+export function DocumentReviewView() {
   const [scale, setScale] = React.useState<"single" | "batch">("single")
   return (
     <div className="flex flex-1 flex-col overflow-hidden min-h-0">
       <div className="flex items-center gap-2 px-4 py-1.5 border-b border-border shrink-0">
         <Button size="sm" variant={scale === "single" ? "secondary" : "ghost"}
-                onClick={() => setScale("single")}>Single Review</Button>
+                onClick={() => setScale("single")}>Kiểm tra đơn lẻ</Button>
         <Button size="sm" variant={scale === "batch" ? "secondary" : "ghost"}
-                onClick={() => setScale("batch")}>Batch Review</Button>
+                onClick={() => setScale("batch")}>Kiểm tra hàng loạt</Button>
+        <span className="text-[10px] text-muted-foreground ml-2 hidden md:block">
+          Kết quả mỗi lượt kiểm tra bị khóa · tài liệu là đối tượng kiểm tra, không đưa vào kho tri thức
+        </span>
       </div>
       {scale === "single" ? <SingleReview /> : <BatchReviewView />}
     </div>
@@ -228,22 +212,22 @@ function ExplainerChat({ ask, onNewRun }: {
   return (
     <div className="border-t border-border p-3 space-y-2 shrink-0">
       <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-        Ask about this review — explainer chỉ dùng evidence đã khóa của run
+        Hỏi về kết quả — chỉ dùng căn cứ đã khóa của lượt kiểm tra này
       </div>
       <div className="max-h-40 overflow-y-auto space-y-2">
         {log.map((e, i) => (
           <div key={i} className="text-xs space-y-1">
             <div className="text-blue-400">❯ {e.q}</div>
             <div className="whitespace-pre-wrap text-muted-foreground">{e.a}</div>
-            {e.locked && <Badge variant="outline" className="text-[9px] text-red-400 border-red-500/40">🔒 Result locked</Badge>}
+            {e.locked && <Badge variant="outline" className="text-[9px] text-red-400 border-red-500/40">🔒 Kết quả đã khóa</Badge>}
             {e.action === "CREATE_NEW_REVIEW_RUN" && onNewRun && (
-              <Button size="sm" variant="outline" onClick={onNewRun}>Create New Review Run</Button>
+              <Button size="sm" variant="outline" onClick={onNewRun}>Tạo lượt kiểm tra mới</Button>
             )}
           </div>
         ))}
       </div>
       <div className="flex gap-2">
-        <input className={inputCls} placeholder='vd: "vì sao?", "đề xuất sửa thế nào?"' value={q}
+        <input className={inputCls} placeholder='ví dụ: "vì sao?", "đề xuất sửa thế nào?"' value={q}
                onChange={(e) => setQ(e.target.value)}
                onKeyDown={(e) => e.key === "Enter" && send()} />
         <Button size="sm" onClick={send} disabled={busy}>{busy ? "…" : "Hỏi"}</Button>
@@ -263,7 +247,7 @@ function SingleReview() {
   const loadFile = async (f: File) => { setFilename(f.name); setText(await f.text()) }
 
   const start = async (assessmentDate?: string) => {
-    if (!text.trim() || !(assessmentDate ?? date)) { setErr("Cần upload file và chọn assessment date."); return }
+    if (!text.trim() || !(assessmentDate ?? date)) { setErr("Cần chọn tệp và ngày kiểm tra."); return }
     setErr(""); setBusy(true)
     try { setRun(await api.createReviewRun(filename, text, assessmentDate ?? date)) }
     catch (e) { setErr(String(e)) }
@@ -275,34 +259,34 @@ function SingleReview() {
     <div className="flex flex-1 flex-col overflow-hidden min-h-0">
       <div className="flex gap-2 items-end p-3 border-b border-border flex-wrap shrink-0">
         <label className="cursor-pointer text-xs border border-border px-3 py-1.5 hover:bg-muted/50">
-          📄 Upload file
+          📄 Chọn tệp
           <input type="file" accept=".txt,.md" className="hidden"
                  onChange={(e) => e.target.files?.[0] && loadFile(e.target.files[0])} />
         </label>
         <input type="date" required className={inputCls + " w-40"} value={date}
-               onChange={(e) => setDate(e.target.value)} title="Assessment date (bắt buộc)" />
+               onChange={(e) => setDate(e.target.value)} title="Ngày kiểm tra (bắt buộc)" />
         <Button size="sm" onClick={() => start()} disabled={busy}>
-          {busy ? "Đang chạy Review Run…" : "Start Review"}
+          {busy ? "Đang kiểm tra…" : "Bắt đầu kiểm tra"}
         </Button>
         {run && (
           <Button size="sm" variant="outline" onClick={() => start(date)} disabled={busy}>
-            ↻ New Review Run
+            ↻ Kiểm tra lại
           </Button>
         )}
         {err && <span className="text-[10px] text-red-400">{err}</span>}
       </div>
       <textarea rows={4} className={inputCls + " mx-3 mt-2 shrink-0"} value={text}
-                placeholder="…hoặc dán nội dung policy/báo cáo cần review (REVIEW_TARGET — không vào KB)"
+                placeholder="…hoặc dán nội dung chính sách/báo cáo cần kiểm tra (chỉ để kiểm tra, không vào kho tri thức)"
                 onChange={(e) => setText(e.target.value)} />
 
       {report && (
         <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0">
           <div className="flex gap-2 flex-wrap text-[10px] text-muted-foreground">
-            <Badge variant="outline" className="text-[9px]">run: {report.review_run_id}</Badge>
-            <Badge variant="outline" className="text-[9px]">snapshot: {report.knowledge_snapshot_id}</Badge>
+            <Badge variant="outline" className="text-[9px]">lượt: {report.review_run_id}</Badge>
+            <Badge variant="outline" className="text-[9px]">ảnh chụp kho: {report.knowledge_snapshot_id}</Badge>
             <Badge variant="outline" className="text-[9px]">prompt: {report.versions.prompt}</Badge>
             <Badge variant="outline" className="text-[9px]">schema: {report.versions.schema}</Badge>
-            <Badge variant="outline" className="text-[9px] text-amber-400 border-amber-500/40">🔒 IMMUTABLE</Badge>
+            <Badge variant="outline" className="text-[9px] text-amber-400 border-amber-500/40">🔒 BẤT BIẾN</Badge>
           </div>
           {report.assessments.map((a) => (
             <div key={a.claim_id} className="border border-border bg-muted/20 p-3 space-y-1.5">
@@ -323,9 +307,9 @@ function SingleReview() {
                 <div className="text-[11px] text-emerald-400">✎ Đề xuất sửa: {a.recommendation}</div>
               )}
               <div className="flex gap-2 items-center">
-                <span className="text-[10px] text-muted-foreground">confidence {Math.round(a.confidence * 100)}%</span>
+                <span className="text-[10px] text-muted-foreground">độ tin cậy {Math.round(a.confidence * 100)}%</span>
                 {a.requires_human_review && (
-                  <Badge variant="outline" className="text-[9px] text-blue-400 border-blue-500/40">HUMAN REVIEW: Required</Badge>
+                  <Badge variant="outline" className="text-[9px] text-blue-400 border-blue-500/40">Cần người duyệt</Badge>
                 )}
               </div>
             </div>
@@ -371,43 +355,43 @@ function BatchReviewView() {
     <div className="flex flex-1 flex-col overflow-hidden min-h-0">
       <div className="flex gap-2 items-center p-3 border-b border-border flex-wrap shrink-0">
         <label className="cursor-pointer text-xs border border-border px-3 py-1.5 hover:bg-muted/50">
-          📄 Thêm nhiều file
+          📄 Thêm nhiều tệp
           <input type="file" accept=".txt,.md" multiple className="hidden"
                  onChange={(e) => e.target.files && addFiles(e.target.files)} />
         </label>
-        <span className="text-[10px] text-muted-foreground">{files.length} file</span>
+        <span className="text-[10px] text-muted-foreground">{files.length} tệp</span>
         <input type="date" className={inputCls + " w-40"} value={date}
                onChange={(e) => setDate(e.target.value)} />
         <Button size="sm" onClick={start} disabled={busy || !files.length || !date}>
-          {busy ? "Đang chạy…" : `Run Batch (${files.length} runs độc lập)`}
+          {busy ? "Đang chạy…" : `Kiểm tra hàng loạt (${files.length} lượt độc lập)`}
         </Button>
         {batch && batch.failed_documents > 0 && (
-          <Button size="sm" variant="outline" onClick={retry}>↻ Retry failed only</Button>
+          <Button size="sm" variant="outline" onClick={retry}>↻ Chạy lại tệp lỗi</Button>
         )}
         {batch && (
-          <Button size="sm" variant="ghost" onClick={fullRerun}>Re-run all → batch mới</Button>
+          <Button size="sm" variant="ghost" onClick={fullRerun}>Chạy lại tất cả → đợt mới</Button>
         )}
       </div>
 
       {batch && (
         <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0">
           <div className="flex gap-2 flex-wrap">
-            <Badge variant="outline" className="text-[9px]">batch: {batch.batch_review_id}</Badge>
-            <Badge variant="outline" className="text-[9px]">snapshot: {batch.knowledge_snapshot_id}</Badge>
+            <Badge variant="outline" className="text-[9px]">đợt: {batch.batch_review_id}</Badge>
+            <Badge variant="outline" className="text-[9px]">ảnh chụp kho: {batch.knowledge_snapshot_id}</Badge>
             <Badge variant="outline" className="text-[9px] text-emerald-400 border-emerald-500/40">
-              {batch.completed_documents}/{batch.total_documents} completed
+              {batch.completed_documents}/{batch.total_documents} hoàn tất
             </Badge>
             {batch.failed_documents > 0 && (
               <Badge variant="outline" className="text-[9px] text-red-400 border-red-500/40">
-                {batch.failed_documents} failed
+                {batch.failed_documents} lỗi
               </Badge>
             )}
           </div>
 
-          {/* §11.3 progress table per file */}
+          {/* Tiến độ theo từng tệp */}
           <table className="w-full text-[11px]">
             <thead><tr className="text-left text-muted-foreground">
-              <th className="py-1">File</th><th>Status</th><th>Review Run</th><th>Error</th>
+              <th className="py-1">Tệp</th><th>Trạng thái</th><th>Lượt kiểm tra</th><th>Lỗi</th>
             </tr></thead>
             <tbody>
               {batch.items.map((i) => (
@@ -423,10 +407,10 @@ function BatchReviewView() {
 
           <Separator />
           <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-            Recurring issue groups
+            Nhóm vấn đề lặp lại
           </div>
           {batch.recurring_issues.length === 0 && (
-            <p className="text-[11px] text-muted-foreground">Không có vấn đề lặp lại giữa các file.</p>
+            <p className="text-[11px] text-muted-foreground">Không có vấn đề lặp lại giữa các tệp.</p>
           )}
           {batch.recurring_issues.map((g, i) => (
             <div key={i} className="border border-orange-500/30 bg-orange-500/5 p-2 text-[11px]">
@@ -441,14 +425,14 @@ function BatchReviewView() {
       {batch && (
         <div className="border-t border-border px-3 pt-2 shrink-0">
           <div className="flex gap-2 items-center text-[10px]">
-            <span className="text-muted-foreground">Chat scope:</span>
+            <span className="text-muted-foreground">Phạm vi hỏi:</span>
             <select className={inputCls + " w-44"} value={scope} onChange={(e) => setScope(e.target.value)}>
-              <option value="ENTIRE_BATCH">Entire batch</option>
-              <option value="ONE_REPORT">One report</option>
+              <option value="ENTIRE_BATCH">Toàn bộ đợt</option>
+              <option value="ONE_REPORT">Một báo cáo</option>
             </select>
             {scope === "ONE_REPORT" && (
               <select className={inputCls + " w-56"} value={runId} onChange={(e) => setRunId(e.target.value)}>
-                <option value="">— chọn report —</option>
+                <option value="">— chọn báo cáo —</option>
                 {batch.items.filter((i) => i.review_run_id).map((i) => (
                   <option key={i.item_id} value={i.review_run_id!}>{i.filename}</option>
                 ))}
