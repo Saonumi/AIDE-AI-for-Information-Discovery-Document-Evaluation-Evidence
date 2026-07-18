@@ -25,10 +25,10 @@ function IconSend() {
     </svg>
   )
 }
-function IconClip() {
+function IconPlus() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4">
-      <path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.19 9.19a1 1 0 0 1-1.41-1.41l8.49-8.49" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="size-5">
+      <path d="M12 5v14M5 12h14" />
     </svg>
   )
 }
@@ -213,6 +213,11 @@ function AskMode() {
             </div>
           )}
           <PromptShell>
+            <label className="cursor-pointer shrink-0 rounded-full p-2 text-muted-foreground hover:text-orange-500 hover:bg-muted/60 transition-colors" title="Đính kèm file context cục bộ (.txt/.md)" aria-label="Thêm file">
+              <IconPlus />
+              <input type="file" accept=".txt,.md" className="hidden"
+                onChange={(e) => e.target.files?.[0] && attach(e.target.files[0])} />
+            </label>
             <textarea rows={1}
               className="flex-1 resize-none bg-transparent outline-none text-sm leading-relaxed py-1.5 max-h-40 placeholder:text-muted-foreground/70"
               placeholder="Nhập câu hỏi về quy định…"
@@ -223,11 +228,6 @@ function AskMode() {
                 className="w-[118px] rounded-lg border border-border bg-background/60 px-2 py-1 text-xs outline-none focus:border-orange-500"
                 value={queryDate} onChange={(e) => setQueryDate(e.target.value)}
                 title="Hỏi quy định tại một thời điểm (tùy chọn)" aria-label="Ngày truy vấn" />
-              <label className="cursor-pointer rounded-lg p-2 text-muted-foreground hover:text-orange-500 hover:bg-muted/60 transition-colors" title="Đính kèm file context cục bộ (.txt/.md)">
-                <IconClip />
-                <input type="file" accept=".txt,.md" className="hidden"
-                  onChange={(e) => e.target.files?.[0] && attach(e.target.files[0])} />
-              </label>
               <Button size="icon" onClick={send} disabled={busy || !text.trim()}
                 className="size-9 rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-sm disabled:opacity-40"
                 aria-label="Gửi câu hỏi">
