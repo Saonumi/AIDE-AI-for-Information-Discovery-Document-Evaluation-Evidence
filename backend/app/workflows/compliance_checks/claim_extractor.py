@@ -56,19 +56,54 @@ def mine_facts(text: str) -> StructuredFacts:
 
 
 def extract(text: str, target_document_id: str) -> List[ComplianceClaim]:
-    """Split the review target into sentences and keep the checkable ones."""
+    """LLM identifies actual legal claims; rule-based regex as fallback."""
+    llm_claims = _extract_with_llm(text, target_document_id)
+    if llm_claims:
+        return llm_claims
+    return _extract_rule_based(text, target_document_id)
+
+
+def _extract_with_llm(text: str, target_document_id: str) -> List[ComplianceClaim]:
+    """LLM xác định điều khoản/nghĩa vụ thực sự — bỏ qua header/boilerplate."""
+    try:
+        from llm.client import get_client
+        from llm.prompts import CLAIM_EXTRACTION_SYSTEM
+        chunk_size = 4000
+        chunks = [(text or "")[i:i + chunk_size] for i in range(0, len(text or ""), chunk_size)]
+        claims: List[ComplianceClaim] = []
+        current_section = None
+        for chunk in chunks:
+            data = get_client().complete_json(CLAIM_EXTRACTION_SYSTEM, chunk)
+            items = data.get("claims") if isinstance(data, dict) else None
+            if not isinstance(items, list):
+                return []  # demo/mock → fallback to rule-based
+            for item in items:
+                claim_text = (item.get("text") or "").strip()
+                if len(claim_text) < 15:
+                    continue
+                if item.get("section"):
+                    current_section = item["section"]
+                facts = mine_facts(claim_text)
+                claims.append(ComplianceClaim(
+                    claim_id=new_id("claim"),
+                    target_document_id=target_document_id,
+                    section=current_section,
+                    text=claim_text,
+                    facts=facts,
+                ))
+        return claims
+    except Exception:
+        return []
+
+
+def _extract_rule_based(text: str, target_document_id: str) -> List[ComplianceClaim]:
+    """Fallback rule-based extraction (original logic)."""
     claims: List[ComplianceClaim] = []
     section = None
     for line in (text or "").splitlines():
         line = line.strip()
-        if not line:
+        if not line or line.startswith("[") or _BOILERPLATE_RE.match(line):
             continue
-        if line.startswith("["):  # banner/label lines are not claims
-            continue
-        if _BOILERPLATE_RE.match(line):  # dòng khung (mở đầu/căn cứ/chữ ký/header) → bỏ
-            continue
-        # a heading is only a heading if it carries no checkable fact —
-        # "Điều 1. Phí quản lý là 2 triệu đồng" is a CLAIM, not a section
         if _SECTION_RE.match(line) and len(line) < 80 and not mine_facts(line).has_comparable():
             section = line
             continue
@@ -78,13 +113,11 @@ def extract(text: str, target_document_id: str) -> List[ComplianceClaim]:
                 continue
             facts = mine_facts(sent)
             if facts.has_comparable() or facts.doc_refs or _MODALITY_RE.search(sent):
-                claims.append(
-                    ComplianceClaim(
-                        claim_id=new_id("claim"),
-                        target_document_id=target_document_id,
-                        section=section,
-                        text=sent,
-                        facts=facts,
-                    )
-                )
+                claims.append(ComplianceClaim(
+                    claim_id=new_id("claim"),
+                    target_document_id=target_document_id,
+                    section=section,
+                    text=sent,
+                    facts=facts,
+                ))
     return claims

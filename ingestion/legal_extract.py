@@ -376,6 +376,25 @@ def enhance_metadata_with_llm(text: str, base: DocumentMetadata) -> DocumentMeta
     return updated
 
 
+def llm_extract_provisions(full_text: str) -> List[Dict[str, Any]]:
+    """LLM trích xuất điều khoản từ toàn văn — fallback về [] nếu lỗi/demo."""
+    try:
+        from llm.client import get_client
+        from llm.prompts import PROVISION_EXTRACTION_SYSTEM
+        chunk_size = 3500
+        text = full_text.strip()
+        chunks = [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
+        all_provisions: List[Dict[str, Any]] = []
+        for chunk in chunks:
+            data = get_client().complete_json(PROVISION_EXTRACTION_SYSTEM, chunk)
+            items = data.get("provisions") if isinstance(data, dict) else None
+            if isinstance(items, list):
+                all_provisions.extend(items)
+        return all_provisions
+    except Exception:
+        return []
+
+
 def extract_all(text: str, source_page: Optional[int] = None, use_llm: bool = True) -> Dict[str, Any]:
     """Convenience aggregate over a whole document's text."""
     metadata = extract_document_metadata(text)

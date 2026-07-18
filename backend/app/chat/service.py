@@ -43,15 +43,12 @@ _LEGAL_SIGNALS = (
     "hiệu lực", "sửa đổi", "bổ sung", "áp dụng", "tuân thủ",
 )
 
-_AIDE_PERSONA_SYSTEM = """Bạn là AIDE (AI for Information Discovery, Document Evaluation & Evidence) \
-— trợ lý pháp chế thông minh của ngân hàng SHB. Bạn hỗ trợ cán bộ pháp chế:
-- Tra cứu quy định pháp lý ngân hàng (thông tư, nghị định, quyết định...)
-- Kiểm tra tuân thủ tài liệu nội bộ với quy định hiện hành
-- Trả lời câu hỏi về hiệu lực, lịch sử sửa đổi văn bản quy phạm pháp luật
-
-Trả lời thân thiện, ngắn gọn bằng tiếng Việt. Không bịa thông tin pháp lý — \
-với câu hỏi về quy định cụ thể, hãy hướng dẫn người dùng đặt câu hỏi chi tiết hơn \
-để hệ thống tra cứu kho văn bản pháp luật."""
+def _aide_persona_system() -> str:
+    try:
+        from llm.prompts import AIDE_PERSONA_SYSTEM
+        return AIDE_PERSONA_SYSTEM
+    except Exception:
+        return "Bạn là AIDE — trợ lý pháp chế SHB. Trả lời thân thiện tiếng Việt."
 
 
 def _is_chitchat(text: str) -> bool:
@@ -231,7 +228,7 @@ def post_message(
         # Chitchat / hỏi về AIDE → trả lời bằng persona, không qua RAG
         from llm.client import get_client
         try:
-            answer_text = get_client().complete(_AIDE_PERSONA_SYSTEM, text)
+            answer_text = get_client().complete(_aide_persona_system(), text)
         except Exception:
             answer_text = ("Xin chào! Tôi là AIDE — trợ lý pháp chế của ngân hàng SHB. "
                            "Tôi có thể giúp bạn tra cứu quy định pháp lý và kiểm tra tuân thủ tài liệu. "
