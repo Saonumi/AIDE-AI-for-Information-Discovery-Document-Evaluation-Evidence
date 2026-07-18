@@ -37,3 +37,13 @@ def activate_document(document_id: str, user: CurrentUser = Depends(require_empl
                                   "details": {"reasons": getattr(e, "reasons", [])}}},
             )
         raise
+
+
+@router.delete("/documents/{document_id}")
+def delete_document(document_id: str, user: CurrentUser = Depends(require_employee)):
+    return call("ingestion.service", "delete_document", document_id, user.username)
+
+
+@router.get("/documents/{document_id}/provisions")
+def list_document_provisions(document_id: str, user: CurrentUser = Depends(require_authenticated)):
+    return call("ingestion.service", "list_document_provisions", document_id)

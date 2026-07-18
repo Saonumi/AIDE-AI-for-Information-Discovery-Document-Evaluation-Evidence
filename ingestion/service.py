@@ -211,8 +211,10 @@ def handle_upload(file_bytes: bytes, filename: str, doc_type: str, uploaded_by: 
         md_dump = metadata.model_dump(mode="json")
         row.doc_metadata = md_dump
 
-        # Step 5-8: structure parse + persist provisions/versions (PENDING).
-        provisions = parse_structure(blocks)
+        # Step 5-8: LLM extract provisions (primary); parse_structure fallback nếu LLM chưa cấu hình.
+        provisions = legal_extract.llm_extract_provisions(full_text)
+        if not provisions:
+            provisions = parse_structure(blocks)
         provision_count = _persist_provisions(session, row, provisions)
 
         # Step 9-10: amendment detection -> change events + review tasks.
@@ -246,11 +248,57 @@ def handle_upload(file_bytes: bytes, filename: str, doc_type: str, uploaded_by: 
         )
 
 
+def delete_document(document_id: str, deleted_by: str) -> dict:
+    """Soft-delete: mark ARCHIVED. Blocked nếu đã INDEXED (đang hoạt động trong kho RAG)."""
+    _ensure_db()
+    with session_scope() as session:
+        row = session.execute(
+            select(DocumentRow).where(DocumentRow.document_id == document_id)
+        ).scalar_one_or_none()
+        if row is None:
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail="Document not found.")
+        if row.processing_status == ProcessingStatus.INDEXED.value:
+            from fastapi import HTTPException
+            raise HTTPException(status_code=409, detail="Không thể xóa nguồn đang hoạt động trong kho RAG.")
+        row.approval_status = ApprovalStatus.ARCHIVED.value
+    return {"deleted": document_id}
+
+
+def list_document_provisions(document_id: str) -> list:
+    """Trả về tất cả điều khoản đã trích xuất cho một document."""
+    _ensure_db()
+    with session_scope() as session:
+        rows = session.execute(
+            select(ProvisionRow, ProvisionVersionRow)
+            .join(ProvisionVersionRow, ProvisionVersionRow.provision_id == ProvisionRow.provision_id)
+            .where(ProvisionVersionRow.document_id == document_id)
+            .order_by(ProvisionVersionRow.created_at.asc())
+        ).all()
+        return [
+            {
+                "version_id": v.version_id,
+                "provision_id": p.provision_id,
+                "heading_path": p.heading_path or [],
+                "article": p.article,
+                "clause": p.clause,
+                "point": p.point,
+                "content": v.content,
+                "page": v.page,
+                "valid_from": v.valid_from.isoformat() if v.valid_from else None,
+                "approval_status": v.approval_status,
+            }
+            for p, v in rows
+        ]
+
+
 def list_documents() -> List[Document]:
     _ensure_db()
     with session_scope() as session:
         rows = session.execute(
-            select(DocumentRow).order_by(DocumentRow.created_at.desc())
+            select(DocumentRow)
+            .where(DocumentRow.approval_status != ApprovalStatus.ARCHIVED.value)
+            .order_by(DocumentRow.created_at.desc())
         ).scalars().all()
         out: List[Document] = []
         for r in rows:
