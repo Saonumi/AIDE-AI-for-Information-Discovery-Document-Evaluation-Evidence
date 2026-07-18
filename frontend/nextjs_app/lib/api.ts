@@ -191,6 +191,8 @@ export interface ChatCitation {
   heading_path?: string[]
   page?: number
   valid_from?: string
+  valid_to_exclusive?: string | null
+  content?: string | null
 }
 
 export interface ChatTurnT {

@@ -126,6 +126,9 @@ def _citations_from(text: str, pkg: EvidencePackage) -> List[Citation]:
                     document_number=e.document_number,
                     heading_path=list(e.heading_path),
                     page=e.page,
+                    content=e.content,
+                    valid_from=e.valid_from,
+                    valid_to_exclusive=e.valid_to_exclusive,
                 )
             )
     return out

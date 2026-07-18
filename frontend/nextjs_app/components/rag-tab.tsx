@@ -79,7 +79,7 @@ export function RagTab() {
         </div>
         <span className="text-[11px] text-muted-foreground hidden lg:block">
           {mode === "ask"
-            ? "Hỏi đáp trên kho APPROVED + ACTIVE · mỗi cuộc trò chuyện có bộ nhớ riêng"
+            ? "Hỏi đáp trên kho quy định đã duyệt & đang hiệu lực · mỗi cuộc trò chuyện có bộ nhớ riêng"
             : "Upload policy/báo cáo để đối chiếu quy định · kết quả khóa theo từng lần đánh giá"}
         </span>
       </div>
@@ -333,30 +333,60 @@ function ChatBubble({ role, content, citations }: {
   )
 }
 
-// Bằng chứng ngay dưới câu trả lời (§4.2), panel mở rộng được.
+// Bằng chứng ngay dưới câu trả lời (§4.2) — mỗi citation expand được để đọc nội dung trích dẫn.
 function EvidencePanel({ citations }: { citations: ChatCitation[] }) {
   const [open, setOpen] = React.useState(false)
+  const [expanded, setExpanded] = React.useState<Set<number>>(new Set())
+  const toggle = (i: number) =>
+    setExpanded((s) => { const n = new Set(s); n.has(i) ? n.delete(i) : n.add(i); return n })
+
   return (
-    <div className="mt-1.5 border border-blue-500/25 bg-blue-500/5">
+    <div className="mt-2 rounded-xl border border-blue-500/20 bg-blue-500/5 overflow-hidden">
       <button onClick={() => setOpen(!open)} aria-expanded={open}
-        className="w-full flex items-center gap-2 px-2.5 py-1.5 text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 transition-colors">
+        className="w-full flex items-center gap-2 px-3 py-2 text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 transition-colors">
         <span>{open ? "▾" : "▸"}</span>
-        Bằng chứng ({citations.length})
-        <Badge variant="outline" className="text-[9px] ml-auto text-emerald-600 dark:text-emerald-400 border-emerald-500/40">
-          Nguồn có thẩm quyền
+        {citations.length} nguồn căn cứ
+        <Badge variant="outline" className="text-[9px] ml-auto text-emerald-600 dark:text-emerald-400 border-emerald-500/40 bg-emerald-500/10">
+          Đã xác thực
         </Badge>
       </button>
       {open && (
-        <ul className="px-2.5 pb-2.5 pt-0.5 space-y-1.5">
+        <ul className="divide-y divide-blue-500/10">
           {citations.map((c, i) => (
-            <li key={i} className="text-[11px] pl-2 border-l-2 border-blue-500/40">
-              <span className="font-semibold text-orange-600 dark:text-orange-400">[{i + 1}]</span>{" "}
-              <span className="font-medium text-foreground">{c.document_number ?? c.source_id}</span>
-              {c.heading_path && c.heading_path.length > 0 && (
-                <span className="text-muted-foreground"> · {c.heading_path.join(" › ")}</span>
+            <li key={i}>
+              <button onClick={() => toggle(i)}
+                className="w-full flex items-start gap-2.5 px-3 py-2.5 text-left hover:bg-blue-500/10 transition-colors group">
+                <span className="shrink-0 text-[11px] font-bold text-orange-500 mt-0.5">[{i + 1}]</span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[12px] font-semibold text-foreground truncate">
+                    {c.document_number ?? c.source_id}
+                  </div>
+                  {c.heading_path && c.heading_path.length > 0 && (
+                    <div className="text-[11px] text-muted-foreground truncate">
+                      {c.heading_path.join(" › ")}
+                    </div>
+                  )}
+                  <div className="text-[10px] text-muted-foreground/70 mt-0.5 flex gap-2">
+                    {c.valid_from && <span>Hiệu lực: {fmtDate(c.valid_from)}{c.valid_to_exclusive ? ` → ${fmtDate(c.valid_to_exclusive)}` : " → nay"}</span>}
+                    {typeof c.page === "number" && <span>Trang {c.page}</span>}
+                  </div>
+                </div>
+                <span className="shrink-0 text-[10px] text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity mt-0.5">
+                  {expanded.has(i) ? "thu gọn" : "xem nội dung"}
+                </span>
+              </button>
+              {expanded.has(i) && c.content && (
+                <div className="px-3 pb-3 pt-1 ml-7">
+                  <blockquote className="border-l-2 border-orange-400 pl-3 text-[12px] text-foreground/80 leading-relaxed italic whitespace-pre-wrap bg-orange-500/5 py-2 pr-2 rounded-r-lg">
+                    {c.content}
+                  </blockquote>
+                </div>
               )}
-              {c.valid_from && <span className="text-muted-foreground"> · hiệu lực từ {fmtDate(c.valid_from)}</span>}
-              {typeof c.page === "number" && <span className="text-muted-foreground"> · tr.{c.page}</span>}
+              {expanded.has(i) && !c.content && (
+                <div className="px-3 pb-3 pt-1 ml-7 text-[11px] text-muted-foreground italic">
+                  Nội dung trích dẫn chưa được lưu cho phiên bản này.
+                </div>
+              )}
             </li>
           ))}
         </ul>
@@ -432,12 +462,12 @@ function ReviewIntake({ onSingle, onBatch }: {
           <h3 className="text-base font-semibold">Nhận xét tài liệu</h3>
           <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
             Tải policy, quy trình hoặc báo cáo cần kiểm tra. Hệ thống đối chiếu với quy định
-            <strong className="text-foreground"> APPROVED + ACTIVE</strong> tại ngày đánh giá và chỉ ra điểm chưa phù hợp.
+            <strong className="text-foreground"> đã duyệt &amp; đang hoạt động</strong> tại ngày đánh giá và chỉ ra điểm chưa phù hợp.
           </p>
         </div>
 
         <div className="border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-600 dark:text-blue-300 leading-relaxed">
-          File ở đây là <strong>REVIEW_TARGET</strong> — chỉ dùng để kiểm tra. Không được thêm vào
+          File ở đây là <strong>tài liệu chỉ để kiểm tra</strong> — không được thêm vào
           kho pháp lý, không thành nguồn căn cứ, không xuất hiện ở mode tra cứu.
         </div>
 
@@ -543,9 +573,9 @@ function ReviewDocPanel({ report, onNew, onRerun, rerunning }: {
     <aside className="w-56 border-r border-border flex-col shrink-0 hidden md:flex">
       <div className="p-3 border-b border-border">
         <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Tài liệu</div>
-        <div className="text-sm font-medium mt-1 break-words">{report.target_document.filename ?? "REVIEW_TARGET"}</div>
+        <div className="text-sm font-medium mt-1 break-words">{report.target_document.filename ?? "Tài liệu kiểm tra"}</div>
         <Badge variant="outline" className="text-[9px] mt-1.5 text-blue-600 dark:text-blue-400 border-blue-500/40">
-          {report.target_document.trust_class}
+          {TRUST_LABEL[report.target_document.trust_class] ?? report.target_document.trust_class}
         </Badge>
       </div>
       <div className="p-3 text-[11px] text-muted-foreground space-y-1 border-b border-border">
@@ -759,7 +789,7 @@ function BatchItemDetail({ batch, itemId }: { batch: BatchReview; itemId: string
   if (!item.review_run_id) {
     return (
       <div className="flex-1 flex items-center justify-center p-6 text-sm text-muted-foreground text-center">
-        {item.filename} — {item.status}{item.error ? `: ${item.error}` : " (chưa có Review Run)."}
+        {item.filename} — {BATCH_STATUS_LABEL[item.status] ?? item.status}{item.error ? `: ${item.error}` : " (chưa có kết quả rà soát)."}
       </div>
     )
   }
@@ -789,6 +819,24 @@ function BatchItemDetail({ batch, itemId }: { batch: BatchReview; itemId: string
   )
 }
 
+const BATCH_STATUS_LABEL: Record<string, string> = {
+  COMPLETED: "Hoàn tất",
+  FAILED: "Lỗi",
+  PENDING: "Chờ xử lý",
+  RUNNING: "Đang chạy",
+}
+
+const TRUST_LABEL: Record<string, string> = {
+  AUTHORITY_SOURCE_CANDIDATE: "Nguồn chờ xác minh",
+  AUTHORITY_SOURCE: "Nguồn có thẩm quyền",
+  INTERNAL_APPROVED: "Nội bộ đã duyệt",
+  REVIEW_TARGET: "Tài liệu kiểm tra",
+  UNVERIFIED: "Chưa xác minh",
+  CONVERSATION_ATTACHMENT: "File đính kèm hội thoại",
+  USER_MESSAGE: "Tin nhắn người dùng",
+  REVIEW_RESULT: "Kết quả rà soát",
+}
+
 function BatchStatusBadge({ status, error }: { status: string; error: string | null }) {
   const map: Record<string, string> = {
     COMPLETED: "text-emerald-600 dark:text-emerald-400 border-emerald-500/40",
@@ -799,7 +847,7 @@ function BatchStatusBadge({ status, error }: { status: string; error: string | n
   return (
     <Badge variant="outline" className={`text-[9px] ${map[status] ?? "text-muted-foreground border-border"}`}
            title={error ?? undefined}>
-      {status}
+      {BATCH_STATUS_LABEL[status] ?? status}
     </Badge>
   )
 }

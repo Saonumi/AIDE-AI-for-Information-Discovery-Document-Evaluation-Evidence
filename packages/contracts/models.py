@@ -259,6 +259,9 @@ class Citation(BaseModel):
     document_number: Optional[str] = None
     heading_path: List[str] = Field(default_factory=list)
     page: Optional[int] = None
+    content: Optional[str] = None
+    valid_from: Optional[date] = None
+    valid_to_exclusive: Optional[date] = None
 
 
 class Answer(BaseModel):
