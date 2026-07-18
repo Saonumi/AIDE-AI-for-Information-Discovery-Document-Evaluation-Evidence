@@ -44,14 +44,22 @@ export function ComplianceRAG() {
   const [session, setSession] = React.useState<Session | null>(null)
   const [ready, setReady] = React.useState(false)
   const [tab, setTab] = React.useState<Tab>("add-source")
+  const { setTheme } = useTheme()
 
   React.useEffect(() => {
     setSession(getSession())
     setReady(true)
   }, [])
 
+  // Mỗi lần đăng nhập luôn về chế độ Sáng (mặc định giao diện sáng khi login).
+  // Người dùng vẫn đổi Tối/Theo hệ thống sau đó bằng nút góc phải.
+  function handleLogin(s: Session) {
+    setTheme("light")
+    setSession(s)
+  }
+
   if (!ready) return null
-  if (!session) return <LoginView onLogin={setSession} />
+  if (!session) return <LoginView onLogin={handleLogin} />
 
   return (
     <TooltipProvider>
