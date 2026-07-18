@@ -36,6 +36,8 @@ htmlcov/
 data/raw/
 data/processed/
 data/embeddings/
+data/storage/
+data/*.db
 tmp/
 *.pkl
 *.bin

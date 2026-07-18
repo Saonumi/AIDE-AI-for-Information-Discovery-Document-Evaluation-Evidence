@@ -1,0 +1,45 @@
+# --- API / UI ---
+fastapi>=0.110
+uvicorn[standard]>=0.29
+streamlit>=1.33
+python-multipart>=0.0.9
+
+# --- Models / validation ---
+pydantic>=2.6
+pydantic-settings>=2.2
+
+# --- Auth ---
+PyJWT>=2.8
+passlib[bcrypt]>=1.7
+
+# --- Datastores ---
+SQLAlchemy>=2.0
+psycopg[binary]>=3.1
+opensearch-py>=2.4
+neo4j>=5.18
+networkx>=3.2            # in-memory graph fallback (demo_mode / no-docker)
+
+# --- Documents ---
+PyMuPDF>=1.24
+python-docx>=1.1
+reportlab>=4.1          # generate demo PDFs that contain real text
+
+# --- Vietnamese NLP ---
+underthesea>=6.7
+
+# --- Embeddings (heavy — optional; demo_mode uses a hash fallback) ---
+FlagEmbedding>=1.2 ; python_version < "3.13"
+sentence-transformers>=2.6
+
+# --- LLM ---
+google-genai>=0.3       # Google AI Studio (Gemini) — default provider
+anthropic>=0.25
+openai>=1.14
+
+# --- Retrieval fallback / viz ---
+rank-bm25>=0.2
+pyvis>=0.3
+streamlit-agraph>=0.0.45
+
+# --- Test ---
+pytest>=8.0
