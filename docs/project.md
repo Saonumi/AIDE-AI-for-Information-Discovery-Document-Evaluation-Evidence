@@ -285,7 +285,10 @@ streamlit run ui/app.py                                         # UI (API_BASE_U
 python -m pytest tests/ -q      # 76 passed
 python -m eval.run_eval         # bảng benchmark head-to-head
 ```
-Tài khoản demo: `employee/employee123` (EMPLOYEE), `user/user123` (USER).
+Tài khoản demo:
+- `compliance/compliance123` (COMPLIANCE_OFFICER)
+- `user/user123` (COMPLIANCE_OFFICER)
+- `employee/employee123` (COMPLIANCE_OFFICER)
 
 ---
 

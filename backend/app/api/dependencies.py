@@ -90,7 +90,7 @@ def require_authenticated(creds: Optional[HTTPAuthorizationCredentials] = Depend
 
 
 def require_employee(user: CurrentUser = Depends(require_authenticated)) -> CurrentUser:
-    if user.role != Role.EMPLOYEE:
+    if user.role not in (Role.EMPLOYEE, Role.COMPLIANCE_OFFICER):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Employee role required")
     return user
 
@@ -105,10 +105,17 @@ def authenticate(username: str, password: str) -> Optional[CurrentUser]:
 
 
 def seed_users() -> None:
-    """Idempotent: create demo employee + user accounts if missing."""
-    demo = [("employee", "employee123", Role.EMPLOYEE), ("user", "user123", Role.USER)]
+    """Idempotent: create demo compliance + employee + user accounts if missing."""
+    demo = [
+        ("compliance", "compliance123", Role.COMPLIANCE_OFFICER),
+        ("user", "user123", Role.COMPLIANCE_OFFICER),
+        ("employee", "employee123", Role.COMPLIANCE_OFFICER),
+    ]
     with session_scope() as ses:
         for username, pw, role in demo:
-            if not ses.query(User).filter(User.username == username).one_or_none():
+            u = ses.query(User).filter(User.username == username).one_or_none()
+            if u is None:
                 ses.add(User(id=new_id("usr"), username=username,
                              password_hash=hash_password(pw), role=role.value))
+            elif u.role != role.value:
+                u.role = role.value

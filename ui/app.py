@@ -163,9 +163,12 @@ def page_login() -> None:
 
     with st.form("login"):
         col1, col2 = st.columns(2)
-        username = col1.text_input("Tài khoản", value="employee")
-        password = col2.text_input("Mật khẩu", value="employee123", type="password")
-        st.caption("Demo: employee / employee123 (EMPLOYEE) — user / user123 (USER)")
+        username = col1.text_input("Tài khoản", value="compliance")
+        password = col2.text_input("Mật khẩu", value="compliance123", type="password")
+        st.caption("Tài khoản demo:")
+        st.caption("• compliance / compliance123 (COMPLIANCE_OFFICER)")
+        st.caption("• user / user123 (COMPLIANCE_OFFICER)")
+        st.caption("• employee / employee123 (COMPLIANCE_OFFICER)")
         submitted = st.form_submit_button("Đăng nhập")
     if submitted:
         res = api.login(username, password)
@@ -561,7 +564,7 @@ def main() -> None:
         page_login()
         return
 
-    role = st.session_state.get("role", "USER")
+    role = st.session_state.get("role", "COMPLIANCE_OFFICER")
     st.sidebar.success(f"{st.session_state.get('username')} · {role}")
     if st.sidebar.button("Đăng xuất"):
         for k in ("token", "role", "username"):

@@ -9,8 +9,9 @@ from enum import Enum
 
 
 class Role(str, Enum):
-    USER = "USER"
     EMPLOYEE = "EMPLOYEE"
+    COMPLIANCE_OFFICER = "COMPLIANCE_OFFICER"
+    SYSTEM_ADMIN = "SYSTEM_ADMIN"
 
 
 class DocumentClass(str, Enum):

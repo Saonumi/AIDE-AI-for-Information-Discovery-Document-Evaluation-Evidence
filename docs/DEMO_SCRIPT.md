@@ -14,7 +14,7 @@ uvicorn api.main:app --port 8000
 streamlit run ui/app.py
 ```
 
-Đăng nhập: `employee / employee123`. Mở sẵn 3 file trong thư mục:
+Đăng nhập: `user / user123`. Mở sẵn 3 file trong thư mục:
 - `data/golden/review_targets/bao_cao_tuan_thu_outdated.txt`
 - `data/golden/review_targets/chinh_sach_compliant.txt`
 - 1 file amendment .txt tự soạn (mẫu ở cuối) — hoặc PDF thật `data/crawl/sbv/raw/` (85/2025/TT-NHNN)
@@ -80,7 +80,7 @@ Trang **Audit**: mọi truy vấn/quyết định đều có vết (ai, khi nào
 | Không có Anthropic key / mạng | Chạy mock LLM (mặc định) — mọi phép tất định vẫn đúng; nói rõ "phần văn phong đang dùng mock offline" |
 | Streamlit lỗi | Demo bằng REST (Postman/curl): POST /login → /compliance-checks → /report — JSON tự nói lên tất cả |
 | Upload PDF parse yếu | Dùng file .txt mẫu dưới đây (nội dung chuẩn cấu trúc) |
-| Quên tài khoản | employee/employee123 · user/user123 |
+| Quên tài khoản | compliance/compliance123 · user/user123 · employee/employee123 |
 
 ## File amendment .txt mẫu (Workflow A)
 

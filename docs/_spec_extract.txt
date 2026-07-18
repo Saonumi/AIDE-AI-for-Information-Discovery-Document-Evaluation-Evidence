@@ -1,0 +1,473 @@
+
+VAIC2026
+MODE-BASED AI CHAT&amp; DOCUMENT REVIEW EXPANSION
+Final Change Specification for AI Coding Agent
+Mở rộng hệ thống đang chạy: chia mode chat · cô lập hội thoại · review tài liệu đơn/lô · prompt và JSON contract riêng
+Trạng thái đầu vào được giả định
+Luồng Add Regulatory Source, Human Review, activation, temporal knowledge base và truy vấn RAG chính đã chạy. Tài liệu này KHÔNG yêu cầu viết lại luồng chính. Nó chỉ mô tả phần mở rộng cần phát triển để hệ thống có nhiều mode chat, cô lập dữ liệu đúng cách và hỗ trợ review một hoặc nhiều báo cáo.
+Hạng mục
+Quyết định cuối cùng
+Persona duy nhất
+Compliance Officer / cán bộ Pháp chế - Tuân thủ ngân hàng
+Knowledge management
+Add Regulatory Source là workflow riêng; chỉ APPROVED + ACTIVE mới vào kho pháp lý
+Chat mode 1
+Ask Regulations: multi-turn RAG hỗ trợ hỏi đáp quy định
+Chat mode 2
+Document Review: upload file trong chat, đánh giá bằng Review Run độc lập
+Review scale
+Single Review và Batch Review
+Dữ liệu chat
+Chỉ thuộc conversation/review run hiện tại; không đi vào global knowledge base
+Đầu ra review
+Structured findings + evidence + suggested revision + chat giải thích
+Version 2.0 · Change Scope: Chat Modes, Review Runs, Batch Review and Isolation
+
+Cách AI Coding Agent phải sử dụng tài liệu này
+Đọc toàn bộ phần Invariants, Mode Contract và Trust/Isolation trước khi sửa code.
+Giữ nguyên luồng Add Regulatory Source hiện đã chạy; chỉ sửa khi cần nối đúng interface hoặc security boundary.
+Không tạo codebase thứ hai, không copy module hiện tại sang folder mới. Mọi thay đổi phải được thực hiện trên codebase canonical đang chạy.
+Triển khai theo từng phase và chạy full test suite sau mỗi phase.
+Mọi conversation attachment và review target phải được scope bằng owner_id + conversation_id hoặc review_run_id.
+Evaluator, explainer và normal assistant phải dùng prompt/schema riêng; không dùng một system prompt chung.
+Không tuyên bố hoàn thành Batch Review nếu các file vẫn bị gộp vào một prompt hoặc có thể dùng lẫn nội dung làm evidence.
+Khi hoàn thành phải trả về danh sách file đã sửa, migration, test, metric và limitation còn lại.
+Mục lục triển khai
+1. Bối cảnh hiện tại và mục tiêu thay đổi
+2. Product model và navigation cuối cùng
+3. Mode contract và các invariant bắt buộc
+4. Trust model, bounded evidence và isolation
+5. Review Run bất biến và chat giải thích
+6. Shared NLP và mode-specific extraction
+7. Single Document Review
+8. Batch Document Review
+9. Conversation memory và cross-chat isolation
+10. Prompt, JSON Schema và output format
+11. UI/UX cần bổ sung
+12. Domain model, persistence và API
+13. Cấu trúc folder cần thêm/sửa
+14. Migration plan không phá luồng hiện tại
+15. Test strategy và acceptance criteria
+16. Definition of Done
+Phụ lục: JSON mẫu, prompt skeleton và golden demo
+
+1. Bối cảnh hiện tại và mục tiêu thay đổi
+Hệ thống hiện tại đã chạy được luồng chính: tiếp nhận nguồn pháp lý, trích xuất, Human Review, activation và truy vấn từ kho pháp lý. Vấn đề cần giải quyết ở phase này không phải là viết lại core đó, mà là tổ chức lại trải nghiệm AI thành các mode có chính sách ngữ cảnh khác nhau.
+Hiện tại
+Mục tiêu sau thay đổi
+Chat/RAG chưa chia mode rõ ràng
+Có Ask Regulations và Document Review với contract riêng
+Upload file review là một chức năng tách khỏi chat hoặc chưa có
+File được upload trực tiếp trong Document Review chat
+Chưa định nghĩa rõ file chat có vào knowledge base hay không
+Attachment/review target không bao giờ đi vào global legal KB
+Review có nguy cơ bị lịch sử chat làm lệch
+Initial evaluation chạy trong Review Run độc lập, không dùng chat history
+Chưa có isolation cứng giữa các chat
+Mỗi conversation có scope riêng; cross-chat retrieval bị cấm
+Chưa hỗ trợ người dùng review nhiều báo cáo
+Batch Review: một file = một Review Run; có tổng hợp toàn batch
+Mục tiêu sản phẩm sau phase này
+Một AI assistant duy nhất cho Compliance Officer, nhưng có các mode vận hành khác nhau: hỏi đáp quy định theo ngữ cảnh hội thoại; đánh giá tài liệu theo Review Run có thể tái lập; và quản trị nguồn pháp lý bằng workflow Human Review riêng.
+2. Product model và navigation cuối cùng
+Capability
+Vai trò
+Tính chất ngữ cảnh
+Ask Regulations
+Hỏi đáp, giải thích, truy vấn phiên bản và dẫn chiếu pháp lý
+Multi-turn; chỉ nhớ trong conversation hiện tại
+Document Review
+Đánh giá policy/báo cáo người dùng upload
+Initial evaluator không dùng chat history; explainer multi-turn trong Review Run
+Add Regulatory Source
+Đưa nguồn pháp lý mới vào kho tri thức
+Workflow quản trị riêng; Human Review trước activation
+MAIN NAVIGATION├── Chat│   ├── Ask Regulations│   └── Document Review│       ├── Single Review│       └── Batch Review├── Add Regulatory Source├── Review Queue├── Review History / Reports├── Knowledge Base└── Audit Log
+Không tạo ba sản phẩm rời nhau
+Đây vẫn là một hệ thống và một persona. Add Regulatory Source xây dựng nguồn pháp lý đáng tin cậy; Ask Regulations và Document Review cùng tiêu thụ kho pháp lý đó nhưng dùng chính sách context khác nhau.
+3. Mode contract và các invariant bắt buộc
+3.1 Ask Regulations
+Là multi-turn RAG.
+Được dùng chat history của đúng conversation hiện tại để resolve đại từ và câu hỏi tiếp nối.
+Chỉ dùng nguồn pháp lý APPROVED + ACTIVE, đúng query date hoặc assessment date.
+Attachment tùy chọn chỉ là conversation context; không được coi là authority source.
+Khi tạo New Chat, memory bắt đầu rỗng.
+Không được truy xuất attachment hoặc messages từ conversation khác.
+3.2 Document Review
+Khi bật mode, hệ thống yêu cầu upload file và chọn assessment date trước khi chạy.
+File là REVIEW_TARGET, không phải legal evidence và không vào global KB.
+Initial evaluation phải chạy như một tác vụ độc lập, không sử dụng lịch sử chat làm kiến thức.
+Mỗi lần chạy tạo một immutable Review Run.
+Sau khi có kết quả, người dùng được chat tiếp để hỏi giải thích hoặc đề xuất sửa đổi.
+Explainer chỉ được dùng Review Run JSON và evidence đã khóa của run đó.
+Muốn đổi file, ngày đánh giá, phạm vi hoặc knowledge snapshot thì phải tạo Review Run mới.
+3.3 Add Regulatory Source
+Giữ nguyên workflow hiện tại.
+File upload ban đầu là UNVERIFIED_AUTHORITY_CANDIDATE.
+Chỉ APPROVED + ACTIVE mới được dùng trong retrieval hoặc review evidence.
+Chat attachment và review target không được đi qua activation workflow này trừ khi người dùng chủ động chọn Add Regulatory Source và có Human Review.
+Invariant quan trọng nhất
+Conversation content có thể hỗ trợ hiểu ý người dùng, nhưng không bao giờ tự động trở thành tri thức pháp lý. Legal truth chỉ đến từ nguồn APPROVED + ACTIVE trong snapshot được chỉ định.
+4. Trust model, bounded evidence và isolation
+Trust class
+Ví dụ
+Được dùng làm legal evidence?
+APPROVED_REGULATORY_SOURCE
+Thông tư/văn bản đã review và active
+Có
+UNVERIFIED_AUTHORITY_CANDIDATE
+Văn bản mới vừa upload vào source intake
+Không
+REVIEW_TARGET
+Policy/báo cáo cần kiểm tra
+Không; chỉ là đối tượng so sánh
+CONVERSATION_ATTACHMENT
+File đính kèm trong Ask Regulations
+Không; chỉ là context cục bộ
+USER_MESSAGE
+Nội dung người dùng nhập trong chat
+Không
+REVIEW_RESULT
+Kết quả đánh giá của một Review Run
+Không phải nguồn pháp lý; dùng để giải thích run
+4.1 Bounded evidence scope của Document Review
+ALLOWED INPUTS FOR INITIAL REVIEW1. REVIEW_TARGET document text2. APPROVED_REGULATORY_SNAPSHOT at assessment_date3. Mode-specific rules and prompt versionFORBIDDEN INPUTS- Messages from other conversations- Files from other reviews- Unapproved legal sources- Free-form model memory- Conclusions from previous review runs
+4.2 Trust hierarchy
+SYSTEM / SECURITY RULES    &gt; APPROVED REGULATORY EVIDENCE    &gt; FROZEN REVIEW RUN DATA    &gt; REVIEW TARGET DOCUMENT    &gt; CURRENT USER QUESTION    &gt; PRIOR CHAT MESSAGES
+4.3 Snapshot rule
+Mỗi Review Run phải lưu knowledge_snapshot_id. Nếu sau đó có nguồn pháp lý mới được activate, kết quả cũ vẫn giữ nguyên. Việc đánh giá lại phải tạo Review Run mới với snapshot mới.
+5. Review Run bất biến và chat giải thích
+UPLOAD FILE    ↓CREATE REVIEW RUN    ↓FREEZE assessment_date + knowledge_snapshot + parser/prompt versions    ↓EXTRACT CLAIMS    ↓RETRIEVE APPROVED EVIDENCE    ↓STRUCTURED EVALUATION    ↓VERIFY OUTPUT    ↓LOCK REVIEW RESULT    ↓OPTIONAL MULTI-TURN EXPLAINER CHAT
+5.1 Tại sao không dùng single-turn hoàn toàn?
+Single-turn hoàn toàn làm giảm giá trị tương tác. Thiết kế đúng là initial evaluation có tính single-run và tái lập, sau đó cho phép multi-turn explanation trong phạm vi đã khóa. Người dùng vẫn có thể hỏi “vì sao?”, “nguồn nào?”, “đề xuất viết lại?”, nhưng không thể làm thay đổi kết luận gốc chỉ bằng lời nói.
+5.2 Review Run state machine
+CREATED→ FILE_UPLOADED→ TEXT_EXTRACTED→ CLAIMS_EXTRACTED→ EVIDENCE_RETRIEVED→ ASSESSED→ VERIFIED→ READY→ HUMAN_REVIEWED (optional)Failure states:NEEDS_INPUT | INSUFFICIENT_EVIDENCE | FAILED | CANCELLED
+5.3 Re-run rule
+Đổi assessment date → Review Run mới.
+Đổi review scope → Review Run mới.
+Upload phiên bản file khác → Review Run mới.
+Knowledge snapshot thay đổi → Review Run mới.
+Chỉ hỏi giải thích hoặc yêu cầu draft sửa → vẫn dùng Review Run cũ.
+6. Shared NLP và mode-specific extraction
+                 SHARED DOCUMENT PROCESSINGFile validation → OCR/text extraction → layout → normalization                          ↓         ┌────────────────┴────────────────┐         ↓                                 ↓REGULATORY SOURCE PIPELINE        REVIEW TARGET PIPELINEDocument metadata                 Claims / obligationsArticle-clause hierarchy          Threshold / deadlineAmendment / supersession          Scope / exceptionCross-reference                   Internal citationEvidence spans                    Reviewable statements
+6.1 Thành phần được dùng chung
+File type validation, malware/injection scan.
+PDF/DOCX/TXT extraction và OCR fallback.
+Unicode normalization, page and section mapping.
+Table extraction, number/date/percentage parsing.
+Source span và page locator.
+6.2 Thành phần phải tách theo mode
+Regulatory Source Extractor
+Review Target Extractor
+Document number, issuer, issue/effective date
+Claim text, location, statement type
+Article, clause, point hierarchy
+Obligation, permission, prohibition
+AMENDS, REPEALS, SUPERSEDES
+Threshold, deadline, scope, exception
+Target provision resolution
+Internal reference and potentially outdated citation
+Proposed legal graph edges
+Normalized statement for comparison
+6.3 Canonical normalized statement
+{  "statement_type": "THRESHOLD | DEADLINE | OBLIGATION | PROHIBITION | PERMISSION",  "subject": "...",  "action": "...",  "modality": "MUST | MUST_NOT | MAY | SHOULD",  "value": 700000000,  "unit": "VND",  "scope": "...",  "exceptions": [],  "effective_context": "...",  "source_span": {"page": 4, "section": "4.2", "text": "..."}}
+Cả claim nội bộ và quy định pháp lý nên được normalize về schema tương đương. Rule engine kiểm tra các field xác định được; LLM hỗ trợ semantic mapping và giải thích.
+7. Single Document Review
+7.1 User flow
+Open Chat → Select Document Review→ Select Single Review→ Upload one file→ Choose assessment date / optional scope→ Start Review→ View structured findings→ Ask about this review→ Export report or create revised draft
+7.2 Kết quả mỗi finding
+Field
+Yêu cầu
+Claim
+Nội dung gốc và vị trí trong file
+Status
+COMPLIANT / NON_COMPLIANT / PARTIALLY_COMPLIANT / OUTDATED_REFERENCE / MISSING_EVIDENCE / AMBIGUOUS
+Comparison
+Giá trị/yêu cầu trong file so với quy định hiện hành
+Evidence
+Document number, Article/Clause, page, effective date, quoted span
+Explanation
+Lý do ngắn gọn, không suy diễn ngoài evidence
+Suggested revision
+Đề xuất sửa cụ thể hoặc nêu cần Human Review
+Confidence
+Score và reason code
+Audit metadata
+Review run, snapshot, prompt/parser version
+7.3 Explainer chat
+Cho phép hỏi về toàn tài liệu, một finding hoặc evidence cụ thể.
+Không tạo lại assessment nếu user chỉ yêu cầu giải thích.
+Nếu user yêu cầu đổi kết luận mà không có nguồn mới, giữ nguyên kết quả và giải thích trust rule.
+Nếu user yêu cầu đánh giá tại ngày khác, UI phải đề xuất Create New Review Run.
+8. Batch Document Review
+Nguyên tắc bắt buộc
+Một file = một Review Run độc lập. Nhiều Review Run = một Batch Review. Không nối toàn bộ file thành một prompt và không dùng báo cáo A làm evidence cho báo cáo B.
+8.1 Batch flow
+Upload N files→ Create BatchReview BR-001→ Freeze shared knowledge snapshot and configuration→ Create N independent ReviewRuns→ Queue + bounded worker pool→ Aggregate verified findings→ Generate Batch Review Report→ Enable chat by scope: entire batch / one report / selected findings
+8.2 Shared và isolated data
+Shared trong batch
+Bắt buộc cô lập theo file
+assessment_date
+review target text
+knowledge_snapshot_id
+extracted claims
+prompt/parser version
+retrieved evidence set
+review profile/scope
+claim assessments and citations
+queue configuration
+error/retry state
+8.3 Batch output
+Progress theo từng file: queued, processing, completed, failed, cancelled.
+Summary: total documents, total claims, status distribution.
+Recurring issue groups: cùng provision, cùng outdated value hoặc cùng missing obligation.
+Drill-down từ issue group → affected documents → exact claim → evidence.
+Retry/cancel/re-run riêng từng file.
+Re-run entire batch with latest approved snapshot tạo batch mới, không ghi đè batch cũ.
+8.4 Batch chat scopes
+Scope
+Nguồn được phép dùng
+Entire batch
+Batch summary + verified assessments của các item trong batch
+One report
+Đúng Review Run của report đó
+Selected findings
+Các finding được chọn + evidence tương ứng
+9. Conversation memory và cross-chat isolation
+9.1 Conversation contract
+Conversation- id- owner_id- mode: REGULATORY_ASSISTANT | DOCUMENT_REVIEW- title- created_at- last_activity_at- active_review_run_id (nullable)- retention_statusConversationAttachment- id- conversation_id- owner_id- trust_class- storage_key- checksum- expires_at / retention policy
+9.2 Retrieval filter bắt buộc
+ASK REGULATIONSowner_id = current_userAND conversation_id = current_conversation (for local attachments)AND authority_status = APPROVED + ACTIVE (for legal KB)DOCUMENT REVIEWreview_run_id = current_review_runAND knowledge_snapshot_id = frozen_snapshotAND authority_status = APPROVED + ACTIVE
+9.3 Invariants cần test
+File A upload trong Conversation A không được xuất hiện trong Conversation B.
+Review target A không được xuất hiện trong Ask Regulations như nguồn pháp lý.
+Message trong chat không được index vào global OpenSearch/Neo4j.
+Delete conversation phải xóa hoặc expire local attachment index theo retention policy.
+New chat không reuse hidden context từ chat trước.
+10. Prompt, JSON Schema và output format
+10.1 Prompt files bắt buộc
+backend/app/prompts/├── regulatory_assistant.system.md├── review_evaluator.system.md├── review_explainer.system.md├── batch_summarizer.system.md└── shared_safety_rules.mdbackend/app/schemas/├── review_claim.schema.json├── claim_assessment.schema.json├── review_report.schema.json├── batch_review_report.schema.json└── evidence_reference.schema.json
+10.2 Review Evaluator rules
+Không dùng chat history.
+Chỉ dùng target document và approved evidence được truyền vào.
+Trả JSON hợp schema; không trả văn xuôi tự do.
+Không tạo citation ngoài allowlist.
+Khi evidence không đủ, dùng MISSING_EVIDENCE hoặc AMBIGUOUS.
+Suggested revision phải dựa trên evidence; nếu không đủ phải để null và requires_human_review=true.
+10.3 Review Explainer rules
+Chỉ dùng locked Review Run JSON và evidence của run.
+Không được thay đổi status hoặc evidence set.
+Có thể giải thích, tóm tắt, soạn đề xuất sửa và trả lời follow-up.
+Nếu yêu cầu tạo đánh giá với parameter mới, trả action suggestion CREATE_NEW_REVIEW_RUN.
+10.4 User-facing finding format
+CLAIM"Hạn mức tối đa là 500 triệu đồng."STATUSOUTDATED_REFERENCECOMPARISONDocument: 500 million VNDCurrent regulation: 700 million VNDEVIDENCECircular ... · Article 7 · Clause 7 · Effective from ... · Page ...EXPLANATIONThe document uses a superseded value.SUGGESTED REVISIONReplace 500 million VND with 700 million VND and update the cited provision.HUMAN REVIEWRequired
+11. UI/UX cần bổ sung
+11.1 Chat header mode switch
+[ Ask Regulations ]   [ Document Review ]Ask Regulations:- normal message input- optional local attachment- optional query dateDocument Review:- Single Review / Batch Review- required upload- required assessment date- optional review scope/profile
+11.2 Single Review workspace
+┌──────────────────┬──────────────────────┬──────────────────┐│ Original Document│ Findings             │ Legal Evidence   ││ page + highlight │ status + comparison  │ source + version ││                  │ suggested revision   │ effective date   │└──────────────────┴──────────────────────┴──────────────────┘│ Ask about this review...                                     │└───────────────────────────────────────────────────────────────┘
+11.3 Batch Review workspace
+Upload zone hỗ trợ nhiều file, hiển thị checksum/duplicate warning.
+Progress table theo file.
+Summary cards và recurring issue groups.
+Filter theo status, severity và requires human review.
+Chat scope selector: Entire batch / Current report / Selected findings.
+Export individual report và batch report.
+11.4 Source management vẫn là workflow riêng
+Không đặt Add Regulatory Source như một attachment option mơ hồ trong chat. Nút hoặc navigation riêng phải mở intake/review flow hiện có. UI phải luôn hiển thị rằng nguồn chưa approve không được dùng làm legal evidence.
+11.5 History
+Chat list hiển thị mode icon.
+Document Review conversation hiển thị review run/batch status.
+Mở lại conversation phải restore đúng scope và snapshot.
+Không tự động merge knowledge giữa các conversation.
+12. Domain model, persistence và API
+12.1 Entities cần thêm
+Entity
+Vai trò
+Conversation
+Container cho history và mode
+ChatTurn
+User/assistant/system turn có scope
+ConversationAttachment
+Attachment cục bộ, không phải legal source
+ReviewTargetDocument
+File cần đánh giá
+ReviewRun
+Immutable assessment execution
+ReviewClaim
+Claim trích từ target
+ClaimAssessment
+Kết quả có cấu trúc
+EvidenceLink
+Liên kết finding với approved provision/version
+KnowledgeSnapshot
+Tập nguồn/version được khóa tại run
+PromptVersion
+Version prompt/schema
+BatchReview
+Container xử lý nhiều file
+BatchReviewItem
+Liên kết batch với Review Run
+BatchFindingGroup
+Nhóm lỗi lặp lại
+12.2 API đề xuất
+POST   /conversationsGET    /conversationsGET    /conversations/{id}POST   /conversations/{id}/messagesPOST   /conversations/{id}/attachmentsDELETE /conversations/{id}POST   /review-runsGET    /review-runs/{id}POST   /review-runs/{id}/questionsPOST   /review-runs/{id}/exportPOST   /review-runs/{id}/rerunPOST   /batch-reviewsGET    /batch-reviews/{id}GET    /batch-reviews/{id}/itemsPOST   /batch-reviews/{id}/questionsPOST   /batch-reviews/{id}/rerunPOST   /batch-reviews/{id}/exportExisting source APIs remain unchanged except for shared interfaces if required.
+12.3 API invariants
+Server derives owner_id from auth token; không nhận owner_id tự do từ client.
+Mọi endpoint đọc conversation/review phải verify ownership/role.
+Message endpoint phải verify mode contract.
+Review result không được update trực tiếp; re-run tạo entity mới.
+Batch item failure không rollback toàn batch.
+13. Cấu trúc folder cần thêm/sửa
+backend/app/├── chat/│   ├── domain/│   │   ├── conversation.py│   │   ├── attachment.py│   │   └── chat_turn.py│   ├── application/│   │   ├── regulatory_assistant.py│   │   ├── conversation_service.py│   │   └── isolation_policy.py│   ├── api/│   │   └── routes_chat.py│   └── persistence/│       └── conversation_repository.py├── review/│   ├── domain/│   │   ├── review_run.py│   │   ├── claim.py│   │   ├── assessment.py│   │   ├── batch_review.py│   │   └── knowledge_snapshot.py│   ├── application/│   │   ├── single_review_service.py│   │   ├── batch_review_service.py│   │   ├── review_explainer.py│   │   └── batch_aggregator.py│   ├── extraction/│   │   └── review_target_extractor.py│   ├── evaluation/│   │   ├── evaluator.py│   │   ├── verifier.py│   │   └── comparison_engine.py│   ├── api/│   │   ├── routes_review_runs.py│   │   └── routes_batch_reviews.py│   └── persistence/│       └── review_repository.py├── document_processing/   # shared extraction/OCR/normalization├── prompts/├── schemas/└── existing regulatory source modules remain canonicalfrontend/├── pages/│   ├── Chat.py│   ├── Review_History.py│   ├── Add_Regulatory_Source.py│   └── Review_Queue.py└── components/    ├── mode_switch.py    ├── review_upload.py    ├── finding_panel.py    ├── evidence_panel.py    ├── batch_progress.py    └── chat_scope_selector.py
+Không duplicate module
+Nếu codebase hiện tại đã có chat, extraction, prompt loader hoặc repository, hãy mở rộng chúng qua interface rõ ràng thay vì copy sang folder mới. Cây thư mục trên là logical target; AI phải map vào code canonical hiện có và báo rõ file nào được reuse.
+14. Migration plan không phá luồng hiện tại
+Phase
+Thay đổi
+Exit condition
+M0
+Chụp baseline test và xác nhận source flow đang chạy
+Full tests pass; demo source flow recorded
+M1
+Thêm mode enum, Conversation và isolation policy
+Cross-chat isolation tests pass
+M2
+Tách prompt/schema cho normal chat và evaluator
+Schema validation + prompt version tests pass
+M3
+Single Review Run backend
+One file produces locked structured report
+M4
+Review Explainer chat
+Follow-up answers only use locked run evidence
+M5
+Single Review UI
+End-to-end upload → review → explain works
+M6
+Batch domain, queue và per-file runs
+Each file independent; partial failures supported
+M7
+Batch aggregation, UI và scoped chat
+Batch report and drill-down work
+M8
+History, retention và export
+Reopen restores correct scope/snapshot
+M9
+Regression, load and security tests
+Acceptance thresholds met
+M10
+README/docs cleanup
+No outdated “separate compliance upload page” description
+14.1 Quy tắc migration
+Không đổi API/source flow nếu không cần thiết.
+Migrations phải backward-compatible hoặc có script chuyển dữ liệu rõ ràng.
+Feature flag cho mode mới cho đến khi integration test pass.
+Không xóa route cũ trước khi UI mới gọi route mới thành công.
+Sau cut-over phải xóa UI/route compliance upload cũ nếu nó trùng với Document Review mode.
+15. Test strategy và acceptance criteria
+15.1 Test bắt buộc
+Test
+Expected
+Cross-conversation leakage
+0 attachment/message từ chat A xuất hiện trong chat B
+Review target leakage
+Review target không xuất hiện trong regulatory KB retrieval
+History injection
+Initial evaluator không thay đổi vì prior chat messages
+Locked result
+User không thể đổi status chỉ bằng prompt
+Frozen snapshot
+Old run giữ kết quả khi KB được update
+Unapproved source
+Không xuất hiện trong evidence
+Citation allowlist
+Mọi citation thuộc evidence set
+Per-file batch isolation
+Report A không dùng text/report B làm evidence
+Partial batch failure
+Một file fail không làm batch fail toàn bộ
+Batch aggregation
+Summary bằng tổng verified item results
+Ownership
+User khác không đọc được conversation/review
+Reopen history
+Restores correct mode, run and snapshot
+15.2 Acceptance thresholds
+Metric
+Threshold
+Cross-conversation leakage rate
+0%
+Review-target-to-global-KB leakage rate
+0%
+Unapproved-source usage rate
+0%
+Citation allowlist validity
+100%
+Review reproducibility on same inputs/version
+100% deterministic structure; label drift must be logged
+Batch document isolation
+100%
+Review gate/source flow regression
+0 failed existing critical tests
+Batch retry correctness
+Only failed items rerun unless user chooses full rerun
+15.3 Golden scenarios
+Ask Regulations multi-turn: hỏi quy định hiện tại → hỏi tiếp thời điểm thay đổi.
+Single Review: policy ghi 500 triệu, active regulation ghi 700 triệu → OUTDATED_REFERENCE.
+Explainer: hỏi “vì sao?” → đúng evidence của run.
+Injection: yêu cầu đổi thành COMPLIANT → result không đổi.
+Batch: 10 reports, trong đó 4 reports dùng cùng giá trị cũ → recurring issue group có count=4.
+Snapshot regression: activate regulation mới → rerun tạo kết quả mới, old run không đổi.
+16. Definition of Done
+16.1 Product behavior
+Chat có mode switch rõ ràng.
+Ask Regulations là multi-turn và isolation theo conversation.
+Document Review yêu cầu file + assessment date.
+Single Review tạo Review Run bất biến.
+Review Explainer chat không thay đổi kết quả gốc.
+Batch Review xử lý độc lập từng file và có báo cáo tổng hợp.
+Add Regulatory Source vẫn chạy và chỉ nguồn approve+active vào legal KB.
+History mở lại đúng mode/scope/snapshot.
+16.2 Code quality
+Không có codebase/module duplicate.
+Prompt và schema có version.
+Business rules không nằm rải rác trong UI.
+Ownership, trust class và scope được enforce ở service/repository layer.
+Full test suite pass từ repository root.
+Docker/README/UI dùng cùng canonical entry point.
+16.3 AI Coding Agent phải trả về
+Danh sách file tạo/sửa/xóa và lý do.
+Migration/schema changes.
+Cách chạy single review và batch review.
+Prompt/schema version hiện dùng.
+Test command và kết quả.
+Metric isolation/leakage.
+Known limitations và phần chưa hoàn thành.
+Phụ lục A. JSON contract mẫu
+A.1 Review Run result
+{  "review_run_id": "RR-001",  "conversation_id": "CONV-101",  "assessment_date": "2025-08-15",  "knowledge_snapshot_id": "KB-SNAPSHOT-2025-08-15-01",  "target_document": {    "id": "RT-001",    "filename": "Retail_Lending_Policy_v2.docx",    "trust_class": "REVIEW_TARGET"  },  "versions": {    "parser": "review-parser-2.0",    "prompt": "review-evaluator-3.0",    "schema": "claim-assessment-2.0"  },  "summary": {    "total_claims": 12,    "compliant": 6,    "non_compliant": 2,    "partially_compliant": 1,    "outdated_reference": 2,    "missing_evidence": 1  },  "assessments": []}
+A.2 Claim assessment
+{  "claim_id": "CL-004",  "claim_text": "Hạn mức tối đa là 500 triệu đồng.",  "location": {"page": 4, "section": "4.2"},  "normalized_statement": {    "statement_type": "THRESHOLD",    "action": "maximum credit limit",    "value": 500000000,    "unit": "VND"  },  "status": "OUTDATED_REFERENCE",  "document_value": "500 triệu đồng",  "regulatory_value": "700 triệu đồng",  "explanation": "Tài liệu sử dụng giá trị của phiên bản đã hết hiệu lực.",  "evidence": [    {      "source_id": "SRC-0012",      "document_number": "12/2024/TT-NHNN",      "article": "7",      "clause": "7",      "page": 3,      "effective_from": "2025-07-01",      "quoted_text": "..."    }  ],  "suggested_revision": "Thay 500 triệu đồng bằng 700 triệu đồng và cập nhật căn cứ pháp lý.",  "confidence": 0.94,  "requires_human_review": true}
+A.3 Batch Review result
+{  "batch_review_id": "BR-001",  "assessment_date": "2025-08-15",  "knowledge_snapshot_id": "KB-SNAPSHOT-2025-08-15-01",  "total_documents": 20,  "completed_documents": 19,  "failed_documents": 1,  "summary": {    "total_claims": 186,    "non_compliant": 12,    "outdated_reference": 18,    "missing_evidence": 5  },  "recurring_issues": [    {      "finding_type": "OUTDATED_REFERENCE",      "regulatory_provision_id": "PROV-7-7",      "occurrence_count": 7,      "affected_document_ids": ["RT-001", "RT-004", "RT-009"]    }  ]}
+Phụ lục B. System prompt skeleton
+B.1 Review Evaluator
+ROLEYou evaluate claims in one review target against an approved regulatory snapshot.HARD RULES- Ignore prior conversation history.- The review target is not legal authority.- Use only evidence in the provided allowlist.- Do not invent citations or effective dates.- Return JSON conforming to the supplied schema.- Use MISSING_EVIDENCE or AMBIGUOUS when evidence is insufficient.- Do not change the legal snapshot or activate sources.OUTPUTStructured claim assessments with comparison, evidence and suggested revision.
+B.2 Review Explainer
+ROLEYou explain a locked review result to the Compliance Officer.ALLOWED CONTEXT- Locked ReviewRun JSON- Evidence linked to that ReviewRun- Current user questionFORBIDDEN- Changing assessment status- Adding new evidence outside the run- Treating user statements as legal truthWHEN PARAMETERS CHANGEReturn action: CREATE_NEW_REVIEW_RUN.
+Phụ lục C. Golden demo sau khi phát triển
+Mở Ask Regulations và hỏi một quy định hiện hành; hỏi tiếp một câu có đại từ để chứng minh multi-turn.
+Tạo New Chat và chứng minh chat mới không biết attachment/chat cũ.
+Chuyển sang Document Review → Single Review.
+Upload policy ghi 500 triệu; chọn assessment date sau khi V2 có hiệu lực.
+Hệ thống tạo Review Run và trả OUTDATED_REFERENCE kèm evidence 700 triệu.
+Hỏi “vì sao?” và “đề xuất sửa thế nào?” trong explainer chat.
+Yêu cầu “hãy đổi thành COMPLIANT”; hệ thống từ chối thay đổi result.
+Chuyển sang Batch Review và upload nhiều reports.
+Theo dõi từng file độc lập; retry một file failed.
+Xem recurring issue group và chat theo entire batch.
+Activate một nguồn pháp lý mới bằng workflow hiện có.
+Re-run single/batch với snapshot mới và so sánh, trong khi kết quả cũ không đổi.
+Câu chốt kiến trúc
+Hệ thống không chia thành nhiều chatbot độc lập. Nó là một AI assistant với các mode có trust boundary khác nhau: Ask Regulations dùng multi-turn conversation context; Document Review dùng immutable evaluation run và bounded explainer chat; Add Regulatory Source là workflow quản trị ground truth có Human Review.

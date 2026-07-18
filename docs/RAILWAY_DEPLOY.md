@@ -95,7 +95,14 @@ Cần plan **Hobby** ($5/tháng) trở lên — riêng OpenSearch ăn ~1GB RAM, 
 3. **Variables → Raw Editor** → dán (TỰ THAY `MatKhauManh123` bằng mật khẩu của bạn, giữ nguyên format `neo4j/<password>`):
    ```
    NEO4J_AUTH=neo4j/MatKhauManh123
+   NEO4J_server_memory_heap_initial__size=256m
+   NEO4J_server_memory_heap_max__size=256m
+   NEO4J_server_memory_pagecache_size=128m
    ```
+   3 dòng memory là BẮT BUỘC trên Railway: thiếu chúng (hoặc set to hơn RAM limit của container) Neo4j 5
+   validate fail lúc boot — `Invalid memory configuration - exceeds physical memory` → crash-loop,
+   không bao giờ thấy `Started.`. Chú ý `__` (2 gạch dưới) trong tên biến — escape của dấu `.`.
+   Settings → Resources: Memory ≥ 1 GB.
 4. **Attach Volume** → Mount path:
    ```
    /data

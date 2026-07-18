@@ -1,0 +1,747 @@
+"use client"
+
+// Tab RAG (spec §3–§8) — không gian làm việc của cán bộ Pháp chế/Tuân thủ.
+// Một segmented control chuyển giữa hai mode, KHÔNG phải hai tab navigation:
+//   ASK_REGULATIONS   Tra cứu quy định — multi-turn RAG, mỗi conversation độc lập
+//   DOCUMENT_REVIEW   Nhận xét tài liệu — ReviewRun bất biến + chat giải thích
+// Context hai mode tách rời: đổi mode không trộn lịch sử (DoD §11.12).
+
+import * as React from "react"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  api,
+  type BatchReview, type ChatCitation, type ChatTurnT, type Conversation,
+  type EvidenceItem, type ReviewRunAssessment, type ReviewRunReport, type ReviewRunResult,
+} from "@/lib/api"
+
+type Mode = "ask" | "review"
+
+// ─── Status vocabulary (shared) ───────────────────────────────────────────────
+
+const STATUS: Record<string, { label: string; cls: string }> = {
+  COMPLIANT: { label: "Phù hợp", cls: "text-emerald-600 dark:text-emerald-400 border-emerald-500/40 bg-emerald-500/10" },
+  NON_COMPLIANT: { label: "Không phù hợp", cls: "text-red-500 border-red-500/40 bg-red-500/10" },
+  PARTIALLY_COMPLIANT: { label: "Phù hợp một phần", cls: "text-amber-600 dark:text-amber-400 border-amber-500/40 bg-amber-500/10" },
+  OUTDATED_REFERENCE: { label: "Lỗi thời", cls: "text-orange-600 dark:text-orange-400 border-orange-500/40 bg-orange-500/10" },
+  MISSING_EVIDENCE: { label: "Thiếu bằng chứng", cls: "text-zinc-500 dark:text-zinc-400 border-zinc-500/40 bg-zinc-500/10" },
+  AMBIGUOUS: { label: "Chưa rõ ràng", cls: "text-purple-600 dark:text-purple-400 border-purple-500/40 bg-purple-500/10" },
+  NEEDS_HUMAN_REVIEW: { label: "Cần người kiểm tra", cls: "text-blue-600 dark:text-blue-400 border-blue-500/40 bg-blue-500/10" },
+}
+
+function StatusPill({ status }: { status: string }) {
+  const s = STATUS[status] ?? { label: status, cls: "text-muted-foreground border-border" }
+  return <Badge variant="outline" className={`text-[10px] shrink-0 ${s.cls}`}>{s.label}</Badge>
+}
+
+const inputCls =
+  "w-full border border-border bg-background px-3 py-2 text-sm outline-none focus:border-orange-500 transition-colors"
+
+// ─── RAG shell: segmented control + mode isolation ────────────────────────────
+
+export function RagTab() {
+  const [mode, setMode] = React.useState<Mode>("ask")
+  return (
+    <div className="flex flex-1 flex-col overflow-hidden min-h-0">
+      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-border shrink-0">
+        <div role="tablist" aria-label="Chế độ RAG" className="inline-flex border border-border">
+          <ModeButton active={mode === "ask"} onClick={() => setMode("ask")}>Tra cứu quy định</ModeButton>
+          <ModeButton active={mode === "review"} onClick={() => setMode("review")}>Nhận xét tài liệu</ModeButton>
+        </div>
+        <span className="text-[11px] text-muted-foreground hidden lg:block">
+          {mode === "ask"
+            ? "Hỏi đáp trên kho APPROVED + ACTIVE · mỗi cuộc trò chuyện có bộ nhớ riêng"
+            : "Upload policy/báo cáo để đối chiếu quy định · kết quả khóa theo từng lần đánh giá"}
+        </span>
+      </div>
+      {/* Cả hai mode luôn mounted nhưng ẩn — state không rò rỉ giữa hai loại RAG,
+          đồng thời không mất khi người dùng chuyển qua lại (spec §6). */}
+      <div className={mode === "ask" ? "flex flex-1 min-h-0" : "hidden"}><AskMode /></div>
+      <div className={mode === "review" ? "flex flex-1 min-h-0" : "hidden"}><ReviewMode /></div>
+    </div>
+  )
+}
+
+function ModeButton({ active, onClick, children }: {
+  active: boolean; onClick: () => void; children: React.ReactNode
+}) {
+  return (
+    <button role="tab" aria-selected={active} onClick={onClick}
+      className={`px-4 py-1.5 text-sm font-medium transition-colors ${
+        active ? "bg-orange-500 text-white" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+      }`}>
+      {children}
+    </button>
+  )
+}
+
+// ─── Mode 1: Tra cứu quy định (§4) ────────────────────────────────────────────
+
+function AskMode() {
+  const [convs, setConvs] = React.useState<Conversation[]>([])
+  const [convId, setConvId] = React.useState<string | null>(null)
+  const [turns, setTurns] = React.useState<ChatTurnT[]>([])
+  const [attachments, setAttachments] = React.useState<{ id: string; filename: string }[]>([])
+  const [text, setText] = React.useState("")
+  const [queryDate, setQueryDate] = React.useState("")
+  const [busy, setBusy] = React.useState(false)
+  const scrollRef = React.useRef<HTMLDivElement>(null)
+
+  const refreshList = React.useCallback(() => {
+    api.listConversations()
+      .then((cs) => setConvs(cs.filter((c) => c.mode === "REGULATORY_ASSISTANT")))
+      .catch(() => {})
+  }, [])
+  React.useEffect(refreshList, [refreshList])
+
+  React.useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" })
+  }, [turns])
+
+  const open = async (id: string) => {
+    setConvId(id)
+    const data = await api.getConversation(id)
+    setTurns(data.turns)
+    setAttachments(data.attachments)
+  }
+
+  const newChat = () => {
+    // Cuộc trò chuyện mới = bộ nhớ rỗng (§4.3). Conversation thật tạo ở lần gửi đầu.
+    setConvId(null); setTurns([]); setAttachments([]); setText("")
+  }
+
+  const send = async () => {
+    if (!text.trim() || busy) return
+    let id = convId
+    setBusy(true)
+    const q = text
+    setText("")
+    setTurns((t) => [...t, { id: `tmp-${Date.now()}`, role: "user", content: q, citations: [] }])
+    try {
+      if (!id) { id = (await api.createConversation("REGULATORY_ASSISTANT")).id; setConvId(id) }
+      await api.postMessage(id, q, queryDate || undefined)
+      await open(id)
+      refreshList()
+    } catch (e) {
+      setTurns((t) => [...t, {
+        id: `err-${Date.now()}`, role: "assistant",
+        content: `Lỗi: ${e instanceof Error ? e.message : String(e)}`, citations: [],
+      }])
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const attach = async (file: File) => {
+    let id = convId
+    if (!id) { id = (await api.createConversation("REGULATORY_ASSISTANT")).id; setConvId(id); refreshList() }
+    await api.addAttachment(id, file.name, await file.text())
+    await open(id)
+  }
+
+  return (
+    <div className="flex flex-1 overflow-hidden min-h-0">
+      {/* Lịch sử chat — ranh giới isolation hiển thị rõ (§4.3, §7) */}
+      <aside className="w-56 border-r border-border flex-col shrink-0 hidden md:flex">
+        <div className="p-2 border-b border-border">
+          <Button size="sm" className="w-full bg-orange-500 hover:bg-orange-600 text-white" onClick={newChat}>
+            + Cuộc trò chuyện mới
+          </Button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          {convs.length === 0 && (
+            <p className="text-[11px] text-muted-foreground px-1 py-2">Chưa có cuộc trò chuyện nào.</p>
+          )}
+          {convs.map((c) => (
+            <button key={c.id} onClick={() => open(c.id)}
+              className={`w-full text-left px-2 py-1.5 text-xs truncate border transition-colors ${
+                c.id === convId ? "border-orange-500/60 bg-orange-500/10" : "border-transparent hover:bg-muted/50"
+              }`}>
+              {c.title ?? c.id}
+            </button>
+          ))}
+        </div>
+      </aside>
+
+      {/* Nội dung hội thoại */}
+      <div className="flex flex-1 flex-col min-w-0">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+          {turns.length === 0 && <AskEmptyState onPick={setText} />}
+          {turns.map((t) => (
+            <ChatBubble key={t.id} role={t.role} content={t.content} citations={t.citations} />
+          ))}
+          {busy && <div className="text-xs text-muted-foreground animate-pulse">Đang tra cứu kho quy định…</div>}
+        </div>
+
+        <div className="p-3 border-t border-border space-y-2 shrink-0">
+          {attachments.length > 0 && (
+            <div className="flex gap-1.5 flex-wrap">
+              {attachments.map((a) => (
+                <Badge key={a.id} variant="outline" className="text-[10px] text-amber-600 dark:text-amber-400 border-amber-500/40">
+                  {a.filename} · context cục bộ, không phải nguồn pháp lý
+                </Badge>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-2 items-end">
+            <textarea rows={2} className={`${inputCls} resize-none flex-1`} placeholder="Nhập câu hỏi về quy định…"
+              value={text} onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send() } }} />
+            <div className="flex flex-col gap-1.5 shrink-0">
+              <input type="date" className="border border-border bg-background px-2 py-1 text-xs outline-none focus:border-orange-500"
+                     value={queryDate} onChange={(e) => setQueryDate(e.target.value)}
+                     title="Hỏi quy định tại một thời điểm (tùy chọn)" aria-label="Ngày truy vấn" />
+              <div className="flex gap-1.5">
+                <label className="cursor-pointer text-xs border border-border px-2 py-1.5 hover:bg-muted/50 transition-colors" title="Đính kèm file context cục bộ">
+                  Đính kèm
+                  <input type="file" accept=".txt,.md" className="hidden"
+                         onChange={(e) => e.target.files?.[0] && attach(e.target.files[0])} />
+                </label>
+                <Button size="sm" onClick={send} disabled={busy || !text.trim()}
+                        className="bg-orange-500 hover:bg-orange-600 text-white">Gửi</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function AskEmptyState({ onPick }: { onPick: (q: string) => void }) {
+  const samples = [
+    "Hạn mức tín dụng SME hiện tại là bao nhiêu?",
+    "Quy định này có hiệu lực từ khi nào?",
+    "Lịch sử sửa đổi tỷ lệ vốn ngắn hạn cho vay trung dài hạn?",
+  ]
+  return (
+    <div className="max-w-md mx-auto text-center pt-10 space-y-4">
+      <div>
+        <h3 className="text-sm font-semibold">Tra cứu quy định hiện hành</h3>
+        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+          Hỏi quy định tại một thời điểm, lịch sử sửa đổi, hay căn cứ Điều/Khoản. Mỗi câu trả lời
+          kèm bằng chứng truy vết được. Cuộc trò chuyện mới bắt đầu với bộ nhớ rỗng.
+        </p>
+      </div>
+      <div className="space-y-1.5">
+        {samples.map((s) => (
+          <button key={s} onClick={() => onPick(s)}
+            className="w-full text-left text-xs border border-border px-3 py-2 hover:border-orange-500 hover:bg-orange-500/5 transition-colors">
+            {s}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ChatBubble({ role, content, citations }: {
+  role: string; content: string; citations: ChatCitation[]
+}) {
+  const isUser = role === "user"
+  return (
+    <div className={`max-w-[85%] ${isUser ? "ml-auto" : ""}`}>
+      <div className={`border p-3 text-sm whitespace-pre-wrap leading-relaxed ${
+        isUser ? "border-orange-500/30 bg-orange-500/10" : "border-border bg-muted/30"
+      }`}>
+        {content}
+      </div>
+      {!isUser && citations.length > 0 && <EvidencePanel citations={citations} />}
+    </div>
+  )
+}
+
+// Bằng chứng ngay dưới câu trả lời (§4.2), panel mở rộng được.
+function EvidencePanel({ citations }: { citations: ChatCitation[] }) {
+  const [open, setOpen] = React.useState(false)
+  return (
+    <div className="mt-1.5 border border-blue-500/25 bg-blue-500/5">
+      <button onClick={() => setOpen(!open)} aria-expanded={open}
+        className="w-full flex items-center gap-2 px-2.5 py-1.5 text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 transition-colors">
+        <span>{open ? "▾" : "▸"}</span>
+        Bằng chứng ({citations.length})
+        <Badge variant="outline" className="text-[9px] ml-auto text-emerald-600 dark:text-emerald-400 border-emerald-500/40">
+          AUTHORITY_SOURCE
+        </Badge>
+      </button>
+      {open && (
+        <ul className="px-2.5 pb-2.5 pt-0.5 space-y-1.5">
+          {citations.map((c, i) => (
+            <li key={i} className="text-[11px] pl-2 border-l-2 border-blue-500/40">
+              <span className="font-medium text-foreground">{c.document_number ?? c.source_id}</span>
+              {c.heading_path && c.heading_path.length > 0 && (
+                <span className="text-muted-foreground"> · {c.heading_path.join(" › ")}</span>
+              )}
+              {c.valid_from && <span className="text-muted-foreground"> · hiệu lực {c.valid_from}</span>}
+              {typeof c.page === "number" && <span className="text-muted-foreground"> · tr.{c.page}</span>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+// ─── Mode 2: Nhận xét tài liệu (§5, §8) ───────────────────────────────────────
+
+interface ReviewFile { filename: string; text: string }
+
+function ReviewMode() {
+  const [run, setRun] = React.useState<ReviewRunResult | null>(null)
+  const [batch, setBatch] = React.useState<BatchReview | null>(null)
+
+  const reset = () => { setRun(null); setBatch(null) }
+
+  if (!run && !batch) {
+    return <ReviewIntake onSingle={setRun} onBatch={setBatch} />
+  }
+  if (batch) return <BatchResult batch={batch} setBatch={setBatch} onNew={reset} />
+  return <SingleResult run={run!} setRun={setRun} onNew={reset} />
+}
+
+function ReviewIntake({ onSingle, onBatch }: {
+  onSingle: (r: ReviewRunResult) => void
+  onBatch: (b: BatchReview) => void
+}) {
+  const [files, setFiles] = React.useState<ReviewFile[]>([])
+  const [date, setDate] = React.useState("")
+  const [scope, setScope] = React.useState("")
+  const [busy, setBusy] = React.useState(false)
+  const [err, setErr] = React.useState<string | null>(null)
+
+  const addFiles = async (list: FileList) => {
+    const added = await Promise.all(
+      Array.from(list).slice(0, 5).map(async (f) => ({ filename: f.name, text: await f.text() })))
+    setFiles((cur) => [...cur, ...added].slice(0, 5))
+  }
+
+  const start = async () => {
+    if (!files.length) { setErr("Cần chọn ít nhất một file để nhận xét."); return }
+    if (!date) { setErr("Cần chọn ngày đánh giá."); return }
+    setErr(null); setBusy(true)
+    try {
+      if (files.length === 1) {
+        onSingle(await api.createReviewRun(files[0].filename, files[0].text, date))
+      } else {
+        onBatch(await api.createBatchReview(files, date))  // mỗi file một Review Run độc lập
+      }
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto p-6">
+      <div className="max-w-lg mx-auto space-y-5">
+        <div>
+          <h3 className="text-base font-semibold">Nhận xét tài liệu</h3>
+          <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+            Tải policy, quy trình hoặc báo cáo cần kiểm tra. Hệ thống đối chiếu với quy định
+            <strong className="text-foreground"> APPROVED + ACTIVE</strong> tại ngày đánh giá và chỉ ra điểm chưa phù hợp.
+          </p>
+        </div>
+
+        <div className="border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-600 dark:text-blue-300 leading-relaxed">
+          File ở đây là <strong>REVIEW_TARGET</strong> — chỉ dùng để kiểm tra. Không được thêm vào
+          kho pháp lý, không thành nguồn căn cứ, không xuất hiện ở mode tra cứu.
+        </div>
+
+        <label className="block border-2 border-dashed border-border p-6 text-center text-muted-foreground cursor-pointer transition-colors hover:border-emerald-500 hover:text-emerald-500">
+          <input type="file" accept=".txt,.md,.pdf,.docx" multiple className="hidden"
+                 onChange={(e) => e.target.files && addFiles(e.target.files)} />
+          <span className="block text-sm font-medium">Chọn file</span>
+          <span className="block text-xs mt-1">1 file = Single Review · nhiều file = Batch (tối đa 5)</span>
+        </label>
+
+        {files.length > 0 && (
+          <ul className="border border-border divide-y divide-border">
+            {files.map((f, i) => (
+              <li key={i} className="flex items-center gap-2 px-3 py-2 text-sm">
+                <span className="flex-1 truncate">{f.filename}</span>
+                <button onClick={() => setFiles((cur) => cur.filter((_, j) => j !== i))}
+                        className="text-xs text-muted-foreground hover:text-red-500 transition-colors">Bỏ</button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <label htmlFor="review-date" className="text-xs font-medium">Ngày đánh giá</label>
+            <input id="review-date" type="date" className={inputCls} value={date}
+                   onChange={(e) => setDate(e.target.value)} />
+          </div>
+          <div className="space-y-1">
+            <label htmlFor="review-scope" className="text-xs font-medium">
+              Phạm vi kiểm tra <span className="text-muted-foreground font-normal">(không bắt buộc)</span>
+            </label>
+            <input id="review-scope" className={inputCls} placeholder="vd: tín dụng SME"
+                   value={scope} onChange={(e) => setScope(e.target.value)} />
+          </div>
+        </div>
+
+        {err && <p className="text-xs text-red-500 border border-red-500/30 bg-red-500/10 px-3 py-2">{err}</p>}
+
+        <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white" onClick={start}
+                disabled={busy || !files.length || !date}>
+          {busy ? "Đang chạy nhận xét…" : "Bắt đầu nhận xét"}
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+// ─── Single Review result: tài liệu | findings | chat (§5.4) ─────────────────
+
+function SingleResult({ run, setRun, onNew }: {
+  run: ReviewRunResult; setRun: (r: ReviewRunResult) => void; onNew: () => void
+}) {
+  const report = run.report
+  const [activeClaim, setActiveClaim] = React.useState<string | null>(null)
+  const [busy, setBusy] = React.useState(false)
+
+  const rerun = async () => {
+    if (busy || !report) return
+    setBusy(true)
+    try { setRun(await api.rerunReviewRun(run.review_run_id, report.assessment_date)) }
+    finally { setBusy(false) }
+  }
+
+  if (!report) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-6 text-sm text-muted-foreground">
+        Review Run {run.review_run_id} — trạng thái {run.state}. Chưa có báo cáo.
+        <Button size="sm" variant="outline" className="ml-3" onClick={onNew}>Nhận xét tài liệu khác</Button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-1 overflow-hidden min-h-0">
+      <ReviewDocPanel report={report} onNew={onNew} onRerun={rerun} rerunning={busy} />
+
+      <div className="flex flex-1 flex-col min-w-0">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <FindingsOverview report={report} />
+          <div className="space-y-3">
+            {report.assessments.map((a) => (
+              <FindingCard key={a.claim_id} a={a}
+                active={activeClaim === a.claim_id}
+                onClick={() => setActiveClaim(activeClaim === a.claim_id ? null : a.claim_id)} />
+            ))}
+          </div>
+        </div>
+        <FollowUpChat
+          placeholder="Hỏi thêm về kết quả nhận xét…"
+          ask={(q) => api.askReviewRun(run.review_run_id, q, activeClaim ?? undefined)}
+          onNewRun={onNew}
+        />
+      </div>
+    </div>
+  )
+}
+
+function ReviewDocPanel({ report, onNew, onRerun, rerunning }: {
+  report: ReviewRunReport; onNew: () => void; onRerun: () => void; rerunning: boolean
+}) {
+  return (
+    <aside className="w-56 border-r border-border flex-col shrink-0 hidden md:flex">
+      <div className="p-3 border-b border-border">
+        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Tài liệu</div>
+        <div className="text-sm font-medium mt-1 break-words">{report.target_document.filename ?? "REVIEW_TARGET"}</div>
+        <Badge variant="outline" className="text-[9px] mt-1.5 text-blue-600 dark:text-blue-400 border-blue-500/40">
+          {report.target_document.trust_class}
+        </Badge>
+      </div>
+      <div className="p-3 text-[11px] text-muted-foreground space-y-1 border-b border-border">
+        <div>Ngày đánh giá: <span className="text-foreground">{report.assessment_date}</span></div>
+        <div className="truncate">Snapshot: {report.knowledge_snapshot_id}</div>
+        <div>Prompt {report.versions.prompt} · Schema {report.versions.schema}</div>
+        <Badge variant="outline" className="text-[9px] text-amber-600 dark:text-amber-400 border-amber-500/40 mt-1">
+          Kết quả đã khóa
+        </Badge>
+      </div>
+      <div className="p-2 mt-auto space-y-1.5">
+        <Button size="sm" variant="outline" className="w-full" onClick={onRerun} disabled={rerunning}>
+          {rerunning ? "Đang tạo…" : "Đánh giá lại (Run mới)"}
+        </Button>
+        <Button size="sm" variant="ghost" className="w-full" onClick={onNew}>Tài liệu khác</Button>
+      </div>
+    </aside>
+  )
+}
+
+function FindingsOverview({ report }: { report: ReviewRunReport }) {
+  // summary keys = tên status (lowercase) → nhãn tiếng Việt
+  const entries = Object.entries(report.summary).filter(([, n]) => n > 0)
+  return (
+    <div className="border border-border bg-card p-4">
+      <div className="text-sm font-semibold mb-2">Tổng quan</div>
+      {entries.length === 0 ? (
+        <p className="text-xs text-muted-foreground">Không có mục nào cần lưu ý.</p>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {entries.map(([k, n]) => {
+            const meta = STATUS[k.toUpperCase()]
+            return (
+              <span key={k} className={`text-xs px-2 py-1 border ${meta?.cls ?? "border-border text-muted-foreground"}`}>
+                {n} {(meta?.label ?? k).toLowerCase()}
+              </span>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function FindingCard({ a, active, onClick }: {
+  a: ReviewRunAssessment; active: boolean; onClick: () => void
+}) {
+  return (
+    <div className={`border bg-card transition-colors ${active ? "border-orange-500/60" : "border-border"}`}>
+      <button onClick={onClick} aria-expanded={active}
+              className="w-full flex items-start justify-between gap-3 p-3 text-left hover:bg-muted/30 transition-colors">
+        <span className="text-sm min-w-0">
+          <span className="text-muted-foreground text-[10px] block mb-0.5">
+            Nội dung tài liệu {active ? "(đang chọn — chat sẽ hỏi về mục này)" : ""}
+          </span>
+          &ldquo;{a.source_text}&rdquo;
+        </span>
+        <StatusPill status={a.status} />
+      </button>
+
+      <div className="px-3 pb-3 space-y-2">
+        {a.findings.map((f, i) => (
+          <div key={i} className="text-[11px] text-orange-600 dark:text-orange-300">▸ {f}</div>
+        ))}
+        {a.explanation && <p className="text-[11px] text-muted-foreground leading-relaxed">{a.explanation}</p>}
+
+        {a.valid_evidence.slice(0, 3).map((e) => <EvidenceRow key={e.version_id} e={e} />)}
+
+        {a.recommendation && (
+          <div className="text-[11px] text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 bg-emerald-500/5 px-2 py-1.5">
+            Đề xuất: {a.recommendation}
+          </div>
+        )}
+
+        <div className="flex items-center gap-2 pt-0.5">
+          <span className="text-[10px] text-muted-foreground">Độ tin cậy {Math.round(a.confidence * 100)}%</span>
+          {a.requires_human_review && (
+            <Badge variant="outline" className="text-[9px] text-blue-600 dark:text-blue-400 border-blue-500/40">
+              Cần người kiểm tra
+            </Badge>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function EvidenceRow({ e }: { e: EvidenceItem }) {
+  return (
+    <div className="text-[11px] border-l-2 border-blue-500/40 pl-2 py-0.5">
+      <div className="text-blue-600 dark:text-blue-400 font-medium">
+        {e.document_number}
+        {e.heading_path.length > 0 && <span className="font-normal"> · {e.heading_path.join(" › ")}</span>}
+      </div>
+      {e.content && <div className="text-muted-foreground italic mt-0.5 leading-relaxed">&ldquo;{e.content}&rdquo;</div>}
+      <div className="text-muted-foreground/80 mt-0.5">
+        hiệu lực {e.valid_from}
+        {e.valid_to_exclusive ? ` → ${e.valid_to_exclusive}` : " → nay"}
+        {typeof e.page === "number" ? ` · tr.${e.page}` : ""}
+      </div>
+    </div>
+  )
+}
+
+// ─── Batch result: bảng file | findings của file đã chọn | chat (§8) ─────────
+
+function BatchResult({ batch, setBatch, onNew }: {
+  batch: BatchReview; setBatch: (b: BatchReview) => void; onNew: () => void
+}) {
+  const [selected, setSelected] = React.useState<string | null>(null)
+  const [busy, setBusy] = React.useState(false)
+
+  const selectedItem = batch.items.find((i) => i.item_id === selected)
+  const retryFailed = async () => {
+    if (busy) return
+    setBusy(true)
+    try { setBatch(await api.rerunBatch(batch.batch_review_id)) }
+    finally { setBusy(false) }
+  }
+
+  return (
+    <div className="flex flex-1 overflow-hidden min-h-0">
+      <aside className="w-64 border-r border-border flex flex-col shrink-0">
+        <div className="p-3 border-b border-border">
+          <div className="text-sm font-semibold">Batch Review</div>
+          <div className="text-[11px] text-muted-foreground mt-1">
+            {batch.completed_documents}/{batch.total_documents} hoàn tất
+            {batch.failed_documents > 0 && ` · ${batch.failed_documents} lỗi`}
+          </div>
+          <div className="flex gap-1.5 mt-2">
+            {batch.failed_documents > 0 && (
+              <Button size="sm" variant="outline" onClick={retryFailed} disabled={busy}>
+                {busy ? "…" : "Chạy lại file lỗi"}
+              </Button>
+            )}
+            <Button size="sm" variant="ghost" onClick={onNew}>Batch khác</Button>
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          {batch.items.map((i) => (
+            <button key={i.item_id} onClick={() => setSelected(i.item_id)}
+              className={`w-full text-left px-3 py-2.5 border-b border-border transition-colors ${
+                selected === i.item_id ? "bg-orange-500/10" : "hover:bg-muted/40"
+              }`}>
+              <div className="text-xs font-medium truncate">{i.filename}</div>
+              <div className="mt-1"><BatchStatusBadge status={i.status} error={i.error} /></div>
+            </button>
+          ))}
+        </div>
+      </aside>
+
+      <div className="flex flex-1 flex-col min-w-0">
+        {!selectedItem ? (
+          <div className="flex-1 flex flex-col items-center justify-center text-sm text-muted-foreground gap-3 p-6">
+            <p>Chọn một tài liệu bên trái để xem finding và hỏi thêm.</p>
+            {batch.recurring_issues.length > 0 && (
+              <div className="w-full max-w-md space-y-1.5">
+                <div className="text-[10px] font-bold uppercase tracking-wider">Vấn đề lặp lại giữa các file</div>
+                {batch.recurring_issues.map((g, i) => (
+                  <div key={i} className="border border-orange-500/30 bg-orange-500/5 p-2 text-[11px] text-left">
+                    <StatusPill status={g.finding_type} /> × {g.occurrence_count}
+                    {g.shared_value && <span className="text-muted-foreground"> · {g.shared_value}</span>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <BatchItemDetail batch={batch} itemId={selectedItem.item_id} />
+        )}
+      </div>
+    </div>
+  )
+}
+
+function BatchItemDetail({ batch, itemId }: { batch: BatchReview; itemId: string }) {
+  const item = batch.items.find((i) => i.item_id === itemId)!
+  const [run, setRun] = React.useState<ReviewRunResult | null>(null)
+  const [err, setErr] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    setRun(null); setErr(null)
+    if (!item.review_run_id) return
+    api.getReviewRun(item.review_run_id).then(setRun).catch((e) => setErr(String(e)))
+  }, [item.review_run_id])
+
+  if (!item.review_run_id) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-6 text-sm text-muted-foreground text-center">
+        {item.filename} — {item.status}{item.error ? `: ${item.error}` : " (chưa có Review Run)."}
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="text-sm font-semibold">{item.filename}</div>
+        {err && <p className="text-xs text-red-500">{err}</p>}
+        {!run && !err && <div className="text-xs text-muted-foreground animate-pulse">Đang tải báo cáo…</div>}
+        {run?.report && (
+          <>
+            <FindingsOverview report={run.report} />
+            <div className="space-y-3">
+              {run.report.assessments.map((a) => (
+                <FindingCard key={a.claim_id} a={a} active={false} onClick={() => {}} />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+      <FollowUpChat
+        placeholder={`Hỏi thêm về ${item.filename}…`}
+        ask={(q) => api.askBatch(batch.batch_review_id, q, "ONE_REPORT", item.review_run_id ?? undefined)}
+      />
+    </>
+  )
+}
+
+function BatchStatusBadge({ status, error }: { status: string; error: string | null }) {
+  const map: Record<string, string> = {
+    COMPLETED: "text-emerald-600 dark:text-emerald-400 border-emerald-500/40",
+    FAILED: "text-red-500 border-red-500/40",
+    PENDING: "text-amber-600 dark:text-amber-400 border-amber-500/40",
+    RUNNING: "text-blue-600 dark:text-blue-400 border-blue-500/40",
+  }
+  return (
+    <Badge variant="outline" className={`text-[9px] ${map[status] ?? "text-muted-foreground border-border"}`}
+           title={error ?? undefined}>
+      {status}
+    </Badge>
+  )
+}
+
+// ─── Follow-up chat: bounded to the current run (§5.5) ────────────────────────
+
+function FollowUpChat({ placeholder, ask, onNewRun }: {
+  placeholder: string
+  ask: (q: string) => Promise<{ answer: string; action?: string; result_locked?: boolean; citations?: ChatCitation[] }>
+  onNewRun?: () => void
+}) {
+  const [log, setLog] = React.useState<{ q: string; a: string; locked?: boolean; action?: string }[]>([])
+  const [q, setQ] = React.useState("")
+  const [busy, setBusy] = React.useState(false)
+
+  const send = async () => {
+    if (!q.trim() || busy) return
+    setBusy(true)
+    const question = q
+    setQ("")
+    try {
+      const r = await ask(question)
+      setLog((l) => [...l, { q: question, a: r.answer, locked: r.result_locked, action: r.action }])
+    } catch (e) {
+      setLog((l) => [...l, { q: question, a: `Lỗi: ${e instanceof Error ? e.message : String(e)}` }])
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="border-t border-border shrink-0">
+      {log.length > 0 && (
+        <div className="max-h-48 overflow-y-auto p-3 space-y-3">
+          {log.map((e, i) => (
+            <div key={i} className="text-xs space-y-1">
+              <div className="text-orange-600 dark:text-orange-400 font-medium">❯ {e.q}</div>
+              <div className="whitespace-pre-wrap text-muted-foreground leading-relaxed">{e.a}</div>
+              {e.locked && (
+                <Badge variant="outline" className="text-[9px] text-red-500 border-red-500/40">
+                  Kết quả đã khóa — chat giải thích không đổi kết luận gốc
+                </Badge>
+              )}
+              {e.action === "CREATE_NEW_REVIEW_RUN" && onNewRun && (
+                <Button size="sm" variant="outline" className="mt-1" onClick={onNewRun}>Tạo Review Run mới</Button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="flex gap-2 p-3">
+        <input className={inputCls} placeholder={placeholder} value={q}
+               onChange={(e) => setQ(e.target.value)}
+               onKeyDown={(e) => { if (e.key === "Enter") send() }} />
+        <Button size="sm" onClick={send} disabled={busy || !q.trim()}
+                className="bg-orange-500 hover:bg-orange-600 text-white shrink-0">
+          {busy ? "…" : "Gửi"}
+        </Button>
+      </div>
+    </div>
+  )
+}
