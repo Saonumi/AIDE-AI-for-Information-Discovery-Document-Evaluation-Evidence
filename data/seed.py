@@ -70,6 +70,13 @@ VER_D5_QD03 = "ver-qd03-d5-v1"
 CHG_500_700 = "chg-500-to-700"
 ART_POLICY = "art-internal-sme"
 
+# Golden credit-domain ratio pair (real identities mined from SBV crawl:
+# 22/2019/TT-NHNN amended by 08/2026/TT-NHNN — see data/crawl/hybrid/)
+DOC_TT2219 = "doc-tt-22-2019"
+PROV_RATIO = "prov-tt2219-d16k1"
+VER_RATIO_V1 = "ver-ratio-v1"     # 34%, [2026-01-01, 2026-06-01)
+VER_RATIO_V2 = "ver-ratio-v2"     # 30%, [2026-06-01, ∞)
+
 # --------------------------------------------------------------------------- #
 # Content strings (the load-bearing ground truth text)
 # --------------------------------------------------------------------------- #
@@ -84,6 +91,14 @@ QD03_D5_TEXT = "Hạn mức với cùng nhóm khách hàng SME là 600 triệu �
 POLICY_TEXT = (
     "Quy trình cấp tín dụng SME nội bộ: hạn mức tín dụng SME là 500 triệu đồng, "
     "thời hạn tối đa 12 tháng."
+)
+RATIO_V1_TEXT = (
+    "Tỷ lệ tối đa nguồn vốn ngắn hạn được sử dụng để cho vay trung hạn "
+    "và dài hạn là 34%."
+)
+RATIO_V2_TEXT = (
+    "Tỷ lệ tối đa nguồn vốn ngắn hạn được sử dụng để cho vay trung hạn "
+    "và dài hạn là 30%."
 )
 
 V1_VALID_FROM = date(2026, 2, 1)
@@ -164,6 +179,17 @@ def _seed_postgres() -> None:
                 "authority": "SHB", "scope": _SME_SCOPE,
             }, created_at=datetime(2026, 2, 5, 8, 0, 0),
         ),
+        DocumentRow(
+            document_id=DOC_TT2219, filename="tt-22-2019-nhnn.pdf",
+            type=DocumentType.REGULATION.value, document_number="22/2019/TT-NHNN",
+            file_hash="sha256:tt2219", file_path="data/corpus/tt-22-2019-nhnn.pdf",
+            processing_status=ProcessingStatus.INDEXED.value,
+            approval_status=ApprovalStatus.APPROVED.value, injection_suspected=False,
+            uploaded_by="employee", doc_metadata={
+                "document_number": "22/2019/TT-NHNN", "issued_date": "2019-11-15",
+                "valid_from": "2026-01-01", "authority": "NHNN",
+            }, created_at=datetime(2026, 1, 1, 8, 0, 0),
+        ),
     ]
 
     provisions = [
@@ -186,6 +212,11 @@ def _seed_postgres() -> None:
             provision_id=PROV_D5_QD03, document_id=DOC_QD03,
             lookup_key=provision_lookup_key("QĐ-03/2026", "5", None),
             heading_path=["Điều 5"], article="5", clause=None, point=None,
+        ),
+        ProvisionRow(
+            provision_id=PROV_RATIO, document_id=DOC_TT2219,
+            lookup_key=provision_lookup_key("22/2019/TT-NHNN", "16", "1"),
+            heading_path=["Điều 16", "Khoản 1"], article="16", clause="1", point=None,
         ),
     ]
 
@@ -222,6 +253,18 @@ def _seed_postgres() -> None:
             approval_status=ApprovalStatus.APPROVED.value, page=2,
             obligation=_obligation("600 triệu đồng"), scope=dict(_SME_SCOPE),
             created_at=datetime(2026, 6, 20, 8, 0, 0), approved_at=datetime(2026, 6, 28, 9, 0, 0),
+        ),
+        ProvisionVersionRow(
+            version_id=VER_RATIO_V1, provision_id=PROV_RATIO, document_id=DOC_TT2219,
+            content=RATIO_V1_TEXT, valid_from=date(2026, 1, 1), valid_to_exclusive=date(2026, 6, 1),
+            approval_status=ApprovalStatus.APPROVED.value, page=12,
+            obligation=None, scope=None, created_at=now, approved_at=approved_at,
+        ),
+        ProvisionVersionRow(
+            version_id=VER_RATIO_V2, provision_id=PROV_RATIO, document_id=DOC_TT2219,
+            content=RATIO_V2_TEXT, valid_from=date(2026, 6, 1), valid_to_exclusive=None,
+            approval_status=ApprovalStatus.APPROVED.value, page=12,
+            obligation=None, scope=None, created_at=now, approved_at=approved_at,
         ),
     ]
 
@@ -285,6 +328,10 @@ def _seed_opensearch() -> None:
                ["Điều 5"], QD03_D5_TEXT, 2, "2026-07-01", None),
         _chunk("chunk-policy", ART_POLICY, ART_POLICY, DOC_POLICY, "NB-SME-01",
                ["Quy trình cấp tín dụng SME nội bộ"], POLICY_TEXT, 1, "2026-02-05", None),
+        _chunk("chunk-ratio-v1", PROV_RATIO, VER_RATIO_V1, DOC_TT2219, "22/2019/TT-NHNN",
+               ["Điều 16", "Khoản 1"], RATIO_V1_TEXT, 12, "2026-01-01", "2026-06-01"),
+        _chunk("chunk-ratio-v2", PROV_RATIO, VER_RATIO_V2, DOC_TT2219, "22/2019/TT-NHNN",
+               ["Điều 16", "Khoản 1"], RATIO_V2_TEXT, 12, "2026-06-01", None),
     ]
     for ch in chunks:
         store.index_chunk(ch, embed_one(ch["content"]))
