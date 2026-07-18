@@ -226,16 +226,16 @@ def handle_upload(file_bytes: bytes, filename: str, doc_type: str, uploaded_by: 
         # Status: PARSED (awaiting employee approval). Nothing indexed yet.
         row.processing_status = ProcessingStatus.PARSED.value
 
-        # A base document with provisions gets a PARSING_REVIEW so an employee can
-        # verify boundaries before activation.
-        if provision_count and not change_results:
+        # Luôn tạo PARSING_REVIEW để cán bộ xác nhận kết quả bóc tách.
+        if not change_results:
             review_inbox.create_task(
                 session,
                 ReviewTaskType.PARSING_REVIEW,
                 document_id=row.document_id,
                 source_ref=row.document_number or row.filename,
-                extracted={"provision_count": provision_count},
-                confidence=0.8,
+                extracted={"provision_count": provision_count,
+                           "note": "" if provision_count else "LLM/parse không tìm thấy điều khoản — kiểm tra lại file."},
+                confidence=0.8 if provision_count else 0.3,
             )
 
         return UploadResponse(
