@@ -15,6 +15,20 @@ _CRITICAL_TASK_TYPES = {
 }
 
 
+class ReviewNotCompletedError(Exception):
+    """Document cannot be activated while critical reviews are pending.
+
+    Carries the stable error code (spec §8.1) and the blocking reasons so the API
+    layer can return HTTP 409 without re-deriving them.
+    """
+
+    code = "REVIEW_NOT_COMPLETED"
+
+    def __init__(self, reasons: List[str]) -> None:
+        self.reasons = reasons
+        super().__init__("Document cannot be activated while critical reviews are pending.")
+
+
 def check_can_activate(session, document_id: str) -> Tuple[bool, List[str]]:
     """Return (can_activate, blocking_reasons).
 
@@ -29,7 +43,7 @@ def check_can_activate(session, document_id: str) -> Tuple[bool, List[str]]:
 
     if doc.processing_status not in (
         ProcessingStatus.PARSED.value,
-        ProcessingStatus.REVIEW_REQUIRED.value,
+        ProcessingStatus.QUARANTINED.value,
     ):
         return False, [
             f"Document must be PARSED before activation (current: {doc.processing_status})"
@@ -51,3 +65,17 @@ def check_can_activate(session, document_id: str) -> Tuple[bool, List[str]]:
         return False, reasons
 
     return True, []
+
+
+def ensure_can_activate(session, document_id: str) -> None:
+    """Service-layer guard (spec §7.5): raise if the document has blocking reviews.
+
+    Every activation path must call this — not just one route — so the gate can't
+    be bypassed. Raises ReviewNotCompletedError (-> HTTP 409) when blocked.
+    """
+    # ponytail: a missing/wrong-status doc also lands here as 409; the downstream
+    # activate still raises ValueError for genuinely absent docs, so the only path
+    # that reaches activation is a real, review-clear document.
+    can, reasons = check_can_activate(session, document_id)
+    if not can:
+        raise ReviewNotCompletedError(reasons)

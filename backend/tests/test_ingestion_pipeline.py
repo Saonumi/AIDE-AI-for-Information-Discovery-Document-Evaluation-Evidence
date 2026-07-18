@@ -83,6 +83,13 @@ def test_full_pipeline_500_to_700(fresh_env):
     assert up1.approval_status == "PENDING"          # quarantined until approved
     assert up1.injection_suspected is False
 
+    # Invariant (spec §7.5): the activation gate refuses while a critical review is
+    # pending. A freshly-parsed doc carries a PARSING_REVIEW, so the employee must
+    # clear it before activation.
+    for t in service.list_review_tasks("PENDING"):
+        if t.task_type != ReviewTaskType.CHANGE_EVENT_REVIEW:
+            service.decide_review_task(t.task_id, ReviewDecision.APPROVE, None, "employee")
+
     act = service.activate_document(up1.document_id, "employee")
     assert act["provision_count"] == 1
     assert len(act["indexed_versions"]) == 1
@@ -141,6 +148,9 @@ def test_graph_edges_written(fresh_env):
     from packages.contracts.enums import ReviewDecision, ReviewTaskType
 
     up1 = service.handle_upload(BASE_DOC.encode("utf-8"), "quy_dinh.txt", "REGULATION", "employee")
+    for t in service.list_review_tasks("PENDING"):
+        if t.task_type != ReviewTaskType.CHANGE_EVENT_REVIEW:
+            service.decide_review_task(t.task_id, ReviewDecision.APPROVE, None, "employee")
     service.activate_document(up1.document_id, "employee")
     service.handle_upload(AMENDMENT_DOC.encode("utf-8"), "sua_doi.txt", "AMENDMENT", "employee")
     ce = [t for t in service.list_review_tasks("PENDING")

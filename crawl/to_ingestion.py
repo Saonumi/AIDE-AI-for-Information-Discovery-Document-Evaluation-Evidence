@@ -20,7 +20,7 @@ from crawl.base import load_items
 from crawl.models import CrawlItem, RelationType
 from infra.neo4j_client import get_graph
 
-_SOURCES = ["vbpl", "sbv", "thuvienphapluat", "shb"]
+_SOURCES = ["vbpl", "sbv", "thuvienphapluat", "shb", "hybrid"]
 
 
 def _norm(num: str) -> str:

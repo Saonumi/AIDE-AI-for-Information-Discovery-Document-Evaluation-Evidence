@@ -83,6 +83,11 @@ def test_full_pipeline_500_to_700(fresh_env):
     assert up1.approval_status == "PENDING"          # quarantined until approved
     assert up1.injection_suspected is False
 
+    # Activation gate: a base document's PARSING_REVIEW must be approved first.
+    parse_task = [t for t in service.list_review_tasks("PENDING")
+                  if t.task_type == ReviewTaskType.PARSING_REVIEW][0]
+    service.decide_review_task(parse_task.task_id, ReviewDecision.APPROVE, None, "employee")
+
     act = service.activate_document(up1.document_id, "employee")
     assert act["provision_count"] == 1
     assert len(act["indexed_versions"]) == 1
@@ -141,6 +146,9 @@ def test_graph_edges_written(fresh_env):
     from packages.contracts.enums import ReviewDecision, ReviewTaskType
 
     up1 = service.handle_upload(BASE_DOC.encode("utf-8"), "quy_dinh.txt", "REGULATION", "employee")
+    parse_task = [t for t in service.list_review_tasks("PENDING")
+                  if t.task_type == ReviewTaskType.PARSING_REVIEW][0]
+    service.decide_review_task(parse_task.task_id, ReviewDecision.APPROVE, None, "employee")
     service.activate_document(up1.document_id, "employee")
     service.handle_upload(AMENDMENT_DOC.encode("utf-8"), "sua_doi.txt", "AMENDMENT", "employee")
     ce = [t for t in service.list_review_tasks("PENDING")

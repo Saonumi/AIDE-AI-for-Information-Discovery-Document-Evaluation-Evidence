@@ -42,6 +42,7 @@ from packages.contracts.models import Document, ReviewTask
 from ingestion import activate as activate_mod
 from ingestion import change_event as change_event_mod
 from ingestion import injection_scan, legal_extract, review_inbox, upload
+from ingestion.activation_gate import ensure_can_activate
 from ingestion.pdf_extract import blocks_to_text, extract_text_blocks
 from ingestion.structure_parser import parse_structure
 
@@ -270,10 +271,19 @@ def list_documents() -> List[Document]:
 
 
 def activate_document(document_id: str, decided_by: str) -> dict:
-    """Approve + index a base document's provisions (step 12, path A)."""
+    """Approve + index a base document's provisions (step 12, path A).
+
+    Activation gate (spec §7.5 / P0): refuse while critical reviews are pending.
+    ensure_can_activate raises ReviewNotCompletedError -> HTTP 409 at the API layer.
+    """
     _ensure_db()
     with session_scope() as session:
+        ensure_can_activate(session, document_id)
         result = activate_mod.activate_base_document(session, document_id)
+        # Policy mapping (spec §7.8): an activated INTERNAL_POLICY gets citation-based
+        # ALIGNED_TO links so later amendments surface it in the impact report.
+        from backend.app.workflows.impact_analysis.policy_mapper import map_policy_document
+        result["policy_links"] = map_policy_document(session, document_id)
         result["decided_by"] = decided_by
         return result
 

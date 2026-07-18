@@ -153,6 +153,7 @@ def activate_base_document(session, document_id: str) -> Dict[str, Any]:
 
     graph = get_graph()
     indexed_versions: List[str] = []
+    sync_pending: List[str] = []
     now = datetime.utcnow()
 
     for prov in provisions:
@@ -165,25 +166,39 @@ def activate_base_document(session, document_id: str) -> Dict[str, Any]:
                 continue
             ver.approval_status = ApprovalStatus.APPROVED.value
             ver.approved_at = now
-            _index_version(
-                document_id=document_id,
-                document_number=doc.document_number,
-                provision_id=prov.provision_id,
-                version_id=ver.version_id,
-                heading_path=prov.heading_path or [],
-                content=ver.content,
-                page=ver.page,
-                valid_from=ver.valid_from,
-                valid_to_exclusive=ver.valid_to_exclusive,
-            )
-            _graph_write_version_nodes(graph, document_id, prov, ver)
-            indexed_versions.append(ver.version_id)
+            # Outbox-lite (spec §8.1 / T10): Postgres is the source of truth — an
+            # index/graph failure never rolls back approval, it flags sync pending.
+            # ponytail: synchronous retry-less flag; real outbox worker if scale needs it.
+            try:
+                _index_version(
+                    document_id=document_id,
+                    document_number=doc.document_number,
+                    provision_id=prov.provision_id,
+                    version_id=ver.version_id,
+                    heading_path=prov.heading_path or [],
+                    content=ver.content,
+                    page=ver.page,
+                    valid_from=ver.valid_from,
+                    valid_to_exclusive=ver.valid_to_exclusive,
+                )
+                _graph_write_version_nodes(graph, document_id, prov, ver)
+                indexed_versions.append(ver.version_id)
+            except Exception:
+                sync_pending.append(ver.version_id)
 
     doc.approval_status = ApprovalStatus.APPROVED.value
     doc.processing_status = ProcessingStatus.INDEXED.value
+    if sync_pending:
+        doc.doc_metadata = {**(doc.doc_metadata or {}),
+                            "sync_status": "INDEX_SYNC_PENDING",
+                            "sync_pending_versions": sync_pending}
     session.flush()
-    return {"document_id": document_id, "indexed_versions": indexed_versions,
-            "provision_count": len(provisions)}
+    result = {"document_id": document_id, "indexed_versions": indexed_versions,
+              "provision_count": len(provisions)}
+    if sync_pending:
+        result["sync_status"] = "INDEX_SYNC_PENDING"
+        result["sync_pending_versions"] = sync_pending
+    return result
 
 
 # --------------------------------------------------------------------------- #

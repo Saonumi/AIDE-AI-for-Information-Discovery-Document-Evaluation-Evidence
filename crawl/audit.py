@@ -28,7 +28,7 @@ from typing import Dict, List
 from crawl.base import load_items
 from crawl.models import CrawlItem
 
-SOURCES = ["vbpl", "sbv", "thuvienphapluat", "shb"]
+SOURCES = ["vbpl", "sbv", "thuvienphapluat", "shb", "hybrid"]
 
 # A real clause-level body names multiple articles ("Điều 1", "Điều 2", ...).
 # The SBV HTML *summary* repeats the title once and has at most one "Điều" — so

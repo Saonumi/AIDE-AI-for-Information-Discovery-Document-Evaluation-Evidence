@@ -161,7 +161,8 @@ def test_ui_imports():
 def test_golden_questions_wellformed():
     import json
     import os
-    path = os.path.join(os.path.dirname(__file__), os.pardir, "data", "golden_questions.json")
+    # golden_questions.json is canonical at the repo-root data/ (backend/ has no data/ copy).
+    path = os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, "data", "golden_questions.json")
     with open(os.path.abspath(path), encoding="utf-8") as f:
         data = json.load(f)
     qs = data["questions"]

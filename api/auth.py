@@ -90,9 +90,15 @@ def require_authenticated(creds: Optional[HTTPAuthorizationCredentials] = Depend
 
 
 def require_employee(user: CurrentUser = Depends(require_authenticated)) -> CurrentUser:
-    if user.role != Role.EMPLOYEE:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Employee role required")
+    # Final spec §6.1: COMPLIANCE_OFFICER is the business persona; EMPLOYEE is its
+    # deprecated alias kept until the legacy tree is retired.
+    if user.role not in (Role.EMPLOYEE, Role.COMPLIANCE_OFFICER):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Compliance Officer role required")
     return user
+
+
+require_compliance_officer = require_employee  # canonical name (Final spec §6.1)
 
 
 # -------- login + seeding --------
@@ -106,7 +112,8 @@ def authenticate(username: str, password: str) -> Optional[CurrentUser]:
 
 def seed_users() -> None:
     """Idempotent: create demo employee + user accounts if missing."""
-    demo = [("employee", "employee123", Role.EMPLOYEE), ("user", "user123", Role.USER)]
+    demo = [("employee", "employee123", Role.EMPLOYEE), ("user", "user123", Role.USER),
+            ("compliance", "compliance123", Role.COMPLIANCE_OFFICER)]
     with session_scope() as ses:
         for username, pw, role in demo:
             if not ses.query(User).filter(User.username == username).one_or_none():

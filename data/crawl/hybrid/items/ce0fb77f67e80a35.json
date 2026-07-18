@@ -1,0 +1,31 @@
+{
+ "source": "hybrid",
+ "url": "hybrid://13/2026/TT-NHNN",
+ "doc_number": "13/2026/TT-NHNN",
+ "title": "Thông tư số 13/2026/TT-NHNN sửa đổi, bổ sung một số điều của Thông tư số 53/2018/TT-NHNN",
+ "doc_type": "THONG_TU",
+ "issuer": "Ngân hàng Nhà nước",
+ "issued_date": "2026-06-20",
+ "effective_date": "2026-06-20",
+ "expiry_date": null,
+ "status": "Còn hiệu lực",
+ "full_text": "[VĂN BẢN DEMO — nội dung điều khoản dưới đây là SYNTHETIC (tổng hợp minh hoạ) để trình diễn cơ chế hiệu lực-theo-thời-gian và vá sửa đổi. Nó GẮN với ĐỊNH DANH THẬT và QUAN HỆ SỬA ĐỔI THẬT (mined từ crawl SBV), nhưng KHÔNG phải văn bản pháp luật thật.]\n\nThông tư số 13/2026/TT-NHNN sửa đổi, bổ sung Khoản 1 Điều 3 của Thông tư số 53/2018/TT-NHNN\nHiệu lực từ ngày 20/06/2026.\nĐiều 1. Sửa đổi, bổ sung Khoản 1 Điều 3 của Thông tư số 53/2018/TT-NHNN\nThay \"0,75%\" bằng \"1,00%\" tại Khoản 1 Điều 3, hiệu lực từ 20/06/2026.\nĐiều 2. Điều khoản thi hành\n1. Thông tư này có hiệu lực thi hành kể từ ngày 20/06/2026. Tổ chức tín dụng, chi nhánh ngân hàng nước ngoài có trách nhiệm rà soát, điều chỉnh và tổ chức thực hiện theo đúng quy định tại Thông tư này. Tổ chức tín dụng, chi nhánh ngân hàng nước ngoài có trách nhiệm rà soát, điều chỉnh và tổ chức thực hiện theo đúng quy định tại Thông tư này.",
+ "relations": [
+  {
+   "type": "AMENDS",
+   "target_doc_number": "53/2018/TT-NHNN",
+   "target_title": null,
+   "target_url": null
+  }
+ ],
+ "raw_path": null,
+ "raw_sha256": null,
+ "fetched_at": null,
+ "is_banking": true,
+ "fields": {
+  "synthetic_clause_text": true,
+  "identity_source": "real_sbv_crawl",
+  "relation_source": "real_sbv_crawl",
+  "note": "clause text synthetic (labelled); identity + amendment edge are real"
+ }
+}

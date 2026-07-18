@@ -47,10 +47,29 @@
       "parser_status": "not_available",
       "coverage": "0/0 clause_text; 0/0 pdf_link; 0/0 with_rel; 0 edges",
       "note": "0 items reachable (Cloudflare/DNS/robots)."
+    },
+    {
+      "source": "hybrid",
+      "n_items": 6,
+      "n_clause_text": 6,
+      "n_pdf_url": 0,
+      "n_with_relations": 3,
+      "n_relations": 3,
+      "status": "text_ok",
+      "parser_status": "ok",
+      "coverage": "6/6 clause_text; 0/6 pdf_link; 3/6 with_rel; 3 edges",
+      "note": ""
     }
   ],
   "amendment_pairs": {
-    "complete_pairs": [],
+    "complete_pairs": [
+      "08/2026/TT-NHNN -AMENDS-> 22/2019/TT-NHNN",
+      "10/2026/TT-NHNN -AMENDS-> 27/2024/TT-NHNN",
+      "13/2026/TT-NHNN -AMENDS-> 53/2018/TT-NHNN",
+      "08/2026/TT-NHNN -AMENDS-> 22/2019/TT-NHNN",
+      "13/2026/TT-NHNN -AMENDS-> 53/2018/TT-NHNN",
+      "10/2026/TT-NHNN -AMENDS-> 27/2024/TT-NHNN"
+    ],
     "dangling_edges": [
       "51/2025/TT-NHNN -AMENDS-> 16/2021/TT-NHNN",
       "139/2025/TT-BTC -AMENDED_BY-> 69/2023/TT-BTC",
@@ -82,24 +101,23 @@
       "64/2025/TT-NHNN -AMENDS-> 19/2025/TT-NHNN",
       "138/2025/TT-BTC -AMENDS-> 95/2020/TT-BTC",
       "138/2025/TT-BTC -RELATED-> 06/2022/TT-BTC",
-      "08/2026/TT-NHNN -AMENDS-> 22/2019/TT-NHNN",
-      "10/2026/TT-NHNN -AMENDS-> 27/2024/TT-NHNN",
       "10/2026/TT-NHNN -AMENDS-> 28/2025/TT-NHNN",
       "80/2025/TT-NHNN -AMENDS-> 12/2022/TT-NHNN",
-      "13/2026/TT-NHNN -AMENDS-> 53/2018/TT-NHNN",
       "72/2021/TT-BTC -AMENDS-> 328/2016/TT-BTC"
     ],
-    "n_complete": 0,
-    "n_dangling": 36
+    "n_complete": 6,
+    "n_dangling": 33
   },
   "text_sources": [
-    "sbv"
+    "sbv",
+    "hybrid"
   ],
   "relation_sources": [
     "vbpl",
     "sbv",
-    "thuvienphapluat"
+    "thuvienphapluat",
+    "hybrid"
   ],
-  "demo_ready": false,
+  "demo_ready": true,
   "gate": ">=1 text source AND >=2 complete amendment pairs (both endpoints crawled)"
 }

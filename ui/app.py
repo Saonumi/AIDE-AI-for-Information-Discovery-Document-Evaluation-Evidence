@@ -220,6 +220,139 @@ def page_compare() -> None:
         render_answer(data.get("our_system") or {})
 
 
+def page_overview() -> None:
+    st.header("🏛️ Compliance Regulatory Knowledge & Document Review")
+    st.markdown("Hai luồng nghiệp vụ — không file nào mặc định là ground truth:")
+    c1, c2 = st.columns(2)
+    with c1:
+        st.subheader("📥 Add Regulatory Source")
+        st.markdown(
+            "Thêm thông tư/quyết định/amendment vào kho pháp lý.\n\n"
+            "Tài liệu phải qua **Human Review + Activate** mới trở thành "
+            "nguồn pháp lý (AUTHORITY_SOURCE).\n\n"
+            "→ Dùng trang **Review inbox** / **Dashboard**."
+        )
+    with c2:
+        st.subheader("🛡️ Check Document Compliance")
+        st.markdown(
+            "Upload policy/báo cáo nội bộ để kiểm tra với kho quy định **đã duyệt**.\n\n"
+            "File chỉ là REVIEW_TARGET — **không** được thêm vào knowledge base.\n\n"
+            "→ Dùng trang **Kiểm tra tuân thủ**."
+        )
+
+
+def page_add_source() -> None:
+    st.header("📥 Thêm nguồn pháp lý (Add Regulatory Source)")
+    st.warning(
+        "Tài liệu upload chỉ là ỨNG VIÊN (AUTHORITY_SOURCE_CANDIDATE) — "
+        "chưa được dùng làm căn cứ pháp lý. Phải qua Human Review và Activate."
+    )
+    up = st.file_uploader("Chọn văn bản (.pdf/.txt)", type=["pdf", "txt"])
+    dtype = st.selectbox("Loại văn bản", ["REGULATION", "AMENDMENT", "INTERNAL_POLICY"])
+    if up is not None and st.button("Upload"):
+        res = _client().upload_document(up.name, up.getvalue(), dtype)
+        if res.ok:
+            doc_id = (res.data or {}).get("document_id", "")
+            st.session_state["last_doc_id"] = doc_id
+            st.success(f"Đã nhận `{doc_id}` — chờ review (xem Review inbox).")
+            st.json(res.data)
+        else:
+            _api_down(res)
+    st.divider() if hasattr(st, "divider") else st.markdown("---")
+    doc_id = st.text_input("Document ID cần kích hoạt",
+                           value=st.session_state.get("last_doc_id", ""))
+    if doc_id and st.button("Activate (qua hard gate)"):
+        res = _client().activate_document(doc_id)
+        if res.ok:
+            st.success("✅ ACTIVE — versioning đã áp dụng, tài liệu vào kho pháp lý.")
+            st.json(res.data)
+        elif res.status == 409:
+            st.error("⛔ HTTP 409 REVIEW_NOT_COMPLETED — còn critical review chưa duyệt. "
+                     "Mở Review inbox để Approve trước.")
+            st.json(res.data)
+        else:
+            _api_down(res)
+
+
+_COMPLIANCE_STYLE = {
+    "COMPLIANT": ("✅", "Phù hợp"),
+    "NON_COMPLIANT": ("❌", "Không phù hợp"),
+    "PARTIALLY_COMPLIANT": ("🟡", "Phù hợp một phần"),
+    "OUTDATED_REFERENCE": ("⏳", "Dùng phiên bản đã bị thay thế"),
+    "MISSING_EVIDENCE": ("⛔", "Thiếu căn cứ"),
+    "AMBIGUOUS": ("❓", "Nhiều quy định có thể áp dụng"),
+    "NEEDS_HUMAN_REVIEW": ("👤", "Cần người review"),
+}
+
+
+def page_compliance() -> None:
+    st.header("🛡️ Kiểm tra tuân thủ tài liệu (Check Document Compliance)")
+    st.info(
+        "File này CHỈ được dùng để kiểm tra với kho quy định đã duyệt — "
+        "KHÔNG được thêm vào kho tri thức pháp lý (trust class: REVIEW_TARGET)."
+    )
+    uploaded = st.file_uploader("Tải lên policy/báo cáo (.txt)", type=["txt"])
+    default_text = ""
+    if uploaded is not None:
+        default_text = uploaded.read().decode("utf-8", errors="replace")
+    with st.form("compliance"):
+        text = st.text_area("Nội dung tài liệu cần kiểm tra", value=default_text, height=200)
+        rdate = st.text_input("Ngày review (YYYY-MM-DD, để trống = hôm nay)", value="")
+        submitted = st.form_submit_button("Kiểm tra tuân thủ")
+    if not submitted or not text.strip():
+        return
+    res = _client().compliance_check(text, rdate or None,
+                                     uploaded.name if uploaded else None)
+    if not res.ok:
+        _api_down(res)
+        return
+    check_id = (res.data or {}).get("check_id")
+    rep = _client().compliance_report(check_id)
+    if not rep.ok:
+        _api_down(rep)
+        return
+    _render_compliance_report(rep.data or {})
+
+
+def _render_compliance_report(report: Dict[str, Any]) -> None:
+    summary = report.get("summary") or {}
+    st.subheader("Tổng quan")
+    cols = st.columns(4)
+    cols[0].metric("Tổng claim", summary.get("total_claims", 0))
+    cols[1].metric("✅ Phù hợp", summary.get("compliant", 0))
+    cols[2].metric("❌ Không phù hợp / lỗi thời",
+                   summary.get("non_compliant", 0) + summary.get("outdated_reference", 0))
+    cols[3].metric("⛔ Thiếu căn cứ / cần review",
+                   summary.get("missing_evidence", 0) + summary.get("needs_human_review", 0))
+
+    for a in report.get("assessments") or []:
+        icon, label = _COMPLIANCE_STYLE.get(a.get("status"), ("•", a.get("status")))
+        with st.expander(f"{icon} {label} — {a.get('source_text', '')[:80]}"):
+            st.markdown(f"**Claim:** {a.get('source_text')}")
+            st.markdown(f"**Giải thích:** {a.get('explanation')}")
+            for f in a.get("findings") or []:
+                st.markdown(f"- {f}")
+            if a.get("recommendation"):
+                st.warning(f"Đề xuất sửa: {a['recommendation']}")
+            valid = a.get("valid_evidence") or []
+            if valid:
+                st.markdown("**Căn cứ pháp lý hiện hành:**")
+                for e in valid:
+                    st.markdown(
+                        f"- ✅ `{e.get('document_number')}` {_fmt_heading(e.get('heading_path'))}"
+                        f" — hiệu lực [{e.get('valid_from')} … {e.get('valid_to_exclusive') or '∞'})"
+                    )
+                    if e.get("content"):
+                        st.caption(e["content"])
+            excluded = a.get("excluded_evidence") or []
+            if excluded:
+                st.markdown("**Phiên bản bị loại (và lý do):**")
+                for x in excluded:
+                    reason = _EXCLUSION_VI.get(x.get("reason"), x.get("reason"))
+                    st.markdown(f"- ⛔ `{x.get('version_id')}` — {reason}")
+            st.caption(f"Confidence: {a.get('confidence')}")
+
+
 def page_review() -> None:
     st.header("📥 Hộp thư rà soát (Review inbox)")
     status = st.selectbox("Lọc theo trạng thái", ["", "PENDING", "APPROVED", "REJECTED"], index=1)
@@ -352,10 +485,66 @@ def _rerun() -> None:
     (getattr(st, "rerun", None) or getattr(st, "experimental_rerun", lambda: None))()
 
 
+def page_impact_report() -> None:
+    st.header("📊 Regulatory Impact Report")
+    st.caption("Báo cáo tác động sau khi một nguồn pháp lý được approve + activate (spec §7.8).")
+    doc_id = st.text_input("Document ID của văn bản sửa đổi",
+                           value=st.session_state.get("last_doc_id", ""))
+    if doc_id and st.button("Xem báo cáo"):
+        res = _client().impact_report(doc_id)
+        if not res.ok:
+            _api_down(res)
+            return
+        rep = res.data or {}
+        st.subheader(rep.get("document_number") or doc_id)
+        st.info(rep.get("executive_summary", ""))
+        if rep.get("max_severity"):
+            st.warning(f"Mức ảnh hưởng cao nhất: {rep['max_severity']}")
+        for c in rep.get("changes", []):
+            with st.expander(
+                f"{c.get('operation')} → {c.get('target_document_number')} "
+                f"{c.get('target_locator') or ''} (hiệu lực {c.get('effective_date')})"
+            ):
+                col1, col2 = st.columns(2)
+                col1.markdown(f"**Trước:**\n\n{c.get('before_text') or '_—_'}")
+                col2.markdown(f"**Sau:**\n\n{c.get('after_text') or '_—_'}")
+                st.caption(f"ChangeEvent `{c.get('change_event_id')}` · review: {c.get('review_status')}")
+        pols = rep.get("impacted_policies", [])
+        if pols:
+            st.subheader("Policy nội bộ bị ảnh hưởng")
+            for p in pols:
+                st.markdown(
+                    f"- **{p.get('title')}** — {p.get('reason')} (severity {p.get('severity')}): "
+                    f"quy định `{p.get('regulation_value')}` vs policy `{p.get('internal_policy_value')}`"
+                )
+        else:
+            st.success("Không phát hiện policy nội bộ bị ảnh hưởng.")
+
+
+def page_system_health() -> None:
+    st.header("🩺 System Health")
+    res = _client().health_details()
+    if not res.ok:
+        _api_down(res)
+        return
+    d = res.data or {}
+    badge = "🟢" if d.get("status") == "ok" else "🟠"
+    st.markdown(f"{badge} **{d.get('status', '?').upper()}** — demo_mode: `{d.get('demo_mode')}`")
+    if d.get("error_code"):
+        st.error(f"Mã lỗi: {d['error_code']} — backend fallback khi DEMO_MODE=false.")
+    for k in ("postgres", "opensearch", "neo4j", "embedding", "llm"):
+        st.markdown(f"- **{k}**: `{d.get(k)}`")
+
+
 _USER_PAGES = {"Hỏi đáp": page_chat, "So sánh": page_compare, "Đồ thị KG": page_graph}
 _EMPLOYEE_PAGES = {
-    "Hỏi đáp": page_chat, "So sánh": page_compare, "Review inbox": page_review,
+    "Tổng quan": page_overview,
+    "Thêm nguồn pháp lý": page_add_source,
+    "Hỏi đáp": page_chat, "So sánh": page_compare,
+    "Kiểm tra tuân thủ": page_compliance, "Review inbox": page_review,
+    "Impact Report": page_impact_report,
     "Dashboard": page_dashboard, "Đồ thị KG": page_graph, "Audit": page_audit,
+    "System Health": page_system_health,
 }
 
 
@@ -380,7 +569,8 @@ def main() -> None:
         _rerun()
         return
 
-    pages = _EMPLOYEE_PAGES if role == "EMPLOYEE" else _USER_PAGES
+    # COMPLIANCE_OFFICER is the business persona (Final spec §6.1); EMPLOYEE = alias
+    pages = _EMPLOYEE_PAGES if role in ("EMPLOYEE", "COMPLIANCE_OFFICER") else _USER_PAGES
     choice = st.sidebar.radio("Trang", list(pages.keys()))
     pages[choice]()
 
