@@ -53,7 +53,9 @@ def extract(text: str, target_document_id: str) -> List[ComplianceClaim]:
             continue
         if line.startswith("["):  # banner/label lines are not claims
             continue
-        if _SECTION_RE.match(line) and len(line) < 80:
+        # a heading is only a heading if it carries no checkable fact —
+        # "Điều 1. Phí quản lý là 2 triệu đồng" is a CLAIM, not a section
+        if _SECTION_RE.match(line) and len(line) < 80 and not mine_facts(line).has_comparable():
             section = line
             continue
         for sent in _SENTENCE_SPLIT_RE.split(line):

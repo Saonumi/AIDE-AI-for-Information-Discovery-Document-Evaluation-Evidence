@@ -34,6 +34,6 @@ def activate_document(document_id: str, user: CurrentUser = Depends(require_empl
             raise HTTPException(
                 status_code=409,
                 detail={"error": {"code": "REVIEW_NOT_COMPLETED", "message": str(e),
-                                  "details": getattr(e, "payload", None)}},
+                                  "details": {"reasons": getattr(e, "reasons", [])}}},
             )
         raise

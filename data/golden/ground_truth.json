@@ -1,5 +1,5 @@
 {
-  "description": "Golden ground truth (Final spec §11.3) — khớp data/seed.py và crawl hybrid thật",
+  "description": "Golden ground truth (Final spec §11.3). Phần provisions/changes/policy_links mô tả DEMO DOMAIN trong data/seed.py (số hiệu thật mine từ crawl SBV, nội dung điều khoản stylized); file text trong regulatory_sources/ giữ nguyên văn crawl thật nên câu chữ có thể khác seed. review_targets là hợp đồng kiểm thử: tests/test_golden_dataset.py đọc file này và chạy engine thật.",
   "provisions": [
     {
       "document_number": "22/2019/TT-NHNN",
@@ -25,11 +25,11 @@
     {"amending": "QĐ-02/2026", "target": "QĐ-01/2026 Điều 3", "operation": "REPLACE_TEXT", "before": "500 triệu", "after": "700 triệu", "effective_date": "2026-07-01"}
   ],
   "policy_links": [
-    {"policy_file": "internal_policies/chinh_sach_tin_dung_sme.txt", "aligned_to": "22/2019/TT-NHNN Điều 16 Khoản 1 V1", "relation": "ALIGNED_TO", "expected_impact_on_v2": "THRESHOLD_MISMATCH"}
+    {"policy_title": "Quy trình cấp tín dụng SME nội bộ", "aligned_to": "QĐ-01/2026 Điều 7 Khoản 2 V1 (500 triệu)", "relation": "ALIGNED_TO", "amending_document_id": "doc-qd02-2026", "expected_impact": {"reason": "THRESHOLD_MISMATCH", "severity": "HIGH"}}
   ],
   "review_targets": {
     "chinh_sach_compliant.txt": [
-      {"text_contains": "700 triệu", "expected_status": "COMPLIANT"},
+      {"text_contains": "700 triệu", "expected_status": "AMBIGUOUS", "note": "seed cố tình chứa QĐ-03/2026 Điều 5 (600 triệu, cùng scope SME, đồng hiệu lực) — engine phải bắt conflict thay vì tuyên bố COMPLIANT; đây là hành vi đúng spec §3.2.1"},
       {"text_contains": "30%", "expected_status": "COMPLIANT"}
     ],
     "bao_cao_tuan_thu_outdated.txt": [

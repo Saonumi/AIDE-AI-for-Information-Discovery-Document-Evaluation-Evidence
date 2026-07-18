@@ -68,7 +68,7 @@ def _legal_provision_versions(evidence):
     flow needs them) but have no ProvisionVersion row — so they are dropped here
     and can never back a compliance verdict.
     """
-    from infra.db_models import ProvisionVersionRow
+    from infra.db_models import DocumentRow, ProvisionVersionRow
     from infra.postgres import session_scope
 
     out = []
@@ -80,8 +80,14 @@ def _legal_provision_versions(evidence):
                     .filter_by(version_id=e.version_id)
                     .first()
                 )
-                if row is not None:
-                    out.append(e)
+                if row is None:
+                    continue
+                doc = ses.query(DocumentRow).filter_by(document_id=row.document_id).first()
+                # Final spec §2.1: INTERNAL_APPROVED is never legal ground truth —
+                # internal policies are impact targets, not evidence for verdicts.
+                if doc is not None and doc.type == "INTERNAL_POLICY":
+                    continue
+                out.append(e)
     except Exception:
         out = list(evidence)  # no DB -> degrade open (test/in-memory runs)
     return out
@@ -198,6 +204,11 @@ def assess_claim(claim: ComplianceClaim, review_date: date) -> ClaimAssessment:
         status, confidence = ComplianceStatus.NON_COMPLIANT, 0.95
         explanation = "Giá trị trong tài liệu mâu thuẫn với quy định hiện hành."
         recommendation = "; ".join(f for f in findings if "KHÔNG khớp" in f) or None
+    elif verdicts and all(v == "no_evidence" for v in verdicts):
+        # claim states a checkable fact but the approved corpus has no fact of
+        # that class to compare -> no basis strong enough (spec §7.9: don't guess)
+        status, confidence = ComplianceStatus.MISSING_EVIDENCE, 0.85
+        explanation = "Không có quy định đã duyệt chứa giá trị cùng loại để đối chiếu claim này."
     elif "match" in verdicts and conflicts_in_scope:
         status, confidence = ComplianceStatus.AMBIGUOUS, 0.6
         explanation = "Giá trị khớp nhưng tồn tại quy định đồng hiệu lực có giá trị xung đột."

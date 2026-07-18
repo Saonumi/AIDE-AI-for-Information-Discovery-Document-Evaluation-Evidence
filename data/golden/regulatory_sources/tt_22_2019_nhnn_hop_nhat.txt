@@ -1,4 +1,4 @@
-[GOLDEN — văn bản hợp nhất (validation reference, hợp nhất synthetic từ 2 văn bản thật)]
+[GOLDEN — văn bản hợp nhất (validation reference, hợp nhất synthetic từ hai văn bản thật)]
 22/2019/TT-NHNN hợp nhất sửa đổi bởi 08/2026/TT-NHNN
 
 [VĂN BẢN DEMO — nội dung điều khoản dưới đây là SYNTHETIC (tổng hợp minh hoạ) để trình diễn cơ chế hiệu lực-theo-thời-gian và vá sửa đổi. Nó GẮN với ĐỊNH DANH THẬT và QUAN HỆ SỬA ĐỔI THẬT (mined từ crawl SBV), nhưng KHÔNG phải văn bản pháp luật thật.]
