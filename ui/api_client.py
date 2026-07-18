@@ -111,6 +111,18 @@ class ApiClient:
             body["query_date"] = query_date
         return self.post("/compare", json=body)
 
+    def compliance_check(self, text: str, review_date: Optional[str] = None,
+                         filename: Optional[str] = None) -> ApiResult:
+        body: Dict[str, Any] = {"text": text}
+        if review_date:
+            body["review_date"] = review_date
+        if filename:
+            body["filename"] = filename
+        return self.post("/compliance-checks", json=body)
+
+    def compliance_report(self, check_id: str) -> ApiResult:
+        return self.get(f"/compliance-checks/{check_id}/report")
+
     def list_review_tasks(self, status: Optional[str] = None) -> ApiResult:
         params = {"status": status} if status else None
         return self.get("/review-tasks", params=params)
