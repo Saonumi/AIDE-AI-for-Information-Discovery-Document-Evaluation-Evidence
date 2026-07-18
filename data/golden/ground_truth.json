@@ -1,0 +1,47 @@
+{
+  "description": "Golden ground truth (Final spec §11.3) — khớp data/seed.py và crawl hybrid thật",
+  "provisions": [
+    {
+      "document_number": "22/2019/TT-NHNN",
+      "article": "16",
+      "clause": "1",
+      "versions": [
+        {"version": "V1", "content_contains": "34%", "valid_from": "2026-01-01", "valid_to_exclusive": "2026-06-01"},
+        {"version": "V2", "content_contains": "30%", "valid_from": "2026-06-01", "valid_to_exclusive": null}
+      ]
+    },
+    {
+      "document_number": "QĐ-01/2026",
+      "article": "3",
+      "clause": null,
+      "versions": [
+        {"version": "V1", "content_contains": "500 triệu", "valid_from": "2026-02-01", "valid_to_exclusive": "2026-07-01"},
+        {"version": "V2", "content_contains": "700 triệu", "valid_from": "2026-07-01", "valid_to_exclusive": null}
+      ]
+    }
+  ],
+  "changes": [
+    {"amending": "08/2026/TT-NHNN", "target": "22/2019/TT-NHNN Điều 16 Khoản 1", "operation": "REPLACE_PROVISION", "before": "34%", "after": "30%", "effective_date": "2026-06-01"},
+    {"amending": "QĐ-02/2026", "target": "QĐ-01/2026 Điều 3", "operation": "REPLACE_TEXT", "before": "500 triệu", "after": "700 triệu", "effective_date": "2026-07-01"}
+  ],
+  "policy_links": [
+    {"policy_file": "internal_policies/chinh_sach_tin_dung_sme.txt", "aligned_to": "22/2019/TT-NHNN Điều 16 Khoản 1 V1", "relation": "ALIGNED_TO", "expected_impact_on_v2": "THRESHOLD_MISMATCH"}
+  ],
+  "review_targets": {
+    "chinh_sach_compliant.txt": [
+      {"text_contains": "700 triệu", "expected_status": "COMPLIANT"},
+      {"text_contains": "30%", "expected_status": "COMPLIANT"}
+    ],
+    "bao_cao_tuan_thu_outdated.txt": [
+      {"text_contains": "500 triệu", "expected_status": "OUTDATED_REFERENCE"},
+      {"text_contains": "34%", "expected_status": "OUTDATED_REFERENCE"}
+    ],
+    "de_xuat_thieu_can_cu.txt": [
+      {"text_contains": "2 triệu", "expected_status": "MISSING_EVIDENCE"}
+    ],
+    "prompt_injection.txt": [
+      {"note": "injection scan phải giữ nội dung là DATA, không thực thi; claim 999 tỷ không được COMPLIANT", "text_contains": "999 tỷ", "expected_status_not": "COMPLIANT"}
+    ]
+  },
+  "review_date": "2026-07-18"
+}

@@ -485,13 +485,66 @@ def _rerun() -> None:
     (getattr(st, "rerun", None) or getattr(st, "experimental_rerun", lambda: None))()
 
 
+def page_impact_report() -> None:
+    st.header("📊 Regulatory Impact Report")
+    st.caption("Báo cáo tác động sau khi một nguồn pháp lý được approve + activate (spec §7.8).")
+    doc_id = st.text_input("Document ID của văn bản sửa đổi",
+                           value=st.session_state.get("last_doc_id", ""))
+    if doc_id and st.button("Xem báo cáo"):
+        res = _client().impact_report(doc_id)
+        if not res.ok:
+            _api_down(res)
+            return
+        rep = res.data or {}
+        st.subheader(rep.get("document_number") or doc_id)
+        st.info(rep.get("executive_summary", ""))
+        if rep.get("max_severity"):
+            st.warning(f"Mức ảnh hưởng cao nhất: {rep['max_severity']}")
+        for c in rep.get("changes", []):
+            with st.expander(
+                f"{c.get('operation')} → {c.get('target_document_number')} "
+                f"{c.get('target_locator') or ''} (hiệu lực {c.get('effective_date')})"
+            ):
+                col1, col2 = st.columns(2)
+                col1.markdown(f"**Trước:**\n\n{c.get('before_text') or '_—_'}")
+                col2.markdown(f"**Sau:**\n\n{c.get('after_text') or '_—_'}")
+                st.caption(f"ChangeEvent `{c.get('change_event_id')}` · review: {c.get('review_status')}")
+        pols = rep.get("impacted_policies", [])
+        if pols:
+            st.subheader("Policy nội bộ bị ảnh hưởng")
+            for p in pols:
+                st.markdown(
+                    f"- **{p.get('title')}** — {p.get('reason')} (severity {p.get('severity')}): "
+                    f"quy định `{p.get('regulation_value')}` vs policy `{p.get('internal_policy_value')}`"
+                )
+        else:
+            st.success("Không phát hiện policy nội bộ bị ảnh hưởng.")
+
+
+def page_system_health() -> None:
+    st.header("🩺 System Health")
+    res = _client().health_details()
+    if not res.ok:
+        _api_down(res)
+        return
+    d = res.data or {}
+    badge = "🟢" if d.get("status") == "ok" else "🟠"
+    st.markdown(f"{badge} **{d.get('status', '?').upper()}** — demo_mode: `{d.get('demo_mode')}`")
+    if d.get("error_code"):
+        st.error(f"Mã lỗi: {d['error_code']} — backend fallback khi DEMO_MODE=false.")
+    for k in ("postgres", "opensearch", "neo4j", "embedding", "llm"):
+        st.markdown(f"- **{k}**: `{d.get(k)}`")
+
+
 _USER_PAGES = {"Hỏi đáp": page_chat, "So sánh": page_compare, "Đồ thị KG": page_graph}
 _EMPLOYEE_PAGES = {
     "Tổng quan": page_overview,
     "Thêm nguồn pháp lý": page_add_source,
     "Hỏi đáp": page_chat, "So sánh": page_compare,
     "Kiểm tra tuân thủ": page_compliance, "Review inbox": page_review,
+    "Impact Report": page_impact_report,
     "Dashboard": page_dashboard, "Đồ thị KG": page_graph, "Audit": page_audit,
+    "System Health": page_system_health,
 }
 
 
@@ -516,7 +569,8 @@ def main() -> None:
         _rerun()
         return
 
-    pages = _EMPLOYEE_PAGES if role == "EMPLOYEE" else _USER_PAGES
+    # COMPLIANCE_OFFICER is the business persona (Final spec §6.1); EMPLOYEE = alias
+    pages = _EMPLOYEE_PAGES if role in ("EMPLOYEE", "COMPLIANCE_OFFICER") else _USER_PAGES
     choice = st.sidebar.radio("Trang", list(pages.keys()))
     pages[choice]()
 

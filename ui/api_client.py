@@ -148,6 +148,12 @@ class ApiClient:
     def activate_document(self, document_id: str) -> ApiResult:
         return self.post(f"/documents/{document_id}/activate")
 
+    def impact_report(self, document_id: str) -> ApiResult:
+        return self.get(f"/regulatory-sources/{document_id}/impact-report")
+
+    def health_details(self) -> ApiResult:
+        return self.get("/health/details")
+
     def graph_provision(self, provision_id: str) -> ApiResult:
         return self.get(f"/graph/provision/{provision_id}")
 
