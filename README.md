@@ -20,9 +20,9 @@ DEMO_MODE=true SEED_DEMO=1 uvicorn api.main:app --port 8000     # Linux/macOS/Gi
 $env:DEMO_MODE="true"; $env:SEED_DEMO="1"; uvicorn api.main:app --port 8000   # Windows
 ```
 
-Tab mới → UI:
+Tab mới → UI (Next.js, giao diện 2 tab Add Source · RAG):
 ```bash
-streamlit run ui/app.py            # http://localhost:8501
+cd frontend/nextjs_app && pnpm install && pnpm dev   # http://localhost:3000, gọi API :8000
 ```
 
 Không cần Docker, không cần API key. `DEMO_MODE=true` dùng stub in-memory và **báo trung thực trạng thái fallback** tại `/health/details` + trang System Health.
@@ -232,7 +232,7 @@ Chúng tôi ưu tiên **một golden domain đủ sâu** (giới hạn tín dụ
 ## ⚠️ Limitations (trung thực)
 
 - **Hai cây code song song**: legacy (`api/ ingestion/ query/ infra/ ui/`) và canonical (`backend/app/`). Runtime hiện chạy legacy; route mới nằm ở `backend/app/`. Chưa cut-over (spec M10).
-- **Hai app frontend**: `frontend/nextjs_app` (đang deploy) và `frontend/web` (dựng theo Final spec §10, 10 màn hình). Cần hợp nhất — hiện chưa.
+- **Frontend duy nhất**: `frontend/nextjs_app` (giao diện 2 tab Add Source · RAG, spec "chia mode 48h"). `frontend/web` và Streamlit `ui/` đã bị xoá (2026-07-19) — khôi phục nếu cần: `git checkout HEAD -- frontend/web ui`.
 - **Hai cây test**: `tests/` (131 test, có nhãn T1–T12) và `backend/tests/` (bản cũ hơn). Chạy `pytest` từ gốc là 218 test vì cộng cả hai.
 - **OCR fallback cho PDF scan chưa bật**, DOCX parser chưa có — golden dùng text thật từ crawl SBV.
 - **Resolver nâng cao chưa hoàn chỉnh**: `EVIDENCE_NOT_VALID`/`TARGET_NOT_RESOLVED` đã chuẩn hoá error code, nhưng phân loại EXACT/MULTIPLE/NOT_FOUND đầy đủ thì chưa.

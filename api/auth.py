@@ -109,13 +109,14 @@ def authenticate(username: str, password: str) -> Optional[CurrentUser]:
 
 
 def seed_users() -> None:
-    """Idempotent demo accounts. All three are EMPLOYEE."""
+    """Idempotent demo account. Single EMPLOYEE user; drop legacy demo accounts."""
     demo = [
-        ("compliance", "compliance123", Role.EMPLOYEE),
-        ("employee", "employee123", Role.EMPLOYEE),
         ("user", "user123", Role.EMPLOYEE),
     ]
     with session_scope() as ses:
+        # remove legacy demo accounts if they exist
+        ses.query(User).filter(User.username.in_(["compliance", "employee"])).delete(
+            synchronize_session=False)
         for username, pw, role in demo:
             row = ses.query(User).filter(User.username == username).one_or_none()
             if row is None:
