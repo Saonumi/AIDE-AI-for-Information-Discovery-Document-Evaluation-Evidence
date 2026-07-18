@@ -111,11 +111,26 @@ def authenticate(username: str, password: str) -> Optional[CurrentUser]:
 
 
 def seed_users() -> None:
-    """Idempotent: create demo employee + user accounts if missing."""
-    demo = [("employee", "employee123", Role.EMPLOYEE), ("user", "user123", Role.USER),
-            ("compliance", "compliance123", Role.COMPLIANCE_OFFICER)]
+    """Idempotent demo accounts.
+
+    All three are COMPLIANCE_OFFICER — Final spec §6.1 retires USER and EMPLOYEE,
+    and `require_employee` rejects USER outright, so an account seeded with that
+    role could log in but reach no business screen at all.
+
+    Existing rows are reconciled, not just created: a database seeded before this
+    change still holds the retired role, and create-if-missing would leave it
+    stranded forever.
+    """
+    demo = [
+        ("compliance", "compliance123", Role.COMPLIANCE_OFFICER),
+        ("employee", "employee123", Role.COMPLIANCE_OFFICER),
+        ("user", "user123", Role.COMPLIANCE_OFFICER),
+    ]
     with session_scope() as ses:
         for username, pw, role in demo:
-            if not ses.query(User).filter(User.username == username).one_or_none():
+            row = ses.query(User).filter(User.username == username).one_or_none()
+            if row is None:
                 ses.add(User(id=new_id("usr"), username=username,
                              password_hash=hash_password(pw), role=role.value))
+            elif row.role != role.value:
+                row.role = role.value

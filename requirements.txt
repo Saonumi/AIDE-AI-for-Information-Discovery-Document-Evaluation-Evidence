@@ -41,5 +41,11 @@ rank-bm25>=0.2
 pyvis>=0.3
 streamlit-agraph>=0.0.45
 
+# --- Crawl (SBV / VBPL) ---
+# Both were imported without being declared: crawl/sources/*.py calls
+# BeautifulSoup(html, "lxml"), so a clean clone failed 4 tests on install.
+beautifulsoup4>=4.12
+lxml>=5.0
+
 # --- Test ---
 pytest>=8.0
