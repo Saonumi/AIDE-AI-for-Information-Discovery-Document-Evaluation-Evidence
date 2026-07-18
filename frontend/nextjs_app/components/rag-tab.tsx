@@ -17,6 +17,35 @@ import {
 
 type Mode = "ask" | "review"
 
+// Icon nội tuyến (không thêm dependency). Nét mảnh, hợp tông SHB.
+function IconSend() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="size-4">
+      <path d="M12 19V5M5 12l7-7 7 7" />
+    </svg>
+  )
+}
+function IconClip() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4">
+      <path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.19 9.19a1 1 0 0 1-1.41-1.41l8.49-8.49" />
+    </svg>
+  )
+}
+
+// Khung prompt cao cấp theo sample_ui: viền gradient cam (SHB) chạy quanh khi
+// focus, nền mờ, bo tròn. Dùng chung cho cả hai ô chat.
+function PromptShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative group/prompt">
+      <div className="pointer-events-none absolute -inset-[1.5px] rounded-2xl bg-[linear-gradient(90deg,transparent,#f97316,transparent)] animate-border-glow opacity-40 blur-[2px] transition-opacity duration-500 group-focus-within/prompt:opacity-90" />
+      <div className="relative flex items-end gap-2 rounded-2xl border border-border bg-card/90 backdrop-blur-sm pl-4 pr-2 py-2 shadow-sm">
+        {children}
+      </div>
+    </div>
+  )
+}
+
 // ─── Status vocabulary (shared) ───────────────────────────────────────────────
 
 const STATUS: Record<string, { label: string; cls: string }> = {
@@ -173,9 +202,9 @@ function AskMode() {
           {busy && <div className="text-xs text-muted-foreground animate-pulse">Đang tra cứu kho quy định…</div>}
         </div>
 
-        <div className="p-3 border-t border-border space-y-2 shrink-0">
+        <div className="p-3 pt-2 shrink-0">
           {attachments.length > 0 && (
-            <div className="flex gap-1.5 flex-wrap">
+            <div className="flex gap-1.5 flex-wrap mb-2">
               {attachments.map((a) => (
                 <Badge key={a.id} variant="outline" className="text-[10px] text-amber-600 dark:text-amber-400 border-amber-500/40">
                   {a.filename} · context cục bộ, không phải nguồn pháp lý
@@ -183,25 +212,32 @@ function AskMode() {
               ))}
             </div>
           )}
-          <div className="flex gap-2 items-end">
-            <textarea rows={2} className={`${inputCls} resize-none flex-1`} placeholder="Nhập câu hỏi về quy định…"
+          <PromptShell>
+            <textarea rows={1}
+              className="flex-1 resize-none bg-transparent outline-none text-sm leading-relaxed py-1.5 max-h-40 placeholder:text-muted-foreground/70"
+              placeholder="Nhập câu hỏi về quy định…"
               value={text} onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send() } }} />
-            <div className="flex flex-col gap-1.5 shrink-0">
-              <input type="date" className="border border-border bg-background px-2 py-1 text-xs outline-none focus:border-orange-500"
-                     value={queryDate} onChange={(e) => setQueryDate(e.target.value)}
-                     title="Hỏi quy định tại một thời điểm (tùy chọn)" aria-label="Ngày truy vấn" />
-              <div className="flex gap-1.5">
-                <label className="cursor-pointer text-xs border border-border px-2 py-1.5 hover:bg-muted/50 transition-colors" title="Đính kèm file context cục bộ">
-                  Đính kèm
-                  <input type="file" accept=".txt,.md" className="hidden"
-                         onChange={(e) => e.target.files?.[0] && attach(e.target.files[0])} />
-                </label>
-                <Button size="sm" onClick={send} disabled={busy || !text.trim()}
-                        className="bg-orange-500 hover:bg-orange-600 text-white">Gửi</Button>
-              </div>
+            <div className="flex items-center gap-1 shrink-0 pb-0.5">
+              <input type="date"
+                className="w-[118px] rounded-lg border border-border bg-background/60 px-2 py-1 text-xs outline-none focus:border-orange-500"
+                value={queryDate} onChange={(e) => setQueryDate(e.target.value)}
+                title="Hỏi quy định tại một thời điểm (tùy chọn)" aria-label="Ngày truy vấn" />
+              <label className="cursor-pointer rounded-lg p-2 text-muted-foreground hover:text-orange-500 hover:bg-muted/60 transition-colors" title="Đính kèm file context cục bộ (.txt/.md)">
+                <IconClip />
+                <input type="file" accept=".txt,.md" className="hidden"
+                  onChange={(e) => e.target.files?.[0] && attach(e.target.files[0])} />
+              </label>
+              <Button size="icon" onClick={send} disabled={busy || !text.trim()}
+                className="size-9 rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-sm disabled:opacity-40"
+                aria-label="Gửi câu hỏi">
+                <IconSend />
+              </Button>
             </div>
-          </div>
+          </PromptShell>
+          <p className="text-[10px] text-muted-foreground/60 text-center mt-1.5">
+            SHB · AIDE — câu trả lời luôn kèm bằng chứng truy vết được
+          </p>
         </div>
       </div>
     </div>
@@ -733,14 +769,18 @@ function FollowUpChat({ placeholder, ask, onNewRun }: {
           ))}
         </div>
       )}
-      <div className="flex gap-2 p-3">
-        <input className={inputCls} placeholder={placeholder} value={q}
-               onChange={(e) => setQ(e.target.value)}
-               onKeyDown={(e) => { if (e.key === "Enter") send() }} />
-        <Button size="sm" onClick={send} disabled={busy || !q.trim()}
-                className="bg-orange-500 hover:bg-orange-600 text-white shrink-0">
-          {busy ? "…" : "Gửi"}
-        </Button>
+      <div className="p-3 pt-2">
+        <PromptShell>
+          <input className="flex-1 bg-transparent outline-none text-sm py-1.5 placeholder:text-muted-foreground/70"
+                 placeholder={placeholder} value={q}
+                 onChange={(e) => setQ(e.target.value)}
+                 onKeyDown={(e) => { if (e.key === "Enter") send() }} />
+          <Button size="icon" onClick={send} disabled={busy || !q.trim()}
+                  className="size-9 rounded-full bg-orange-500 hover:bg-orange-600 text-white shrink-0 disabled:opacity-40"
+                  aria-label="Gửi">
+            {busy ? <span className="text-xs">…</span> : <IconSend />}
+          </Button>
+        </PromptShell>
       </div>
     </div>
   )
