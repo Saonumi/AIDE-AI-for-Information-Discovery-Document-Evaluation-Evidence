@@ -271,16 +271,46 @@ function AskEmptyState({ onPick }: { onPick: (q: string) => void }) {
   )
 }
 
+// dd/mm/yyyy cho cán bộ pháp chế; giữ nguyên nếu không phải ISO YYYY-MM-DD.
+function fmtDate(iso?: string): string {
+  const m = iso ? /^(\d{4})-(\d{2})-(\d{2})/.exec(iso) : null
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : (iso ?? "")
+}
+
+// Thay [source_id] thô trong câu trả lời bằng chip số [n] khớp danh sách bằng
+// chứng (vẫn truy vết: n ↔ source_id). Token không khớp giữ nguyên literal.
+function renderCitedContent(content: string, idToNum: Map<string, number>): React.ReactNode[] {
+  const out: React.ReactNode[] = []
+  const re = /\[([^\]\s]+)\]/g
+  let last = 0, k = 0, m: RegExpExecArray | null
+  while ((m = re.exec(content)) !== null) {
+    const n = idToNum.get(m[1])
+    if (n === undefined) continue
+    if (m.index > last) out.push(content.slice(last, m.index))
+    out.push(
+      <sup key={`c${k++}`} className="text-[10px] font-semibold text-orange-600 dark:text-orange-400">[{n}]</sup>,
+    )
+    last = m.index + m[0].length
+  }
+  if (last < content.length) out.push(content.slice(last))
+  return out.length ? out : [content]
+}
+
 function ChatBubble({ role, content, citations }: {
   role: string; content: string; citations: ChatCitation[]
 }) {
   const isUser = role === "user"
+  const idToNum = React.useMemo(() => {
+    const map = new Map<string, number>()
+    citations.forEach((c, i) => { if (!map.has(c.source_id)) map.set(c.source_id, i + 1) })
+    return map
+  }, [citations])
   return (
     <div className={`max-w-[85%] ${isUser ? "ml-auto" : ""}`}>
       <div className={`border p-3 text-sm whitespace-pre-wrap leading-relaxed ${
         isUser ? "border-orange-500/30 bg-orange-500/10" : "border-border bg-muted/30"
       }`}>
-        {content}
+        {isUser ? content : renderCitedContent(content, idToNum)}
       </div>
       {!isUser && citations.length > 0 && <EvidencePanel citations={citations} />}
     </div>
@@ -297,18 +327,19 @@ function EvidencePanel({ citations }: { citations: ChatCitation[] }) {
         <span>{open ? "▾" : "▸"}</span>
         Bằng chứng ({citations.length})
         <Badge variant="outline" className="text-[9px] ml-auto text-emerald-600 dark:text-emerald-400 border-emerald-500/40">
-          AUTHORITY_SOURCE
+          Nguồn có thẩm quyền
         </Badge>
       </button>
       {open && (
         <ul className="px-2.5 pb-2.5 pt-0.5 space-y-1.5">
           {citations.map((c, i) => (
             <li key={i} className="text-[11px] pl-2 border-l-2 border-blue-500/40">
+              <span className="font-semibold text-orange-600 dark:text-orange-400">[{i + 1}]</span>{" "}
               <span className="font-medium text-foreground">{c.document_number ?? c.source_id}</span>
               {c.heading_path && c.heading_path.length > 0 && (
                 <span className="text-muted-foreground"> · {c.heading_path.join(" › ")}</span>
               )}
-              {c.valid_from && <span className="text-muted-foreground"> · hiệu lực {c.valid_from}</span>}
+              {c.valid_from && <span className="text-muted-foreground"> · hiệu lực từ {fmtDate(c.valid_from)}</span>}
               {typeof c.page === "number" && <span className="text-muted-foreground"> · tr.{c.page}</span>}
             </li>
           ))}

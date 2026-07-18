@@ -78,6 +78,15 @@ def create_review_run(
     if not (text or "").strip():
         raise HTTPException(status_code=422, detail={"error": {
             "code": "NEEDS_INPUT", "message": "Review target text rỗng."}})
+    # Chặn file nhị phân (PDF/DOCX/ảnh) bị đọc nhầm bằng readAsText: nội dung chứa
+    # NUL (0x00) + rác. PostgreSQL text KHÔNG lưu được NUL → nếu để nguyên sẽ INSERT
+    # lỗi DataError → 500 chưa xử lý → response mất header CORS (trông như lỗi CORS).
+    # Trả 422 rõ ràng (có CORS header) thay vì để crash.
+    if "\x00" in text or text.lstrip()[:5] == "%PDF-":
+        raise HTTPException(status_code=422, detail={"error": {
+            "code": "NEEDS_TEXT_EXTRACTION",
+            "message": "Tệp là PDF/nhị phân chưa được trích xuất thành text. "
+                       "Hãy dán nội dung dạng văn bản, hoặc tải tệp .txt/.md."}})
     assessment_date = assessment_date or date.today()
     run_id = new_id("rr")
     target_id = new_id("rvt")
