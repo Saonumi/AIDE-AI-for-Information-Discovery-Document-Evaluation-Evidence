@@ -51,7 +51,10 @@ def validate_file(filename: str, data: bytes) -> None:
 
 def find_by_hash(session, file_hash: str) -> Optional[DocumentRow]:
     return session.execute(
-        select(DocumentRow).where(DocumentRow.file_hash == file_hash)
+        select(DocumentRow).where(
+            DocumentRow.file_hash == file_hash,
+            DocumentRow.approval_status != "ARCHIVED",
+        )
     ).scalars().first()
 
 
