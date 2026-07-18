@@ -1,0 +1,24 @@
+{
+ "source": "hybrid",
+ "url": "hybrid://53/2018/TT-NHNN",
+ "doc_number": "53/2018/TT-NHNN",
+ "title": "Thông tư số 53/2018/TT-NHNN quy định về tỷ lệ dự phòng chung phải trích lập trên tổng dư nợ",
+ "doc_type": "THONG_TU",
+ "issuer": "Ngân hàng Nhà nước",
+ "issued_date": "2018-12-31",
+ "effective_date": "2018-12-31",
+ "expiry_date": null,
+ "status": "Còn hiệu lực",
+ "full_text": "[VĂN BẢN DEMO — nội dung điều khoản dưới đây là SYNTHETIC (tổng hợp minh hoạ) để trình diễn cơ chế hiệu lực-theo-thời-gian và vá sửa đổi. Nó GẮN với ĐỊNH DANH THẬT và QUAN HỆ SỬA ĐỔI THẬT (mined từ crawl SBV), nhưng KHÔNG phải văn bản pháp luật thật.]\n\nThông tư số 53/2018/TT-NHNN\nHiệu lực từ ngày 31/12/2018.\nĐiều 3. Quy định về tỷ lệ dự phòng chung phải trích lập trên tổng dư nợ\n1. Tỷ lệ dự phòng chung phải trích lập trên tổng dư nợ là 0,75%.\nĐiều 4. Điều khoản thi hành\n1. Tổ chức tín dụng có trách nhiệm tổ chức thực hiện Thông tư này. Tổ chức tín dụng, chi nhánh ngân hàng nước ngoài có trách nhiệm rà soát, điều chỉnh và tổ chức thực hiện theo đúng quy định tại Thông tư này. Tổ chức tín dụng, chi nhánh ngân hàng nước ngoài có trách nhiệm rà soát, điều chỉnh và tổ chức thực hiện theo đúng quy định tại Thông tư này. Tổ chức tín dụng, chi nhánh ngân hàng nước ngoài có trách nhiệm rà soát, điều chỉnh và tổ chức thực hiện theo đúng quy định tại Thông tư này.",
+ "relations": [],
+ "raw_path": null,
+ "raw_sha256": null,
+ "fetched_at": null,
+ "is_banking": true,
+ "fields": {
+  "synthetic_clause_text": true,
+  "identity_source": "real_sbv_crawl",
+  "relation_source": "real_sbv_crawl",
+  "note": "clause text synthetic (labelled); identity + amendment edge are real"
+ }
+}

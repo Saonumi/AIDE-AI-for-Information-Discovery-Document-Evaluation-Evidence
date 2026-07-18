@@ -1,0 +1,21 @@
+{
+"done": {
+"https://www.sbv.gov.vn/documents/20117/0/thong_tu_06-2026-TT-NHNN_file_scan_53b1.pdf/d584ce68-9974-9aa5-3b5b-3cae130a7af1?t=1781766184886": "./data\\crawl\\sbv\\items\\27c14ff1ba3758ce.json",
+"https://www.sbv.gov.vn/documents/20117/0/08.2026.TT-NHNN.pdf/b90bfb1d-aff8-c636-5308-863be70793da?t=1779156407183": "./data\\crawl\\sbv\\items\\297ca835f2d55c59.json",
+"https://www.sbv.gov.vn/documents/20117/0/02_Thong_tu_so_15_2026_TT_NHNN_1952026.pdf/2bb1e6a7-0d09-0411-0a9a-439cdb011f01?t=1779352417473": "./data\\crawl\\sbv\\items\\2afafe498f84b8ba.json",
+"https://www.sbv.gov.vn/documents/20117/0/01_ff98_1603.signed.pdf/ee6eb75e-6b6f-b2f1-0312-a464320572b9?t=1774430994068": "./data\\crawl\\sbv\\items\\2d93832a54ba812c.json",
+"https://www.sbv.gov.vn/documents/20117/4218589/84_2025_TT_NHNN_pdf_8710.pdf/2b4a4781-19b4-01f5-7232-00beae21d64b?t=1768537565107": "./data\\crawl\\sbv\\items\\32d627f11f0ed1f3.json",
+"https://www.sbv.gov.vn/documents/20117/0/10_2026_TT_NHNN_8636.pdf/f705424f-6282-11e4-e0b7-a8ec61bb3d7e?t=1779677418924": "./data\\crawl\\sbv\\items\\3c3f172179cd7775.json",
+"https://www.sbv.gov.vn/documents/20117/4218589/TT_70_86dd.pdf/259b4a50-87cd-4337-2dff-1ea210bf5499?t=1768536297959": "./data\\crawl\\sbv\\items\\3c51459aefbb1cf7.json",
+"https://www.sbv.gov.vn/documents/20117/0/tt_31_0707.signed_c6fce434.pdf/ceef26eb-a042-2c7f-6847-9fb38aadddd1?t=1783569787139": "./data\\crawl\\sbv\\items\\4201ee74e543b086.json",
+"https://www.sbv.gov.vn/documents/20117/0/Thong_tu_23_2026_TTNHNN_950e.pdf/389e5205-3b4c-4890-e922-a6bc12113165?t=1781509810755": "./data\\crawl\\sbv\\items\\495e06eefe45e6dc.json",
+"https://www.sbv.gov.vn/documents/20117/4218589/TT+852025TTNHNN.pdf/6ac5ce44-eeb8-851e-1388-d7e950426b33?t=1769155049423": "./data\\crawl\\sbv\\items\\81a7ec11eb462ee4.json",
+"https://www.sbv.gov.vn/documents/20117/4218589/TT+80.2025.pdf/b809b716-9642-11f6-5120-3b839b41da47?t=1768446702633": "./data\\crawl\\sbv\\items\\92a250be390367ac.json",
+"https://www.sbv.gov.vn/documents/20117/0/02_Thong_tu_so_11_2026_TT_NHNN_1952026.pdf/5838dcda-a0d6-717e-d613-8f8e7ae55cba?t=1779352301027": "./data\\crawl\\sbv\\items\\953940fb9de01247.json",
+"https://www.sbv.gov.vn/documents/20117/0/02_Thong_tu_so_14_2026_TT_NHNN_1952026.pdf/c09de378-4925-4956-2a2b-e08c4a250312?t=1779352380503": "./data\\crawl\\sbv\\items\\cf884cb9a656f1e4.json",
+"https://www.sbv.gov.vn/documents/20117/0/TT13.pdf/7a17e10c-698b-6701-e4ad-bdd3867ac114?t=1779355575503": "./data\\crawl\\sbv\\items\\f013dbb39036f5b4.json"
+},
+"failed": {
+"https://www.sbv.gov.vn/documents/20117/0/06_Thong_tu_PC_da_dong_dau_tham_dinh_%28trinh+PTD+Canh+ky+ban+hanh%29_clean_ver_01072026.pdf/81365dbe-410e-ecd9-238d-e9bf9f752f93?t=1783569960686": "download_failed_or_disallowed"
+}
+}

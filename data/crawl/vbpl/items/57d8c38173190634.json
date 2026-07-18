@@ -1,0 +1,46 @@
+{
+ "source": "vbpl",
+ "url": "https://vbpl.vn/van-ban/chi-tiet/thong-tu-so-92-2025-tt-btc-bai-bo-thong-tu-lien-tich-so-15-2010-ttlt-btc-bgddt-ngay-29-01-2010-cua-bo-tai-chinh-va-bo-giao-duc-va-dao-tao-huong-dan-quan-ly-va-su-dung-kinh-phi-thuc-hien-chuong-trinh-dam-bao-chat-luong-giao-duc-truong-hoc-giai-doan-2010-2015-va-thong-tu-lien-tich-so-143-2013-ttlt-btc-bgddt-ngay-18-10-2013-cua-bo-tai-chinh-va-bo-giao-duc-va-dao-tao-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-lien-tich-so-15-2010-ttlt-btc-bgddt--187342",
+ "doc_number": "92/2025/TT-BTC",
+ "title": "Thông tư số 92/2025/TT-BTC Bãi bỏ Thông tư liên tịch số 15/2010/TTLT-BTC-BGDĐT ngày 29/01/2010 của Bộ Tài chính và Bộ Giáo dục và Đào tạo hướng dẫn quản lý và sử dụng kinh phí thực hiện Chương trình đảm bảo chất lượng giáo dục trường học giai đoạn 2010 – 2015 và Thông tư liên tịch số 143/2013/TTLT-BTC-BGDĐT ngày 18/10/2013 của Bộ Tài chính và Bộ Giáo dục và Đào tạo sửa đổi, bổ sung một số điều của Thông tư liên tịch số 15/2010/TTLT-BTC-BGDĐT",
+ "doc_type": "THONG_TU",
+ "issuer": "Bộ Tài chính",
+ "issued_date": "2025-10-03",
+ "effective_date": null,
+ "expiry_date": null,
+ "status": "Còn hiệu lực",
+ "full_text": "Thông tư số 92/2025/TT-BTC Bãi bỏ Thông tư liên tịch số 15/2010/TTLT-BTC-BGDĐT ngày 29/01/2010 của Bộ Tài chính và Bộ Giáo dục và Đào tạo hướng dẫn quản lý và sử dụng kinh phí thực hiện Chương trình đảm bảo chất lượng giáo dục trường học giai đoạn 2010 – 2015 và Thông tư liên tịch số 143/2013/TTLT-BTC-BGDĐT ngày 18/10/2013 của Bộ Tài chính và Bộ Giáo dục và Đào tạo sửa đổi, bổ sung một số điều của Thông tư liên tịch số 15/2010/TTLT-BTC-BGDĐT",
+ "relations": [
+  {
+   "type": "SUPERSEDES",
+   "target_doc_number": "15/2010/TTLT-BTC",
+   "target_title": null,
+   "target_url": null
+  },
+  {
+   "type": "RELATED",
+   "target_doc_number": "143/2013/TTLT-BTC",
+   "target_title": null,
+   "target_url": null
+  },
+  {
+   "type": "AMENDS",
+   "target_doc_number": "15/2010/TTLT-BTC",
+   "target_title": null,
+   "target_url": null
+  }
+ ],
+ "raw_path": null,
+ "fetched_at": "2026-07-18T01:46:30.031533",
+ "is_banking": true,
+ "fields": {
+  "item_id": "187342",
+  "slug": "thong-tu-so-92-2025-tt-btc-bai-bo-thong-tu-lien-tich-so-15-2010-ttlt-btc-bgddt-ngay-29-01-2010-cua-bo-tai-chinh-va-bo-giao-duc-va-dao-tao-huong-dan-quan-ly-va-su-dung-kinh-phi-thuc-hien-chuong-trinh-dam-bao-chat-luong-giao-duc-truong-hoc-giai-doan-2010-2015-va-thong-tu-lien-tich-so-143-2013-ttlt-btc-bgddt-ngay-18-10-2013-cua-bo-tai-chinh-va-bo-giao-duc-va-dao-tao-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-lien-tich-so-15-2010-ttlt-btc-bgddt",
+  "legislation_type": "Thông tư",
+  "legislation_legal_force": "InForce",
+  "full_text_available": false,
+  "full_text_note": "Full document text is served from vbpl.vn/api/ (robots-Disallowed) via a client-side XHR; not fetchable. Title used as content proxy.",
+  "relations_source": "slug",
+  "json_ld_found": true
+ }
+}

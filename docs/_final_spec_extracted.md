@@ -1,0 +1,773 @@
+VAIC2026
+COMPLIANCE REGULATORY KNOWLEDGE& DOCUMENT REVIEW PLATFORM
+Final Master Refactor & AI Coding Specification
+Tổ chức lại repository · Viết lại core · Thiết kế lại UI · Chuẩn hóa trust model · Hai luồng upload tách biệt
+NGUYÊN TẮC TRUNG TÂMChỉ phục vụ một persona nghiệp vụ: Compliance Officer. Chỉ giải quyết một mục tiêu nghiệp vụ: dùng kho quy định đã được xác minh để đánh giá tác động và kiểm tra mức độ phù hợp của tài liệu nội bộ. Không có tài liệu nào trở thành ground truth chỉ vì được upload.
+Thuộc tính
+Giá trị
+Tên specification
+VAIC2026 Final Compliance Knowledge & Review Master Specification
+Phiên bản
+Final v2 — cập nhật toàn bộ quyết định mới nhất
+Nguồn hiện trạng
+VAIC2026-hehehe-dev (1).zip và các vòng đánh giá kỹ thuật trước đó
+Đối tượng đọc
+AI Coding Agent, technical reviewer, mentor và thành viên nhóm
+Mục tiêu
+Có thể giao nguyên tài liệu này cho AI để refactor, code, test và cập nhật tài liệu dự án theo một hướng thống nhất
+CẤMKhông giữ hai codebase song song. Không dùng role USER. Không biến chat thành chức năng trung tâm. Không mặc định file upload là ground truth. Không để LLM trực tiếp activate, patch, ghi graph hoặc tự tạo citation. Không hard-code kết quả impact/compliance chỉ để demo.
+Cách AI Coding Agent phải sử dụng tài liệu này
+Đọc toàn bộ phần Product Definition, Trust Model và Non-goals trước khi sửa code.
+Chọn `backend/app` và `frontend/streamlit_app` làm codebase canonical; không tiếp tục sửa đồng thời code cũ và code mới.
+Thực hiện migration theo từng phase. Sau mỗi phase phải chạy test, sửa lỗi và chỉ tiếp tục khi exit condition đạt.
+Mọi API, database schema, graph relation và UI label phải sử dụng cùng domain contract trong tài liệu này.
+Không tuyên bố hoàn thành nếu chưa có integration test và UI đang gọi API thật.
+Sau cut-over phải xóa code duplicate, cập nhật README/docs và chạy full test suite từ repository root.
+Khi một chi tiết nhỏ chưa được quy định, ưu tiên phương án đơn giản nhất phù hợp các invariants; không mở rộng sản phẩm sang persona hoặc domain mới.
+Mục lục triển khai
+1. Product reset: mô hình là gì, dành cho ai, giải quyết việc gì
+2. Trust model: tài liệu nào là ground truth và khi nào
+3. Hai workflow nghiệp vụ kết nối với nhau
+4. Đánh giá repository hiện tại và mục tiêu refactor
+5. Kiến trúc mục tiêu và cấu trúc thư mục canonical
+6. Domain model và data contract
+7. Các core module phải viết lại
+8. Persistence: PostgreSQL, OpenSearch, Neo4j
+9. API contract mục tiêu
+10. UI/UX mục tiêu cho Compliance Officer
+11. Test strategy, benchmark và acceptance criteria
+12. Migration plan và thứ tự commit
+13. Nội dung mô tả dự án/README phải thay thế
+14. Definition of Done
+Phụ lục A. File move/delete matrix
+Phụ lục B. JSON contract mẫu
+Phụ lục C. Human Review checklist
+Phụ lục D. Golden demo bắt buộc
+1. Product reset: định nghĩa lại toàn bộ dự án
+1.1 Mô hình này là gì?
+Đây là nền tảng hỗ trợ cán bộ Pháp chế/Tuân thủ xây dựng một kho quy định đã được xác minh và sử dụng chính kho đó để đánh giá tác động của quy định mới cũng như review mức độ phù hợp của policy, báo cáo hoặc tài liệu nội bộ.
+Temporal Hybrid GraphRAG chỉ là kỹ thuật nền. Sản phẩm không được mô tả đơn giản là “một hệ thống GraphRAG” hoặc “một chatbot pháp lý”.
+1.2 Dành cho ai?
+PERSONA DUY NHẤTCOMPLIANCE_OFFICER — cán bộ Pháp chế/Tuân thủ chịu trách nhiệm xác minh văn bản pháp lý, rà soát thay đổi và kiểm tra tài liệu nội bộ theo quy định hiện hành.
+Không phục vụ người dùng phổ thông.
+Không xây chatbot cho toàn bộ nhân viên ngân hàng trong bản MVP.
+SYSTEM_ADMIN chỉ là role kỹ thuật để quản trị tài khoản và hạ tầng, không phải persona sản phẩm.
+1.3 Một mục tiêu nghiệp vụ, hai workflow bắt buộc
+Mục tiêu nghiệp vụ duy nhất là: bảo đảm các kết luận và tài liệu nội bộ được kiểm tra dựa trên đúng nguồn pháp lý đã được phê duyệt và đúng phiên bản đang có hiệu lực.
+Workflow
+Mục đích
+Đầu ra
+A. Add Regulatory Source
+Xây dựng và cập nhật kho pháp lý đáng tin cậy
+Nguồn pháp lý APPROVED + ACTIVE, ChangeEvent, ProvisionVersion, Regulatory Impact Report
+B. Check Document Compliance
+Dùng kho pháp lý đã duyệt để review một policy/báo cáo/tài liệu mới
+Compliance Review Report theo từng claim/section
+Workflow B không thể hoạt động đúng nếu Workflow A chưa tạo được kho nguồn đã xác minh. Hai workflow là hai bước của cùng một bài toán, không phải hai sản phẩm tách rời.
+1.4 Bài toán cụ thể
+Khi có văn bản mới, cán bộ Tuân thủ phải xác định văn bản nào bị sửa, Điều/Khoản/Điểm nào thay đổi, nội dung trước–sau, ngày hiệu lực và policy nội bộ nào bị ảnh hưởng. Khi một policy hoặc báo cáo mới được soạn, họ còn phải kiểm tra từng phát biểu quan trọng có phù hợp với quy định hiện hành hay không.
+Không được dùng nhầm phiên bản cũ.
+Không được bỏ sót dẫn chiếu hoặc amendment.
+Không được coi một file chưa duyệt là căn cứ pháp lý.
+Mọi kết luận phải truy được tới document, provision, version, page và evidence span.
+AI chỉ đề xuất; quyết định pháp lý cuối cùng thuộc về Compliance Officer.
+1.5 Đầu ra chính
+Đầu ra
+Khi nào sinh
+Nội dung
+Regulatory Impact Report
+Sau khi một nguồn pháp lý/amendment được approve và activate
+ChangeEvent, before/after, effective date, policy clauses bị ảnh hưởng, severity, evidence lineage
+Compliance Review Report
+Sau khi upload một policy/báo cáo/tài liệu cần kiểm tra
+Claim gốc, assessment status, quy định áp dụng, evidence, explanation, đề xuất sửa và confidence
+1.6 Phạm vi dữ liệu và non-goals
+Trong phạm vi MVP
+Ngoài phạm vi hiện tại
+Thông tư, quyết định, văn bản sửa đổi, văn bản hợp nhất trong domain ngân hàng
+Toàn bộ luật/nghị định mọi lĩnh vực
+Policy/quy định nội bộ và báo cáo tuân thủ cần kiểm tra
+Hợp đồng, biểu mẫu, FAQ, quy trình chi tiết nếu chưa có golden data
+Một persona Compliance Officer
+Khách hàng, toàn bộ nhân viên ngân hàng, nhiều persona
+Review và báo cáo có evidence
+Tự động đưa ra kết luận pháp lý cuối cùng
+Một golden domain đủ sâu
+Phủ toàn bộ kho tài liệu ngân hàng ngay trong hackathon
+2. Trust model: tài liệu nào được phép làm ground truth?
+QUY TẮC BẤT BIẾNKhông tài liệu nào trở thành ground truth chỉ vì được upload. Chỉ nguồn pháp lý có trust class AUTHORITY_SOURCE, đã APPROVED và ACTIVE mới được dùng làm căn cứ pháp lý trong retrieval, impact analysis và compliance checking.
+2.1 Các lớp tin cậy
+Trust class
+Ý nghĩa
+Được dùng làm căn cứ pháp lý?
+AUTHORITY_SOURCE_CANDIDATE
+Văn bản pháp lý vừa upload, chưa được duyệt
+Không
+AUTHORITY_SOURCE
+Văn bản chính thức đã được Compliance Officer approve và activate
+Có
+INTERNAL_APPROVED
+Policy/tài liệu nội bộ đã được doanh nghiệp duyệt
+Không phải ground truth pháp lý; chỉ là đối tượng mapping/impact
+REVIEW_TARGET
+File upload để kiểm tra mức độ phù hợp
+Không
+UNVERIFIED
+Nguồn chưa xác định hoặc evidence không đủ
+Không
+2.2 Điều kiện được đưa vào legal evidence
+is_legal_ground_truth(document, query_date) =    document.trust_class == AUTHORITY_SOURCE    AND document.approval_status == APPROVED    AND document.lifecycle_status == ACTIVE    AND document.valid_from <= query_date    AND (document.valid_to_exclusive IS NULL         OR query_date < document.valid_to_exclusive)
+OpenSearch và Neo4j có thể chứa node/index tạm để phục vụ review, nhưng query chính thức phải filter theo điều kiện trên. PostgreSQL là nơi quyết định trạng thái chuẩn.
+2.3 Provenance bắt buộc
+Mỗi field trích xuất phải có page, evidence_text, extractor, confidence và validation_status.
+Mỗi graph edge phải có source_document_id, evidence_span_id và review_status.
+Mỗi claim assessment phải lưu danh sách evidence IDs đã sử dụng và excluded evidence.
+Mọi thay đổi trạng thái phải ghi AuditEvent với actor, timestamp và before/after.
+2.4 State machine tách biệt
+Regulatory source:RECEIVED → QUARANTINED → EXTRACTED → PARSED→ REVIEW_REQUIRED → APPROVED → ACTIVE                         -> REJECTED / NEEDS_CORRECTION / FAILED / ARCHIVEDReview target:RECEIVED → QUARANTINED → EXTRACTED → CLAIMS_PARSED→ CHECKING → REVIEW_REQUIRED → COMPLETED                         -> NEEDS_CORRECTION / FAILED / REJECTED
+REVIEW_TARGET không bao giờ chuyển thành AUTHORITY_SOURCE qua cùng một API. Nếu muốn biến nó thành policy nội bộ đã duyệt, phải có workflow riêng và quyền rõ ràng.
+3. Hai workflow nghiệp vụ kết nối với nhau
+3.1 Workflow A — Add Regulatory Source
+Dùng khi Compliance Officer thêm thông tư, quyết định, văn bản sửa đổi hoặc văn bản hợp nhất để cập nhật kho pháp lý.
+Upload regulatory source→ File validation + quarantine + injection scan→ Text extraction / OCR + layout preservation→ Document classification + metadata extraction→ Rule parser + LLM structured extraction→ Evidence validation + target/reference resolution→ Build Regulatory Source Review Package→ Human Review: Approve / Edit / Reject→ Activation hard gate→ Deterministic versioning + partial patch→ PostgreSQL commit→ OpenSearch/Neo4j sync→ Trigger policy impact analysis→ Regulatory Impact Report
+3.1.1 Màn hình review đầu vào phải hiển thị gì?
+Nhóm thông tin
+Nội dung bắt buộc
+Nguồn
+File gốc, title, document number, issuer, issued/effective date
+Danh sách phát hiện
+Các văn bản/Điều/Khoản/Điểm được thêm, sửa, bãi bỏ hoặc dẫn chiếu
+Evidence
+Trang nguồn và đoạn text chứng minh cho từng field/change
+Before/After
+Nội dung version hiện tại và nội dung dự kiến sau amendment
+Warnings
+OCR thấp, target mơ hồ, nhiều candidate, date conflict, unresolved reference
+Decision
+Approve, Edit hoặc Reject từng ChangeProposal
+HUMAN-IN-THE-LOOPĐây là nơi cán bộ xác nhận “AI đã hiểu đúng thông tư chưa”. Chỉ sau khi toàn bộ critical review được approve thì source mới trở thành AUTHORITY_SOURCE và được phép làm ground truth.
+3.2 Workflow B — Check Document Compliance
+Dùng khi Compliance Officer upload một policy mới, policy đã chỉnh sửa, báo cáo tuân thủ, hướng dẫn hoặc tài liệu nội bộ cần kiểm tra. File này là REVIEW_TARGET và không được index như nguồn pháp lý.
+Upload review target→ Validate + quarantine→ Extract structure and text→ Extract claims / obligations / thresholds / deadlines / references→ For each claim: retrieve approved ACTIVE legal evidence→ Temporal filter + BM25 ∪ vector + RRF + graph expansion→ Deterministic comparison + semantic support analysis→ Classify assessment status→ Build Compliance Review Report→ Human Review→ Export / mark actions; never promote to legal ground truth
+3.2.1 Các trạng thái đánh giá claim
+Status
+Ý nghĩa
+COMPLIANT
+Nội dung được bằng chứng hiện hành hỗ trợ đầy đủ
+NON_COMPLIANT
+Mâu thuẫn với một hoặc nhiều quy định hiện hành
+PARTIALLY_COMPLIANT
+Đúng một phần nhưng thiếu điều kiện, ngoại lệ hoặc phạm vi
+OUTDATED_REFERENCE
+Dùng version hoặc văn bản đã bị thay thế
+MISSING_EVIDENCE
+Không tìm thấy căn cứ đủ mạnh trong kho đã duyệt
+AMBIGUOUS
+Có nhiều quy định có thể áp dụng hoặc evidence xung đột
+NEEDS_HUMAN_REVIEW
+Confidence thấp hoặc rule và LLM không đồng thuận
+3.3 Evidence Query là chức năng hỗ trợ
+Tra cứu bằng chứng vẫn được giữ nhưng không phải màn hình trung tâm. Nó giúp Compliance Officer hỏi về provision/version, change history, source evidence hoặc lý do một assessment được tạo.
+3.4 Phân trách nhiệm giữa rule, LLM và con người
+Thành phần
+Được phép làm
+Không được phép làm
+Rule/Deterministic code
+Filter time, versioning, patch, exact value/date checks, access control, activation gate, citation allowlist
+Suy diễn target mơ hồ
+LLM
+Structured extraction, claim extraction, semantic comparison, explanation
+Tự activate, patch DB, tạo stable ID, tự chọn ground truth
+Compliance Officer
+Approve/edit/reject source changes và review report
+Không phải đọc lại toàn bộ corpus nếu evidence package đã đủ
+4. Đánh giá repository hiện tại và mục tiêu refactor
+4.1 Những phần được giữ lại
+Temporal model `valid_from` và `valid_to_exclusive`.
+Stable Provision identity tách khỏi locator.
+Deterministic partial patch và ChangeEvent.
+Evidence Package, excluded evidence và citation checks.
+Clause-aware chunking, BM25/vector retrieval và graph traversal skeleton.
+Crawler SBV/VBPL, audit/checkpoint.
+PostgreSQL/OpenSearch/Neo4j integration skeleton.
+Review Inbox, before/after display, audit và graph view.
+87 test gốc hiện đang pass trong `tests/`.
+4.2 Vấn đề cấu trúc phải sửa
+Vấn đề
+Hiện trạng
+Yêu cầu
+Hai codebase
+`api/ingestion/query/infra/ui` và `backend/app/frontend` cùng tồn tại
+Chỉ giữ canonical tree; xóa legacy sau cut-over
+Runtime wiring
+Docker/new entry point vẫn import route/code cũ
+Mọi import phải đi qua `backend.app.*`
+Test duplicate
+`tests/` và `backend/tests/` sao chép nhau
+Một test tree duy nhất, tăng coverage thật
+Activation gate
+Có code gate nhưng route runtime có thể bypass
+Business rule ở service layer + integration test 409
+Silent fallback
+Có thể âm thầm dùng memory/hash/mock
+Health chi tiết; fail fast khi DEMO_MODE=false
+4.3 Vấn đề core nghiệp vụ phải sửa
+Core
+Hiện trạng
+Mục tiêu
+Input trust
+Upload có nguy cơ bị hiểu như source mặc định
+Tách source candidate và review target; ground-truth gate rõ
+Parser/OCR
+PDF thật parse yếu; nhiều file không có provision/amendment
+OCR fallback + parser mới chạy trong runtime
+LLM extraction
+Mới gap-fill metadata
+Structured extraction có evidence span và validation
+Taxonomy
+REGULATION/AMENDMENT/INTERNAL_POLICY quá hẹp
+DocumentClass + subtype + trust class
+Hybrid retrieval
+Vector bị bó vào lexical candidate trong một số mode
+BM25 ∪ vector rồi RRF, có mode exact riêng
+Impact/compliance
+Impact mapping chủ yếu seed; chưa có review-target engine
+Hai report chạy end-to-end, không hard-code
+5. Kiến trúc mục tiêu và cấu trúc thư mục canonical
+5.1 Kiến trúc logic
+Compliance Officer├── Add Regulatory Source│   ├── Intake / Extract / Parse / Validate│   ├── Source Review Package│   ├── Approve + Activate│   ├── Versioning / KG / Search index│   └── Regulatory Impact Report│└── Check Document Compliance    ├── Intake / Extract Claims    ├── Retrieve approved ACTIVE evidence    ├── Compare / Classify / Explain    └── Compliance Review Report
+5.2 Canonical folder structure
+VAIC2026/├── backend/│   ├── app/│   │   ├── api/│   │   │   ├── main.py│   │   │   ├── dependencies.py│   │   │   ├── routes_auth.py│   │   │   ├── routes_regulatory_sources.py│   │   │   ├── routes_compliance_checks.py│   │   │   ├── routes_impact_reports.py│   │   │   ├── routes_evidence.py│   │   │   └── routes_health.py│   │   ├── core/│   │   │   ├── config.py│   │   │   ├── errors.py│   │   │   ├── logging.py│   │   │   └── security.py│   │   ├── domain/│   │   │   ├── entities.py│   │   │   ├── enums.py│   │   │   ├── contracts.py│   │   │   └── repositories.py│   │   ├── workflows/│   │   │   ├── regulatory_sources/│   │   │   │   ├── service.py│   │   │   │   ├── review_package.py│   │   │   │   ├── activation.py│   │   │   │   └── impact_trigger.py│   │   │   ├── compliance_checks/│   │   │   │   ├── service.py│   │   │   │   ├── claim_extractor.py│   │   │   │   ├── assessor.py│   │   │   │   └── report_builder.py│   │   │   └── impact_analysis/│   │   │       ├── candidate_finder.py│   │   │       ├── impact_engine.py│   │   │       └── report_builder.py│   │   ├── ingestion/│   │   │   ├── file_validation.py│   │   │   ├── extraction.py│   │   │   ├── ocr.py│   │   │   ├── normalization.py│   │   │   ├── classification.py│   │   │   ├── structure_parser.py│   │   │   ├── llm_extraction.py│   │   │   ├── evidence_validation.py│   │   │   └── resolver.py│   │   ├── versioning/│   │   │   ├── patch_engine.py│   │   │   ├── temporal_service.py│   │   │   └── invariants.py│   │   ├── retrieval/│   │   │   ├── query_analysis.py│   │   │   ├── lexical.py│   │   │   ├── vector.py│   │   │   ├── fusion.py│   │   │   ├── graph_expansion.py│   │   │   ├── evidence_package.py│   │   │   └── citation_verifier.py│   │   ├── persistence/│   │   │   ├── postgres/│   │   │   ├── opensearch/│   │   │   ├── neo4j/│   │   │   └── outbox/│   │   └── reporting/│   │       ├── regulatory_impact.py│   │       ├── compliance_review.py│   │       └── exporters.py│   └── tests/├── frontend/│   └── streamlit_app/│       ├── app.py│       ├── pages/│       ├── components/│       ├── api_client.py│       └── state.py├── data/│   ├── raw/│   ├── processed/│   └── golden/├── docs/├── scripts/└── docker-compose.yml
+5.3 Thư mục phải xóa sau cut-over
+Legacy path
+Điều kiện xóa
+api/
+Route tương ứng trong `backend/app/api` chạy và integration test pass
+ingestion/
+Module ingestion canonical đã thay toàn bộ import
+query/
+Retrieval/evidence canonical chạy đầy đủ
+infra/
+Persistence adapters canonical được dùng
+ui/
+Frontend canonical hoạt động
+backend/tests/ hoặc tests/ duplicate
+Giữ đúng một test tree, sửa data paths
+5.4 Quy tắc import
+ĐƯỢC PHÉP:from backend.app.domain.entities import ProvisionVersionfrom backend.app.workflows.regulatory_sources.activation import activate_sourceKHÔNG ĐƯỢC PHÉP:from ingestion.activate import ...from query.service import ...from api.routes_ingest import ...
+6. Domain model và data contract
+6.1 Role
+class Role(str, Enum):    COMPLIANCE_OFFICER = "COMPLIANCE_OFFICER"    SYSTEM_ADMIN = "SYSTEM_ADMIN"
+Xóa USER và EMPLOYEE. Tất cả route nghiệp vụ yêu cầu COMPLIANCE_OFFICER; SYSTEM_ADMIN chỉ quản trị hệ thống.
+6.2 Document taxonomy và purpose
+class DocumentClass(str, Enum):    EXTERNAL_LEGAL = "EXTERNAL_LEGAL"    INTERNAL_POLICY = "INTERNAL_POLICY"    REVIEW_DOCUMENT = "REVIEW_DOCUMENT"class UploadPurpose(str, Enum):    ADD_REGULATORY_SOURCE = "ADD_REGULATORY_SOURCE"    CHECK_DOCUMENT_COMPLIANCE = "CHECK_DOCUMENT_COMPLIANCE"class TrustClass(str, Enum):    AUTHORITY_SOURCE_CANDIDATE = "AUTHORITY_SOURCE_CANDIDATE"    AUTHORITY_SOURCE = "AUTHORITY_SOURCE"    INTERNAL_APPROVED = "INTERNAL_APPROVED"    REVIEW_TARGET = "REVIEW_TARGET"    UNVERIFIED = "UNVERIFIED"
+Không giữ DocumentType cũ song song. DB, API, graph, OpenSearch mapping và UI phải dùng cùng enum.
+6.3 Core entities
+Entity
+Vai trò
+Trường tối thiểu
+Document
+File và metadata cấp văn bản
+id, class, subtype, upload_purpose, trust_class, number, title, issuer, dates, status
+EvidenceSpan
+Bằng chứng gốc theo trang
+document_id, page, text, bbox, hash, extractor, confidence
+Provision
+Stable identity của Điều/Khoản/Điểm
+id, document_id, locator, parent_id
+ProvisionVersion
+Nội dung theo thời gian
+provision_id, content, valid_from, valid_to_exclusive, approval_status
+ChangeEvent
+Thay đổi do amendment
+operation, target_version, before_version, after_version, effective_date, status
+PolicyClause
+Đơn vị policy nội bộ
+policy_document_id, locator, content, owner
+PolicyLink
+Quan hệ policy–provision
+policy_clause_id, provision_id, relation, evidence, confidence, review_status
+ReviewTask
+HITL unit
+type, target_id, risk, status, payload, decision
+ReviewTargetDocument
+File cần check
+document_id, review_date, requested_scope, status
+ComplianceClaim
+Phát biểu cần kiểm tra
+target_document_id, section, text, normalized facts, evidence span
+ClaimAssessment
+Kết quả claim-level
+claim_id, status, evidence_ids, excluded_ids, explanation, confidence, reviewer_status
+RegulatoryImpactReport
+Báo cáo tác động sau source change
+change_event_ids, impacted_policy_ids, summary, status
+ComplianceReviewReport
+Báo cáo review tài liệu
+target_document_id, assessments, totals, actions, status
+AuditEvent
+Truy vết thao tác
+actor, action, entity, before, after, timestamp
+6.4 Amendment operations tối thiểu
+Operation
+Ví dụ
+Behavior
+REPLACE_TEXT
+Thay cụm A bằng B
+Exact match một lần; nếu 0 hoặc >1 thì review
+REPLACE_PROVISION
+Khoản 7 được sửa đổi như sau
+Tạo content mới cho đúng provision
+INSERT_AFTER
+Bổ sung điểm d sau điểm c
+Insert theo stable sibling locator
+DELETE_TEXT
+Bỏ cụm từ...
+Exact delete
+REPEAL_PROVISION
+Bãi bỏ Khoản 2
+Đóng hiệu lực version, không xóa lịch sử
+6.5 Compliance assessment types
+class ComplianceStatus(str, Enum):    COMPLIANT = "COMPLIANT"    NON_COMPLIANT = "NON_COMPLIANT"    PARTIALLY_COMPLIANT = "PARTIALLY_COMPLIANT"    OUTDATED_REFERENCE = "OUTDATED_REFERENCE"    MISSING_EVIDENCE = "MISSING_EVIDENCE"    AMBIGUOUS = "AMBIGUOUS"    NEEDS_HUMAN_REVIEW = "NEEDS_HUMAN_REVIEW"
+7. Các core module phải viết lại
+7.1 Authentication và authorization
+Sửa enum, seed account, JWT claim, route dependency và UI chỉ còn COMPLIANCE_OFFICER.
+Mỗi action upload phải có `upload_purpose`; backend không suy đoán bằng filename.
+SYSTEM_ADMIN không được tự approve legal source trừ khi cũng có Compliance role được audit.
+7.2 Unified document intake
+Một intake service dùng chung cho hai workflow, nhưng ngay khi nhận file phải tách theo `upload_purpose` và gán trust class ban đầu đúng.
+DocumentIntakeService.submit(file, upload_purpose, actor):    validate_file()    deduplicate_by_hash()    quarantine()    scan_injection()    persist_raw_file()    assign_initial_trust_class()    enqueue_corresponding_workflow()
+Purpose
+Initial trust class
+Được index vào legal retrieval?
+ADD_REGULATORY_SOURCE
+AUTHORITY_SOURCE_CANDIDATE
+Không, chỉ review index tạm
+CHECK_DOCUMENT_COMPLIANCE
+REVIEW_TARGET
+Không; chỉ claim extraction và report workspace
+7.3 Extraction, OCR và normalization
+PDF text layer: PyMuPDF.
+Nếu text block rỗng, ký tự lỗi hoặc quality thấp: OCR fallback.
+DOCX: python-docx; TXT: encoding-safe parser.
+Lưu raw text và normalized text riêng.
+Giữ page, bbox và block order để citation và highlight.
+Có extraction quality score và retry path trên UI.
+7.4 Structure parser và LLM structured extraction
+Rule parser chạy trước cho Chương/Mục/Điều/Khoản/Điểm và section numbering. LLM chỉ bổ sung khi format đa dạng; output luôn theo JSON Schema.
+Regulatory source: metadata, provisions, amendments, references, effective date, target locator.
+Review target: sections, claims, obligations, thresholds, deadlines, modalities, references.
+Mỗi field LLM trả phải có evidence_page, evidence_text và confidence.
+Không cho LLM sinh Cypher hoặc stable IDs.
+7.5 Evidence validation và resolver
+Check
+Khi fail
+Evidence page/text tồn tại
+Reject field hoặc fuzzy-review nếu OCR lỗi nhẹ
+Document number/date format hợp lệ
+NEEDS_CORRECTION
+Target resolve bằng document number + article + clause + point + effective date
+EXACT/MULTIPLE/NOT_FOUND
+Reference edge có evidence
+Không ghi graph nếu thiếu
+LLM và rule bất đồng
+Critical ReviewTask
+KHÔNG ĐƯỢCKhông thử mọi document rồi chọn target đầu tiên. Không tạo relation chỉ dựa trên semantic similarity mà thiếu evidence hoặc human approval.
+7.6 Regulatory Source Review Package và activation gate
+Review package phải gom từng thay đổi thành unit nhỏ để reviewer kiểm tra nhanh. Gate là business rule ở service layer, không chỉ ở UI.
+def activate_regulatory_source(document_id, actor):    assert document.upload_purpose == ADD_REGULATORY_SOURCE    blockers = review_repository.find_pending_critical(document_id)    if blockers:        raise ReviewNotCompletedError(blockers)  # HTTP 409    assert all_proposals_have_valid_evidence(document_id)    apply_versioning_transaction()    set_trust_class(AUTHORITY_SOURCE)    set_status(ACTIVE)    enqueue_index_and_graph_sync()    trigger_impact_analysis()
+Không có route hoặc script nào được bypass service này.
+Test bắt buộc: pending review → activate → 409; approve → activate → 200.
+Nếu index sync fail, PostgreSQL vẫn là source of truth và trạng thái `INDEX_SYNC_PENDING` phải hiển thị.
+7.7 Temporal versioning và patch
+V1.valid_to_exclusive = change.valid_fromV2.valid_from = change.valid_fromV2.valid_to_exclusive = None
+Không sửa trực tiếp content V1.
+Activation transaction phải đóng V1, tạo V2 và lưu ChangeEvent atomic.
+Sau V2 phải enrichment lại references, obligations, chunks và embeddings.
+Văn bản hợp nhất chính thức có thể dùng làm validation reference nhưng vẫn cần provenance và review.
+7.8 Policy ingestion, mapping và impact engine
+Policy nội bộ được parse thành PolicyClause. Mapping `ALIGNED_TO` phải có evidence, confidence và review status; không hard-code chỉ để demo.
+ImpactService.run(change_event_id):    changed_provision = load_target_provision()    linked_policy_clauses = graph.find_reviewed_links(changed_provision.id)    compare_before_after_facts()    classify_impact_type_and_severity()    create_impact_assessments()    build_regulatory_impact_report()
+7.9 Compliance Check Engine
+Đây là core mới cho cơ chế upload file check. Engine chỉ được retrieve từ AUTHORITY_SOURCE đang APPROVED + ACTIVE tại review date.
+ComplianceCheckService.run(target_document_id, review_date):    claims = claim_extractor.extract(target_document_id)    for claim in claims:        evidence = evidence_retriever.retrieve(            claim,            query_date=review_date,            trust_class=AUTHORITY_SOURCE,            approval=APPROVED,            lifecycle=ACTIVE,        )        deterministic_findings = compare_structured_facts(claim, evidence)        semantic_support = assess_semantic_support(claim, evidence)        result = classify_claim(deterministic_findings, semantic_support)        save_claim_assessment(result)    build_compliance_review_report()
+Số tiền, phần trăm, deadline, ngày và modality phải được so deterministic trước.
+LLM chỉ giải thích và xử lý semantic nuance.
+Không có evidence đủ mạnh phải trả MISSING_EVIDENCE, không được đoán.
+Review target và claim không được ghi vào legal graph như authority source.
+7.10 Retrieval, GraphRAG và Evidence Package
+Temporal + trust + approval filter chạy trước ranking.
+BM25 và vector chạy độc lập rồi union; dùng RRF để hợp nhất.
+Exact legal query có thể yêu cầu lexical support riêng.
+Graph expansion chỉ traverse edge allowlist và giới hạn hop.
+Evidence Package phải tách `valid_evidence`, `excluded_evidence`, `reference_paths`, `change_paths` và warnings.
+Citation verifier từ chối citation không thuộc allowlist.
+7.11 Reporting
+Report
+Section bắt buộc
+Regulatory Impact Report
+Executive summary; source/change list; before/after; effective date; impacted policies; severity; evidence lineage; reviewer actions
+Compliance Review Report
+Document summary; claim totals; claim-by-claim status; legal evidence; outdated references; recommended corrections; confidence; reviewer actions
+MVP bắt buộc trả JSON ổn định và render được trên UI. Export DOCX/PDF có thể là phase sau nhưng data contract phải sẵn sàng.
+7.12 Health, demo mode và fallback
+{  "status": "degraded",  "demo_mode": false,  "postgres": "connected",  "opensearch": "connected",  "neo4j": "fallback_memory",  "embedding": "hash_fallback",  "llm": "mock"}
+DEMO_MODE=true: fallback được phép nhưng phải hiển thị rõ trên UI.
+DEMO_MODE=false: fail fast hoặc trả degraded; không giả vờ production.
+Không tính benchmark production nếu đang dùng mock/hash/memory fallback.
+8. Persistence: vai trò của PostgreSQL, OpenSearch và Neo4j
+Thành phần
+Vai trò
+Không được làm
+PostgreSQL
+Source of truth cho metadata, trust, approval, version, review, assessment và audit
+Không dùng OpenSearch/Neo4j làm nơi quyết định trạng thái chuẩn
+OpenSearch
+BM25, vector search, metadata filtering trên approved evidence
+Không index REVIEW_TARGET vào legal authority index
+Neo4j
+REFERENCES, AMENDS, SUPERSEDES, ALIGNED_TO, lineage và impact paths
+Không tạo edge không có provenance/review
+8.1 Sync pattern
+PostgreSQL transaction commit→ write outbox event→ OpenSearch index worker→ Neo4j graph worker→ mark sync statusNếu worker fail:PostgreSQL vẫn đúng; UI hiển thị INDEX_SYNC_PENDING / GRAPH_SYNC_PENDING.
+8.2 Index separation
+Index/space
+Chứa gì
+legal_authority_index
+Chỉ AUTHORITY_SOURCE APPROVED + ACTIVE versions
+source_review_index
+Candidate sources phục vụ reviewer; không dùng cho official answers
+internal_policy_index
+Policy clauses và mapping candidates
+review_target_workspace
+Claims/tạm dữ liệu của một compliance check; có TTL/retention
+9. API contract mục tiêu
+Method
+Path
+Mục đích
+POST
+/auth/login
+Đăng nhập Compliance Officer
+POST
+/regulatory-sources
+Upload source candidate
+GET
+/regulatory-sources/{id}
+Trạng thái pipeline và metadata
+GET
+/regulatory-sources/{id}/review-package
+Danh sách proposal + evidence
+POST
+/regulatory-sources/{id}/reviews/{task_id}/decision
+Approve/Edit/Reject
+POST
+/regulatory-sources/{id}/activate
+Activation gate + versioning
+GET
+/regulatory-sources/{id}/impact-report
+Regulatory Impact Report
+POST
+/compliance-checks
+Upload REVIEW_TARGET
+GET
+/compliance-checks/{id}
+Trạng thái check
+GET
+/compliance-checks/{id}/report
+Compliance Review Report
+POST
+/compliance-checks/{id}/reviews/{task_id}/decision
+Review assessment
+POST
+/evidence/query
+Tra cứu bằng chứng phụ trợ
+GET
+/audit
+Audit trail
+GET
+/health/details
+Backend thật/fallback đang dùng
+9.1 Error contract
+{  "error": {    "code": "REVIEW_NOT_COMPLETED",    "message": "Regulatory source cannot be activated while critical reviews are pending.",    "details": {"review_task_ids": ["rev-..."]}  }}
+Error code phải ổn định; UI không parse free-text message.
+Các code tối thiểu: INVALID_UPLOAD_PURPOSE, REVIEW_NOT_COMPLETED, EVIDENCE_NOT_VALID, TARGET_NOT_RESOLVED, NOT_LEGAL_GROUND_TRUTH, BACKEND_DEGRADED.
+10. UI/UX mục tiêu cho Compliance Officer
+10.1 Landing page: hai hành động rõ ràng
+Card
+Mô tả
+Add Regulatory Source
+Thêm thông tư/quyết định/amendment. Tài liệu phải được review và approve trước khi trở thành nguồn pháp lý.
+Check Document Compliance
+Upload policy/báo cáo/tài liệu để kiểm tra với kho quy định đã được duyệt. File không trở thành ground truth.
+10.2 Navigation mới
+1. Tổng quan2. Add Regulatory Source3. Source Review Inbox4. Regulatory Changes5. Policy Mapping6. Regulatory Impact Reports7. Check Document Compliance8. Compliance Review Reports9. Tra cứu bằng chứng10. Audit & System Health
+10.3 Source upload và review
+Hiển thị pipeline state theo bước.
+PDF viewer bên trái; metadata, provisions và change proposals bên phải.
+Mỗi proposal mở đúng trang và highlight evidence.
+Before/After diff; effective date; target resolution; warnings.
+Approve/Edit/Reject từng proposal; không chỉ approve cả file mù.
+Banner “Chưa phải nguồn pháp lý” cho tới khi ACTIVE.
+10.4 Compliance check upload và report
+Hiển thị rõ “File này chỉ được dùng để kiểm tra, không thêm vào legal knowledge base”.
+Cho chọn review date và scope/domain.
+Claim list với filter theo status/severity.
+Mỗi claim hiển thị nội dung gốc, assessment, legal evidence, version/date, explanation và recommendation.
+Cho reviewer Confirm/Dismiss/Edit/Needs action.
+Executive summary: số claim compliant, non-compliant, outdated, missing evidence và ambiguous.
+10.5 UX trust signals
+Badge trust class và lifecycle status trên mọi document.
+Badge backend thật/mock/fallback.
+Citation mở được đúng trang/evidence span.
+Hiển thị excluded evidence và lý do loại.
+Không dùng từ “AI kết luận” khi status vẫn NEEDS_HUMAN_REVIEW.
+10.6 UI files cần tách
+frontend/streamlit_app/├── app.py├── api_client.py├── state.py├── pages/│   ├── dashboard.py│   ├── add_regulatory_source.py│   ├── source_review_inbox.py│   ├── regulatory_change_detail.py│   ├── policy_mapping.py│   ├── regulatory_impact_reports.py│   ├── check_document_compliance.py│   ├── compliance_review_report.py│   ├── evidence_query.py│   └── audit_health.py└── components/    ├── document_viewer.py    ├── evidence_highlight.py    ├── before_after_diff.py    ├── status_badge.py    ├── claim_assessment_card.py    └── lineage_graph.py
+11. Test strategy, benchmark và acceptance criteria
+11.1 Tổ chức test mới
+backend/tests/├── unit/├── integration/├── api/├── e2e/└── fixtures/    ├── regulatory_sources/    ├── amendments/    ├── internal_policies/    └── review_targets/
+Chỉ giữ một test tree. Chạy `pytest` từ repository root phải pass; không chấp nhận chỉ chạy một subfolder.
+11.2 Test bắt buộc
+ID
+Scenario
+Expected
+T1
+Upload source candidate
+Trust = AUTHORITY_SOURCE_CANDIDATE; không xuất hiện trong official retrieval
+T2
+Pending critical review rồi activate
+HTTP 409 REVIEW_NOT_COMPLETED
+T3
+Approve source và activate
+Trust = AUTHORITY_SOURCE; official retrieval dùng được
+T4
+Upload REVIEW_TARGET
+Không xuất hiện trong legal index/KG authority nodes
+T5
+Compliance check claim đúng
+COMPLIANT + citation approved active evidence
+T6
+Claim dùng version cũ
+OUTDATED_REFERENCE
+T7
+Claim mâu thuẫn số tiền/deadline
+NON_COMPLIANT deterministic finding
+T8
+Không có căn cứ
+MISSING_EVIDENCE; không hallucinate
+T9
+Amendment target ambiguous
+Review required; không auto patch
+T10
+Index/graph worker fail
+PostgreSQL commit giữ nguyên; sync pending hiển thị
+T11
+DEMO_MODE=false thiếu backend
+Fail fast/degraded, không silent fallback
+T12
+Citation không thuộc allowlist
+Answer/report rejected hoặc regenerate một lần
+11.3 Golden dataset
+01 base regulation PDF thật.
+01 amendment PDF thật.
+01 official consolidated text dùng làm ground-truth comparison.
+02 policy nội bộ synthetic nhưng được gắn nhãn rõ.
+01 policy/báo cáo compliant.
+01 policy/báo cáo outdated/non-compliant.
+01 review target thiếu evidence.
+01 prompt-injection document.
+Ground-truth JSON cho provisions, changes, references, policy links, claims và expected assessments.
+11.4 Acceptance thresholds
+Metric
+Ngưỡng MVP
+Full test suite
+100% pass
+Parser boundary accuracy
+≥ 90% trên golden documents
+Amendment operation accuracy
+≥ 85%
+Target resolution accuracy
+≥ 85%
+Current/historical version accuracy
+≥ 95%
+Citation correctness
+≥ 85%
+Superseded evidence in valid evidence
+≤ 5%
+Claim assessment accuracy
+≥ 85% trên labeled review targets
+Ground-truth admission violations
+0
+Activation bypass
+0
+12. Migration plan và thứ tự commit
+Phase
+Mục tiêu
+Exit condition
+M0
+Đóng băng feature mới, tạo branch refactor
+Không merge feature ngoài spec
+M1
+Chọn canonical tree, sửa package/import/test paths
+Một entry point; full tests collect đúng một lần
+M2
+Role + upload purpose + trust model
+USER/EMPLOYEE và DocumentType cũ bị xóa
+M3
+Unified intake + extraction/OCR/parser runtime
+Golden source và review target parse được
+M4
+Structured extraction + evidence validation + resolver
+JSON contracts và review package pass tests
+M5
+Activation gate + temporal versioning + outbox sync
+409/200 integration tests pass
+M6
+Policy mapping + Regulatory Impact Report
+Golden amendment sinh report thật
+M7
+Compliance Check Engine + Report
+Golden review targets được classify đúng
+M8
+Retrieval/citation/health hardening
+Metrics đạt threshold; no silent fallback
+M9
+UI cut-over cho hai workflow
+Golden demo chạy không cần gọi API thủ công
+M10
+Xóa legacy, cập nhật README/docs
+Không còn legacy imports; clone-run-test thành công
+12.1 Quy tắc an toàn khi migration
+Không xóa code cũ trước khi route/test mới tương ứng pass.
+Mỗi module cut-over phải cập nhật Docker, README và fixture trong cùng commit.
+Facade chuyển tiếp chỉ tồn tại tối đa một phase.
+Sau M10 chạy tìm kiếm repository để xác nhận không còn import legacy.
+Không đổi schema production mà thiếu migration script và rollback note.
+13. Nội dung mô tả dự án/README phải thay thế
+13.1 Tên sản phẩm
+TÊN KHUYẾN NGHỊCompliance Regulatory Knowledge & Document Review Platform
+13.2 One-liner
+ONE-LINERNền tảng giúp cán bộ Pháp chế/Tuân thủ xây dựng kho quy định đã được xác minh và dùng kho đó để tự động kiểm tra tác động của văn bản mới cũng như mức độ phù hợp của policy, báo cáo và tài liệu nội bộ.
+13.3 Problem statement
+Cán bộ Tuân thủ đang phải tự đọc văn bản mới, đối chiếu phiên bản, xác định policy bị ảnh hưởng và kiểm tra tài liệu nội bộ có phù hợp với quy định hiện hành hay không. Quy trình thủ công tốn thời gian, dễ dùng nhầm version, bỏ sót amendment và khó truy vết bằng chứng.
+13.4 Solution statement
+Hệ thống tách rõ hai luồng: xác minh nguồn pháp lý trước khi đưa vào kho tri thức, sau đó sử dụng duy nhất các nguồn đã APPROVED + ACTIVE để review các tài liệu nội bộ. Mọi kết quả đều có version, effective date, evidence span và Human Review.
+13.5 Câu pitch
+PITCHMột luồng giúp pháp chế xác minh quy định; một luồng dùng chính các quy định đã xác minh để kiểm tra policy và báo cáo — không file nào được mặc định là ground truth.
+13.6 Không được mô tả
+Không gọi sản phẩm chỉ là “GraphRAG” hoặc “chatbot pháp lý”.
+Không nói hệ thống tự động đưa ra kết luận pháp lý cuối cùng.
+Không nói mọi file upload được thêm vào knowledge base.
+Không tuyên bố conflict/compliance toàn repository nếu chưa có labeled evaluation.
+Không nói production-ready khi đang dùng demo credentials hoặc fallback.
+13.7 README mới phải có
+Section
+Nội dung
+What it is
+Platform cho Compliance Officer với hai workflow
+Trust model
+Khi nào source trở thành legal ground truth
+Workflow A
+Add Regulatory Source + HITL + impact
+Workflow B
+Check Document Compliance + claim assessment
+Architecture
+PostgreSQL/OpenSearch/Neo4j và boundaries
+Run
+Docker command, demo accounts, health details
+Test
+Một command full suite và benchmark
+Golden demo
+Các bước và dữ liệu
+Limitations
+OCR/data coverage/metrics/fallback trung thực
+14. Definition of Done và checklist bàn giao
+14.1 Repository
+Một codebase canonical, một UI, một test tree.
+Không còn import legacy hoặc duplicate file paths.
+Docker và local dùng cùng entry point.
+Migration scripts và seed data nhất quán.
+README/docs phản ánh đúng runtime.
+14.2 Product behavior
+Source candidate không được official retrieval sử dụng trước activation.
+Activation bị chặn khi critical review pending.
+Review target không bao giờ trở thành legal authority source.
+Compliance report chỉ dùng approved active evidence tại review date.
+Regulatory Impact Report và Compliance Review Report đều mở được evidence lineage.
+LLM không patch/activate/ghi graph trực tiếp.
+UI hiển thị trust class, lifecycle, backend mode và warnings.
+14.3 Quality
+Full test suite pass từ repository root.
+Golden demo chạy end-to-end không cần sửa code hoặc hard-code ngoài fixture.
+Metrics đạt các ngưỡng mục 11.4.
+Không có activation bypass, ground-truth admission violation hoặc citation ngoài allowlist.
+Health endpoint phản ánh chính xác backend thật/fallback.
+BÀN GIAO CHỈ ĐƯỢC COI LÀ HOÀN THÀNHKhi một reviewer độc lập có thể clone repository, chạy một command test, chạy Docker, upload golden regulatory source, review và activate nó, xem Regulatory Impact Report; sau đó upload một review target và nhận Compliance Review Report chỉ dựa trên nguồn đã duyệt — không sửa code, không dùng dữ liệu hard-code ngoài fixture.
+Phụ lục A. File move/delete matrix
+Nguồn hiện tại
+Đích canonical
+Hành động
+api/main.py
+backend/app/api/main.py
+Merge wiring rồi xóa file cũ
+api/routes_ingest.py
+routes_regulatory_sources.py + routes_compliance_checks.py
+Tách theo upload purpose
+ingestion/service.py
+ingestion/* + workflows/regulatory_sources/service.py
+Tách orchestrator và primitive
+query/*
+backend/app/retrieval/*
+Merge và sửa trust/temporal filtering
+infra/*
+backend/app/persistence/*
+Giữ adapters, sửa imports
+ui/*
+frontend/streamlit_app/*
+Tái thiết kế navigation và pages
+tests/ + backend/tests/
+backend/tests/
+Hợp nhất, sửa data path, xóa duplicate
+packages/contracts/
+backend/app/domain/contracts.py hoặc package duy nhất
+Không giữ contract duplicate
+Phụ lục B. JSON contract mẫu
+B.1 Regulatory Source Review Package
+{  "document_id": "doc-001",  "trust_class": "AUTHORITY_SOURCE_CANDIDATE",  "metadata": {    "document_number": {"value": "06/2025/TT-NHNN", "page": 1, "evidence_text": "...", "confidence": 0.98},    "effective_date": {"value": "2025-07-01", "page": 3, "evidence_text": "...", "confidence": 0.94}  },  "change_proposals": [    {      "operation": "REPLACE_PROVISION",      "target": {"document_number": "07/2024/TT-NHNN", "article": "7", "clause": "7"},      "resolution_status": "EXACT",      "before_text": "...",      "after_text": "...",      "evidence_span_id": "ev-001",      "review_status": "PENDING"    }  ]}
+B.2 Compliance Claim Assessment
+{  "claim_id": "claim-001",  "source_text": "Hạn mức tối đa là 500 triệu đồng.",  "status": "OUTDATED_REFERENCE",  "structured_facts": {"threshold": 500000000, "currency": "VND"},  "valid_evidence": [    {      "document_number": "07/2024/TT-NHNN",      "article": "7",      "clause": "7",      "version": "V2",      "effective_from": "2025-07-01",      "page": 3,      "text": "...700 triệu đồng..."    }  ],  "excluded_evidence": [{"version": "V1", "reason": "SUPERSEDED_AT_REVIEW_DATE"}],  "explanation": "Tài liệu dùng hạn mức của phiên bản cũ.",  "recommendation": "Cập nhật 500 triệu đồng thành 700 triệu đồng.",  "confidence": 0.96,  "review_status": "PENDING"}
+B.3 Compliance Review Report
+{  "target_document_id": "review-doc-001",  "review_date": "2026-07-18",  "summary": {    "total_claims": 12,    "compliant": 7,    "non_compliant": 2,    "outdated_reference": 1,    "missing_evidence": 1,    "needs_human_review": 1  },  "assessments": ["claim-001", "claim-002"],  "status": "REVIEW_REQUIRED"}
+Phụ lục C. Human Review checklist
+Review type
+Reviewer phải kiểm tra
+Regulatory source
+Số hiệu, issuer, dates, document bị sửa, locator, operation, before/after, evidence page, unresolved refs
+Policy mapping
+Policy clause thực sự dựa trên provision nào, evidence và scope có phù hợp không
+Compliance claim
+Claim extraction đúng chưa, evidence có áp dụng đúng scope/date không, status/recommendation có hợp lý không
+Impact assessment
+Policy bị ảnh hưởng thật hay chỉ semantic candidate; severity và owner/action
+Phụ lục D. Golden demo bắt buộc
+1. Compliance Officer đăng nhập và thấy hai card upload rõ ràng.
+2. Upload base regulation/amendment bằng Add Regulatory Source.
+3. UI hiển thị AUTHORITY_SOURCE_CANDIDATE và không cho official query sử dụng.
+4. Mở Source Review Package: thấy document metadata, danh sách change proposals và evidence theo trang.
+5. Thử activate khi còn pending review và nhận HTTP 409 trên UI.
+6. Approve change proposal; activate thành công; V1/V2 và ChangeEvent được tạo.
+7. Mở Regulatory Impact Report và xem policy clause bị ảnh hưởng cùng evidence lineage.
+8. Upload một policy/báo cáo bằng Check Document Compliance; UI ghi rõ file không vào legal KB.
+9. Hệ thống trích claims, chỉ retrieve AUTHORITY_SOURCE active, và tạo Compliance Review Report.
+10. Mở claim outdated/non-compliant: thấy claim gốc, version đúng, excluded old version, explanation và recommendation.
+11. Reviewer confirm/dismiss assessment; audit trail ghi đầy đủ.
+12. System Health hiển thị chính xác PostgreSQL/OpenSearch/Neo4j/LLM/embedding backend đang dùng.
+CÂU PITCH CUỐIMột luồng giúp pháp chế xác minh quy định trước khi đưa vào kho tri thức; một luồng dùng chính kho đã xác minh đó để kiểm tra policy và báo cáo — mọi kết luận đều có version, ngày hiệu lực, evidence và Human Review.
+AI Coding Agent phải trả về sau khi hoàn thành
+Danh sách file đã tạo, sửa, di chuyển và xóa.
+Migration notes theo từng phase và các quyết định kỹ thuật quan trọng.
+Kết quả full test suite, benchmark và các metric acceptance.
+Backend health snapshot cho PostgreSQL, OpenSearch, Neo4j, embedding và LLM.
+Hướng dẫn chạy golden demo từ đầu tới cuối.
+Danh sách limitations còn lại; không che giấu fallback hoặc phần chưa hoàn tất.
+FINAL RESPONSE RULEAI không được chỉ trả lời “đã hoàn thành”. Phải kèm bằng chứng test, đường dẫn file, phần còn thiếu và cách reviewer kiểm tra lại.

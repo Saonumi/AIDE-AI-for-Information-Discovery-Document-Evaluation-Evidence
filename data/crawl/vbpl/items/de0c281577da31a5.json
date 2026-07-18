@@ -1,0 +1,34 @@
+{
+ "source": "vbpl",
+ "url": "https://vbpl.vn/van-ban/chi-tiet/thong-tu-so-64-2025-tt-nhnn-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-so-19-2025-tt-nhnn-cua-thong-doc-ngan-hang-nha-nuoc-viet-nam-quy-dinh-ve-mang-luoi-hoat-dong-cua-to-chuc-tai-chinh-vi-mo--186479",
+ "doc_number": "64/2025/TT-NHNN",
+ "title": "Thông tư số 64/2025/TT-NHNN sửa đổi, bổ sung một số điều của Thông tư số 19/2025/TT-NHNN của Thống đốc Ngân hàng Nhà nước Việt Nam quy định về mạng lưới hoạt động của tổ chức tài chính vi mô",
+ "doc_type": "THONG_TU",
+ "issuer": "Ngân hàng Nhà nước Việt Nam",
+ "issued_date": "2025-12-31",
+ "effective_date": null,
+ "expiry_date": null,
+ "status": "Còn hiệu lực",
+ "full_text": "Thông tư số 64/2025/TT-NHNN sửa đổi, bổ sung một số điều của Thông tư số 19/2025/TT-NHNN của Thống đốc Ngân hàng Nhà nước Việt Nam quy định về mạng lưới hoạt động của tổ chức tài chính vi mô",
+ "relations": [
+  {
+   "type": "AMENDS",
+   "target_doc_number": "19/2025/TT-NHNN",
+   "target_title": null,
+   "target_url": null
+  }
+ ],
+ "raw_path": null,
+ "fetched_at": "2026-07-18T01:46:30.080523",
+ "is_banking": true,
+ "fields": {
+  "item_id": "186479",
+  "slug": "thong-tu-so-64-2025-tt-nhnn-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-so-19-2025-tt-nhnn-cua-thong-doc-ngan-hang-nha-nuoc-viet-nam-quy-dinh-ve-mang-luoi-hoat-dong-cua-to-chuc-tai-chinh-vi-mo",
+  "legislation_type": "Thông tư",
+  "legislation_legal_force": "InForce",
+  "full_text_available": false,
+  "full_text_note": "Full document text is served from vbpl.vn/api/ (robots-Disallowed) via a client-side XHR; not fetchable. Title used as content proxy.",
+  "relations_source": "slug",
+  "json_ld_found": true
+ }
+}

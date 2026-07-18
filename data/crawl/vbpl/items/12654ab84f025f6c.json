@@ -1,0 +1,34 @@
+{
+ "source": "vbpl",
+ "url": "https://vbpl.vn/van-ban/chi-tiet/thong-tu-so-139-2025-tt-btc-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-so-57-2021-ttbtc-ngay-12-thang-7-nam-2021-cua-bo-truong-bo-tai-chinh-quy-dinh-lo-trinh-sap-xep-lai-thi-truong-giao-dich-co-phieu-thi-truong-giao-dich-trai-phieu-thi-truong-giao-dich-chung-khoan-phai-sinh-va-thi-truong-giao-dich-cac-loai-chung-khoan-khac-duoc-sua-doi-bo-sung-boi-thong-tu-so-69-2023-tt-btc-ngay-15-thang-11-nam-2023-cua-bo-truong-bo-tai-chinh--186316",
+ "doc_number": "139/2025/TT-BTC",
+ "title": "Thông tư số 139/2025/TT-BTC sửa đổi, bổ sung một số điều của Thông tư số 57/2021/TTBTC ngày 12 tháng 7 năm 2021 của Bộ trưởng Bộ Tài chính quy định lộ trình sắp xếp lại thị trường giao dịch cổ phiếu, thị trường giao dịch trái phiếu, thị trường giao dịch chứng khoán phái sinh và thị trường giao dịch các loại chứng khoán khác được sửa đổi, bổ sung bởi Thông tư số 69/2023/TT-BTC ngày 15 tháng 11 năm 2023 của Bộ trưởng Bộ Tài chính",
+ "doc_type": "THONG_TU",
+ "issuer": "Bộ Tài chính",
+ "issued_date": "2025-12-30",
+ "effective_date": null,
+ "expiry_date": null,
+ "status": "Còn hiệu lực",
+ "full_text": "Thông tư số 139/2025/TT-BTC sửa đổi, bổ sung một số điều của Thông tư số 57/2021/TTBTC ngày 12 tháng 7 năm 2021 của Bộ trưởng Bộ Tài chính quy định lộ trình sắp xếp lại thị trường giao dịch cổ phiếu, thị trường giao dịch trái phiếu, thị trường giao dịch chứng khoán phái sinh và thị trường giao dịch các loại chứng khoán khác được sửa đổi, bổ sung bởi Thông tư số 69/2023/TT-BTC ngày 15 tháng 11 năm 2023 của Bộ trưởng Bộ Tài chính",
+ "relations": [
+  {
+   "type": "AMENDED_BY",
+   "target_doc_number": "69/2023/TT-BTC",
+   "target_title": null,
+   "target_url": null
+  }
+ ],
+ "raw_path": null,
+ "fetched_at": "2026-07-18T01:46:30.113657",
+ "is_banking": true,
+ "fields": {
+  "item_id": "186316",
+  "slug": "thong-tu-so-139-2025-tt-btc-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-so-57-2021-ttbtc-ngay-12-thang-7-nam-2021-cua-bo-truong-bo-tai-chinh-quy-dinh-lo-trinh-sap-xep-lai-thi-truong-giao-dich-co-phieu-thi-truong-giao-dich-trai-phieu-thi-truong-giao-dich-chung-khoan-phai-sinh-va-thi-truong-giao-dich-cac-loai-chung-khoan-khac-duoc-sua-doi-bo-sung-boi-thong-tu-so-69-2023-tt-btc-ngay-15-thang-11-nam-2023-cua-bo-truong-bo-tai-chinh",
+  "legislation_type": "Thông tư",
+  "legislation_legal_force": "InForce",
+  "full_text_available": false,
+  "full_text_note": "Full document text is served from vbpl.vn/api/ (robots-Disallowed) via a client-side XHR; not fetchable. Title used as content proxy.",
+  "relations_source": "slug",
+  "json_ld_found": true
+ }
+}

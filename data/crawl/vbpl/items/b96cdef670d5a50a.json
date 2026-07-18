@@ -1,0 +1,46 @@
+{
+ "source": "vbpl",
+ "url": "https://vbpl.vn/van-ban/chi-tiet/thong-tu-so-94-2025-tt-btc-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-so-80-2021-tt-btc-ngay-29-thang-9-nam-2021-cua-bo-tai-chinh-huong-dan-thi-hanh-mot-so-dieu-cua-luat-quan-ly-thue-va-nghi-dinh-so-126-2020-nd-cp-ngay-19-thang-10-nam-2020-cua-chinh-phu-quy-dinh-chi-tiet-mot-so-dieu-cua-luat-quan-ly-thue-va-sua-doi-bo-sung-mot-so-mau-bieu-cua-thong-tu-so-40-2021-tt-btc-ngay-01-thang-6-nam-2021-cua-bo-tai-chinh-huong-dan-thue-gia-tri-gia-tang-thue-thu-nhap-ca-nhan-va-quan-ly-thue-doi-voi-ho-kinh-doanh-ca-nhan-kinh-doanh--187379",
+ "doc_number": "94/2025/TT-BTC",
+ "title": "Thông tư số 94/2025/TT-BTC Sửa đổi, bổ sung một số điều của Thông tư số 80/2021/TT-BTC ngày 29 tháng 9 năm 2021 của Bộ Tài chính hướng dẫn thỉ hành một số điều của Luật Quản lý thuế và Nghị định số 126/2020/NĐ-CP ngày 19 tháng 10 năm 2020 của Chính phủ quy định chi tiết một số điều của Luật Quản lý thuế và sửa đổi, bổ sung một số mẫu biểu của Thông tư số 40/2021/TT-BTC ngày 01 tháng 6 năm 2021 của Bộ Tài chính hướng dẫn thuế giá trị gia tăng, thuế thu nhập cá nhân và quản lý thuế đối vói hộ kỉnh doanh, cá nhân kỉnh doanh",
+ "doc_type": "THONG_TU",
+ "issuer": "Bộ Tài chính",
+ "issued_date": "2025-10-14",
+ "effective_date": null,
+ "expiry_date": null,
+ "status": "Còn hiệu lực",
+ "full_text": "Thông tư số 94/2025/TT-BTC Sửa đổi, bổ sung một số điều của Thông tư số 80/2021/TT-BTC ngày 29 tháng 9 năm 2021 của Bộ Tài chính hướng dẫn thỉ hành một số điều của Luật Quản lý thuế và Nghị định số 126/2020/NĐ-CP ngày 19 tháng 10 năm 2020 của Chính phủ quy định chi tiết một số điều của Luật Quản lý thuế và sửa đổi, bổ sung một số mẫu biểu của Thông tư số 40/2021/TT-BTC ngày 01 tháng 6 năm 2021 của Bộ Tài chính hướng dẫn thuế giá trị gia tăng, thuế thu nhập cá nhân và quản lý thuế đối vói hộ kỉnh doanh, cá nhân kỉnh doanh",
+ "relations": [
+  {
+   "type": "AMENDS",
+   "target_doc_number": "80/2021/TT-BTC",
+   "target_title": null,
+   "target_url": null
+  },
+  {
+   "type": "RELATED",
+   "target_doc_number": "126/2020/ND-CP",
+   "target_title": null,
+   "target_url": null
+  },
+  {
+   "type": "AMENDS",
+   "target_doc_number": "40/2021/TT-BTC",
+   "target_title": null,
+   "target_url": null
+  }
+ ],
+ "raw_path": null,
+ "fetched_at": "2026-07-18T01:46:30.049952",
+ "is_banking": true,
+ "fields": {
+  "item_id": "187379",
+  "slug": "thong-tu-so-94-2025-tt-btc-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-so-80-2021-tt-btc-ngay-29-thang-9-nam-2021-cua-bo-tai-chinh-huong-dan-thi-hanh-mot-so-dieu-cua-luat-quan-ly-thue-va-nghi-dinh-so-126-2020-nd-cp-ngay-19-thang-10-nam-2020-cua-chinh-phu-quy-dinh-chi-tiet-mot-so-dieu-cua-luat-quan-ly-thue-va-sua-doi-bo-sung-mot-so-mau-bieu-cua-thong-tu-so-40-2021-tt-btc-ngay-01-thang-6-nam-2021-cua-bo-tai-chinh-huong-dan-thue-gia-tri-gia-tang-thue-thu-nhap-ca-nhan-va-quan-ly-thue-doi-voi-ho-kinh-doanh-ca-nhan-kinh-doanh",
+  "legislation_type": "Thông tư",
+  "legislation_legal_force": "InForce",
+  "full_text_available": false,
+  "full_text_note": "Full document text is served from vbpl.vn/api/ (robots-Disallowed) via a client-side XHR; not fetchable. Title used as content proxy.",
+  "relations_source": "slug",
+  "json_ld_found": true
+ }
+}

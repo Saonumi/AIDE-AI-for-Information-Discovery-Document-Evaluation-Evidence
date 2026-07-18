@@ -1,0 +1,46 @@
+{
+ "source": "vbpl",
+ "url": "https://vbpl.vn/van-ban/chi-tiet/thong-tu-so-19-2026-tt-btc-bai-bo-thong-tu-so-338-2016-tt-btc-ngay-28-thang-12-nam-2016-cua-bo-truong-bo-tai-chinh-quy-dinh-lap-du-toan-quan-ly-su-dung-va-quyet-toan-kinh-phi-ngan-sach-nha-nuoc-bao-dam-cho-cong-tac-xay-dung-van-ban-quy-pham-phap-luat-va-hoan-thien-he-thong-phap-luat-va-thong-tu-so-42-2022-tt-btc-ngay-06-thang-7-nam-2022-cua-bo-truong-bo-tai-chinh-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-so-338-2016-tt-btc--187424",
+ "doc_number": "19/2026/TT-BTC",
+ "title": "Thông tư số 19/2026/TT-BTC Bãi bỏ Thông tư số 338/2016/TT-BTC ngày 28 tháng 12 năm 2016 của Bộ trưởng Bộ Tài chính quy định lập dự toán, quản lý, sử dụng và quyết toán kinh phí ngân sách nhà nước bảo đảm cho công tác xây dựng văn bản quy phạm pháp luật và hoàn thiện hệ thống pháp luật và Thông tư số 42/2022/TT-BTC ngày 06 tháng 7 năm 2022 của Bộ trưởng Bộ Tài chính sửa đổi, bổ sung một số Điều của Thông tư số 338/2016/TT-BTC",
+ "doc_type": "THONG_TU",
+ "issuer": "Bộ Tài chính",
+ "issued_date": "2026-03-10",
+ "effective_date": null,
+ "expiry_date": null,
+ "status": "Còn hiệu lực",
+ "full_text": "Thông tư số 19/2026/TT-BTC Bãi bỏ Thông tư số 338/2016/TT-BTC ngày 28 tháng 12 năm 2016 của Bộ trưởng Bộ Tài chính quy định lập dự toán, quản lý, sử dụng và quyết toán kinh phí ngân sách nhà nước bảo đảm cho công tác xây dựng văn bản quy phạm pháp luật và hoàn thiện hệ thống pháp luật và Thông tư số 42/2022/TT-BTC ngày 06 tháng 7 năm 2022 của Bộ trưởng Bộ Tài chính sửa đổi, bổ sung một số Điều của Thông tư số 338/2016/TT-BTC",
+ "relations": [
+  {
+   "type": "SUPERSEDES",
+   "target_doc_number": "338/2016/TT-BTC",
+   "target_title": null,
+   "target_url": null
+  },
+  {
+   "type": "RELATED",
+   "target_doc_number": "42/2022/TT-BTC",
+   "target_title": null,
+   "target_url": null
+  },
+  {
+   "type": "AMENDS",
+   "target_doc_number": "338/2016/TT-BTC",
+   "target_title": null,
+   "target_url": null
+  }
+ ],
+ "raw_path": null,
+ "fetched_at": "2026-07-18T01:46:29.916152",
+ "is_banking": true,
+ "fields": {
+  "item_id": "187424",
+  "slug": "thong-tu-so-19-2026-tt-btc-bai-bo-thong-tu-so-338-2016-tt-btc-ngay-28-thang-12-nam-2016-cua-bo-truong-bo-tai-chinh-quy-dinh-lap-du-toan-quan-ly-su-dung-va-quyet-toan-kinh-phi-ngan-sach-nha-nuoc-bao-dam-cho-cong-tac-xay-dung-van-ban-quy-pham-phap-luat-va-hoan-thien-he-thong-phap-luat-va-thong-tu-so-42-2022-tt-btc-ngay-06-thang-7-nam-2022-cua-bo-truong-bo-tai-chinh-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-so-338-2016-tt-btc",
+  "legislation_type": "Thông tư",
+  "legislation_legal_force": "InForce",
+  "full_text_available": false,
+  "full_text_note": "Full document text is served from vbpl.vn/api/ (robots-Disallowed) via a client-side XHR; not fetchable. Title used as content proxy.",
+  "relations_source": "slug",
+  "json_ld_found": true
+ }
+}

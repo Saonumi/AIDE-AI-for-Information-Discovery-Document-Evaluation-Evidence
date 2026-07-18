@@ -1,0 +1,30 @@
+{
+ "source": "thuvienphapluat",
+ "url": "https://thuvienphapluat.vn/van-ban/Tien-te-Ngan-hang/Thong-tu-72-2021-TT-BTC-sua-doi-Thong-tu-328-2016-TT-BTC-486106.aspx",
+ "doc_number": "72/2021/TT-BTC",
+ "title": "Thong tu 72 2021 TT BTC sua doi Thong tu 328 2016 TT BTC",
+ "doc_type": "THONG_TU",
+ "issuer": null,
+ "issued_date": null,
+ "effective_date": null,
+ "expiry_date": null,
+ "status": null,
+ "full_text": null,
+ "relations": [
+  {
+   "type": "AMENDS",
+   "target_doc_number": "328/2016/TT-BTC",
+   "target_title": null,
+   "target_url": null
+  }
+ ],
+ "raw_path": null,
+ "fetched_at": "2026-07-18T01:45:19.638151",
+ "is_banking": true,
+ "fields": {
+  "captured": "public_sitemap_metadata_only",
+  "category": "Tien te Ngan hang",
+  "site_doc_id": "486106",
+  "note": "detail page paywalled/challenged; no full text, no dates"
+ }
+}

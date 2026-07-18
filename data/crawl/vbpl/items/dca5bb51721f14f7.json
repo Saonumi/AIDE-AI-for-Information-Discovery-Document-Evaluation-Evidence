@@ -1,0 +1,34 @@
+{
+ "source": "vbpl",
+ "url": "https://vbpl.vn/van-ban/chi-tiet/thong-tu-so-95-2025-tt-btc-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-so-44-2022-tt-btc-ngay-21-thang-7-nam-2022-cua-bo-truong-bo-tai-chinh-quy-dinh-quan-ly-va-su-dung-kinh-phi-chi-thuong-xuyen-thuc-hien-chinh-sach-che-do-uu-dai-nguoi-co-cong-voi-cach-mang-than-nhan-cua-nguoi-co-cong-voi-cach-mang-va-nguoi-truc-tiep-tham-gia-khang-chien-do-nganh-lao-dong-thuong-binh-va-xa-hoi-quan-ly--187380",
+ "doc_number": "95/2025/TT-BTC",
+ "title": "Thông tư số 95/2025/TT-BTC Sửa đổi, bổ sung một số Điều của Thông tư số 44/2022/TT-BTC ngày 21 tháng 7 năm 2022 của Bộ trương Bộ Tài chính quy định quản lý và sử dụng kinh phí chi thường xuyên thực hiện chính sách, chê độ ưu dài người có công với cách mạng, thân nhân của người có công với cách mạng và người trực tiếp tham gia kháng chiến do ngành Lao động - Thương binh và Xã hội quản lý",
+ "doc_type": "THONG_TU",
+ "issuer": "Bộ Tài chính",
+ "issued_date": "2025-10-20",
+ "effective_date": null,
+ "expiry_date": null,
+ "status": "Còn hiệu lực",
+ "full_text": "Thông tư số 95/2025/TT-BTC Sửa đổi, bổ sung một số Điều của Thông tư số 44/2022/TT-BTC ngày 21 tháng 7 năm 2022 của Bộ trương Bộ Tài chính quy định quản lý và sử dụng kinh phí chi thường xuyên thực hiện chính sách, chê độ ưu dài người có công với cách mạng, thân nhân của người có công với cách mạng và người trực tiếp tham gia kháng chiến do ngành Lao động - Thương binh và Xã hội quản lý",
+ "relations": [
+  {
+   "type": "AMENDS",
+   "target_doc_number": "44/2022/TT-BTC",
+   "target_title": null,
+   "target_url": null
+  }
+ ],
+ "raw_path": null,
+ "fetched_at": "2026-07-18T01:46:29.976762",
+ "is_banking": true,
+ "fields": {
+  "item_id": "187380",
+  "slug": "thong-tu-so-95-2025-tt-btc-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-so-44-2022-tt-btc-ngay-21-thang-7-nam-2022-cua-bo-truong-bo-tai-chinh-quy-dinh-quan-ly-va-su-dung-kinh-phi-chi-thuong-xuyen-thuc-hien-chinh-sach-che-do-uu-dai-nguoi-co-cong-voi-cach-mang-than-nhan-cua-nguoi-co-cong-voi-cach-mang-va-nguoi-truc-tiep-tham-gia-khang-chien-do-nganh-lao-dong-thuong-binh-va-xa-hoi-quan-ly",
+  "legislation_type": "Thông tư",
+  "legislation_legal_force": "InForce",
+  "full_text_available": false,
+  "full_text_note": "Full document text is served from vbpl.vn/api/ (robots-Disallowed) via a client-side XHR; not fetchable. Title used as content proxy.",
+  "relations_source": "slug",
+  "json_ld_found": true
+ }
+}
