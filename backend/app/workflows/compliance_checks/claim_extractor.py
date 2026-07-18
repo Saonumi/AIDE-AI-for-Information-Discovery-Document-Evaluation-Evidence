@@ -29,6 +29,18 @@ _MODALITY_RE = re.compile(
 _SECTION_RE = re.compile(r"^\s*(Điều\s+\d+[a-zà-ỹ]?\b.*|Mục\s+\d+.*|[IVX]+\..*)\s*$", re.I)
 _SENTENCE_SPLIT_RE = re.compile(r"(?<=[.;])\s+")
 
+# Dòng "khung" của văn bản: lời mở đầu, căn cứ, nơi nhận, chữ ký, tiêu đề ban
+# hành, quốc hiệu... KHÔNG phải điều khoản quy phạm → bỏ để tránh finding nhiễu
+# (§7.9). Neo ^ + cho phép "(" đầu dòng: chỉ chặn khi dòng BẮT ĐẦU bằng các mẫu
+# này, nên claim thật như "Giám đốc phải phê duyệt khoản vay 500 triệu" không bị lọc.
+_BOILERPLATE_RE = re.compile(
+    r"^\s*\(?\s*("
+    r"ban hành kèm theo|căn cứ\b|xét đề nghị|theo đề nghị|nơi nhận|"
+    r"thay mặt|tm\.|đã ký|quyết định số|nghị định số|thông tư số|nghị quyết số|"
+    r"cộng hòa xã hội|độc lập\s*[-–]\s*tự do|kính gửi|số\s*:\s*\d)",
+    re.I,
+)
+
 
 def mine_facts(text: str) -> StructuredFacts:
     """Deterministic fact mining — shared by claims AND evidence (same rules both sides)."""
@@ -52,6 +64,8 @@ def extract(text: str, target_document_id: str) -> List[ComplianceClaim]:
         if not line:
             continue
         if line.startswith("["):  # banner/label lines are not claims
+            continue
+        if _BOILERPLATE_RE.match(line):  # dòng khung (mở đầu/căn cứ/chữ ký/header) → bỏ
             continue
         # a heading is only a heading if it carries no checkable fact —
         # "Điều 1. Phí quản lý là 2 triệu đồng" is a CLAIM, not a section
