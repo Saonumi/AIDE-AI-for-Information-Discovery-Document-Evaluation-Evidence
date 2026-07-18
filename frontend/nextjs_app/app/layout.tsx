@@ -7,8 +7,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 const fontSans = JetBrains_Mono({ subsets: ["latin"], variable: "--font-sans" })
 
 export const metadata: Metadata = {
-  title: "Compliance RAG Platform — SHB VAIC2026",
-  description: "Temporal Regulatory RAG for SHB bank",
+  title: "AIDE — Trợ lý Tuân thủ SHB",
+  description: "AIDE — Hệ thống hỏi đáp và kiểm tra tuân thủ quy định pháp lý nội bộ SHB",
 }
 
 export default function RootLayout({
@@ -17,9 +17,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={fontSans.variable} suppressHydrationWarning>
+    <html lang="vi" className={fontSans.variable} suppressHydrationWarning>
       <body className="antialiased">
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="chatgpt-theme">
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem storageKey="shb-theme">
           {children}
         </ThemeProvider>
       </body>
