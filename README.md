@@ -65,8 +65,9 @@ docker compose up --build     # postgres · opensearch · neo4j · api(:8000) ·
 ## Kiểm thử
 
 ```bash
-python -m pytest tests/ -q    # full suite (T1–T8, T11, T12 của Final spec §11.2)
-python -m eval.run_eval       # benchmark head-to-head vs Standard RAG
+python -m pytest tests/ -q          # full suite (T1–T12 của Final spec §11.2)
+python -m scripts.golden_benchmark  # acceptance metrics §11.4 trên golden dataset
+python -m eval.run_eval             # benchmark head-to-head vs Standard RAG
 ```
 
 ## Golden demo (dữ liệu: `data/golden/`)
@@ -98,5 +99,6 @@ PostgreSQL là source of truth trạng thái; OpenSearch/Neo4j là index/graph p
 - Đang giữa migration: cây legacy (`api/ ingestion/ query/ infra/ ui/`) và cây canonical (`backend/app/`) song song; route mới đã nằm ở `backend/app/`, chưa xóa legacy (spec M10).
 - OCR fallback cho PDF scan chưa bật; DOCX parser chưa có — golden dùng text thật từ crawl SBV.
 - `EVIDENCE_NOT_VALID`/`TARGET_NOT_RESOLVED` đã chuẩn hóa code nhưng resolver nâng cao (EXACT/MULTIPLE/NOT_FOUND đầy đủ) chưa hoàn chỉnh.
-- Outbox sync worker (spec §8.1) chưa có — index sync đồng bộ trong activation transaction.
-- Benchmark production chỉ tính khi chạy 4-store thật (không tính fallback/mock — xem System Health).
+- Sync theo kiểu outbox-lite: index/graph fail không phá Postgres commit và hiển thị `INDEX_SYNC_PENDING` (test T10), nhưng chưa có worker retry tự động.
+- Policy mapping tự động chỉ theo citation tường minh ("Điều N + số hiệu"); không map ngữ nghĩa (đúng spec §7.5 — không đoán target).
+- Benchmark §11.4: 4 metric đo được đều PASS (`scripts/golden_benchmark.py`); parser/target-resolution metrics chưa đo vì thiếu labeled GT — ghi NOT MEASURED, không bịa số.

@@ -280,6 +280,10 @@ def activate_document(document_id: str, decided_by: str) -> dict:
     with session_scope() as session:
         ensure_can_activate(session, document_id)
         result = activate_mod.activate_base_document(session, document_id)
+        # Policy mapping (spec §7.8): an activated INTERNAL_POLICY gets citation-based
+        # ALIGNED_TO links so later amendments surface it in the impact report.
+        from backend.app.workflows.impact_analysis.policy_mapper import map_policy_document
+        result["policy_links"] = map_policy_document(session, document_id)
         result["decided_by"] = decided_by
         return result
 
