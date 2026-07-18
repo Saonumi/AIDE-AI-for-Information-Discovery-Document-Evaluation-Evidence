@@ -23,7 +23,8 @@ class User(Base):
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
     username: Mapped[str] = mapped_column(String(128), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(256))
-    role: Mapped[str] = mapped_column(String(16))
+    # 32: COMPLIANCE_OFFICER (18 chars) overflows 16 on Postgres (SQLite không enforce)
+    role: Mapped[str] = mapped_column(String(32))
 
 
 class DocumentRow(Base):
@@ -115,7 +116,7 @@ class AuditRow(Base):
     __tablename__ = "audit_logs"
     audit_id: Mapped[str] = mapped_column(String(64), primary_key=True)
     user_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    role: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    role: Mapped[str | None] = mapped_column(String(32), nullable=True)
     query: Mapped[str | None] = mapped_column(Text, nullable=True)
     query_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     payload: Mapped[dict | None] = mapped_column(JSON, nullable=True)

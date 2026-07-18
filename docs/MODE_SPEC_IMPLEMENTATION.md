@@ -81,6 +81,14 @@ python -m pytest tests/test_chat_isolation.py tests/test_review_run.py tests/tes
 | Batch isolation / partial failure / retry | per-file 100%; 1 file fail không hỏng batch; retry chỉ chạy lại failed (`test_partial_failure_and_retry_only_failed`) |
 | Regression source flow | 0 test cũ fail (full suite xanh) |
 
+## 6b. Integration test trên Docker 4-store (đã chạy thật)
+`docker compose up -d postgres opensearch neo4j` + backend local (`DEMO_MODE=false`, `SEED_DEMO=1`):
+- `/health/details`: postgres/opensearch/neo4j = **connected**, llm = google (embedding = hash_fallback vì chưa cài FlagEmbedding/bge-m3 — fallback có chủ đích).
+- E2E qua HTTP: login → conversation → Ask Regulations (Gemini thật, 3 citations, checks passed) → Review Run `READY` + `OUTDATED_REFERENCE` đúng golden → explainer 4 citations → injection bị khóa (`result_locked`, status không đổi) → batch 3/3 completed, recurring group count=2 → batch chat.
+- Dữ liệu persist thật trong Postgres (conversations/chat_turns/review_runs/batch_* có rows); OpenSearch index `provisions` 8 chunks.
+- 2 bug chỉ lộ trên Postgres thật đã fix: `users.role`/`audit_logs.role` VARCHAR(16) tràn với `COMPLIANCE_OFFICER` (→32); opensearch-py 3.x đòi keyword arg `index=` trong `indices.exists/create`.
+- Frontend: `pnpm build` production PASS.
+
 ## 7. Known limitations
 - Reproducibility: engine so sánh là tất định (mock LLM = 100% deterministic); với LLM thật chỉ phần văn xuôi/polish thay đổi — status không đổi vì LLM không quyết status. Label drift chưa được log riêng.
 - Upload trong UI chat mode nhận `.txt/.md` (đọc client-side); PDF/DOCX đi qua pipeline extraction hiện có ở luồng Add Regulatory Source — chưa nối vào Review Run upload.

@@ -102,7 +102,7 @@ class OpenSearchStore:
         )
 
     def ensure_index(self) -> None:
-        if self.client.indices.exists(self.index):
+        if self.client.indices.exists(index=self.index):
             return
         body = {
             "settings": {"index": {"knn": True}},
@@ -121,7 +121,7 @@ class OpenSearchStore:
                 "embedding": {"type": "knn_vector", "dimension": self.dim},
             }},
         }
-        self.client.indices.create(self.index, body=body)
+        self.client.indices.create(index=self.index, body=body)
 
     def index_chunk(self, chunk: Dict[str, Any], embedding: List[float]) -> None:
         body = dict(chunk)
