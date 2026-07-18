@@ -1,0 +1,27 @@
+{
+ "source": "vbpl",
+ "url": "https://vbpl.vn/van-ban/chi-tiet/van-ban-hop-nhat-so-29-vbhn-nhnn-quy-dinh-ve-hoat-dong-cung-ung-dich-vu-trung-gian-thanh-toan--186078",
+ "doc_number": "29/VBHN-NHNN",
+ "title": "Văn bản hợp nhất số 29/VBHN-NHNN Quy định về hoạt động cung ứng dịch vụ trung gian thanh toán",
+ "doc_type": "VAN_BAN_HOP_NHAT",
+ "issuer": "Ngân hàng Nhà nước Việt Nam",
+ "issued_date": "2025-12-08",
+ "effective_date": null,
+ "expiry_date": null,
+ "status": "Còn hiệu lực",
+ "full_text": "Văn bản hợp nhất số 29/VBHN-NHNN Quy định về hoạt động cung ứng dịch vụ trung gian thanh toán",
+ "relations": [],
+ "raw_path": null,
+ "fetched_at": "2026-07-18T01:46:30.296011",
+ "is_banking": true,
+ "fields": {
+  "item_id": "186078",
+  "slug": "van-ban-hop-nhat-so-29-vbhn-nhnn-quy-dinh-ve-hoat-dong-cung-ung-dich-vu-trung-gian-thanh-toan",
+  "legislation_type": "Văn bản hợp nhất",
+  "legislation_legal_force": "InForce",
+  "full_text_available": false,
+  "full_text_note": "Full document text is served from vbpl.vn/api/ (robots-Disallowed) via a client-side XHR; not fetchable. Title used as content proxy.",
+  "relations_source": "slug",
+  "json_ld_found": true
+ }
+}

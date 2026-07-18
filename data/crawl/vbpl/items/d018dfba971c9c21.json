@@ -1,0 +1,27 @@
+{
+ "source": "vbpl",
+ "url": "https://vbpl.vn/van-ban/chi-tiet/thong-tu-so-63-2025-tt-nhnn-sua-doi-bo-sung-mot-so-dieu-cua-mot-so-thong-tu-ve-quy-tin-dung-nhan-dan--185630",
+ "doc_number": "63/2025/TT-NHNN",
+ "title": "Thông tư số 63/2025/TT-NHNN Sửa đổi, bổ sung một số điều của một số Thông tư về quỹ tín dụng nhân dân",
+ "doc_type": "THONG_TU",
+ "issuer": "Ngân hàng Nhà nước Việt Nam",
+ "issued_date": "2025-12-31",
+ "effective_date": null,
+ "expiry_date": null,
+ "status": "Còn hiệu lực",
+ "full_text": "Thông tư số 63/2025/TT-NHNN Sửa đổi, bổ sung một số điều của một số Thông tư về quỹ tín dụng nhân dân",
+ "relations": [],
+ "raw_path": null,
+ "fetched_at": "2026-07-18T01:46:30.311720",
+ "is_banking": true,
+ "fields": {
+  "item_id": "185630",
+  "slug": "thong-tu-so-63-2025-tt-nhnn-sua-doi-bo-sung-mot-so-dieu-cua-mot-so-thong-tu-ve-quy-tin-dung-nhan-dan",
+  "legislation_type": "Thông tư",
+  "legislation_legal_force": "InForce",
+  "full_text_available": false,
+  "full_text_note": "Full document text is served from vbpl.vn/api/ (robots-Disallowed) via a client-side XHR; not fetchable. Title used as content proxy.",
+  "relations_source": "slug",
+  "json_ld_found": true
+ }
+}

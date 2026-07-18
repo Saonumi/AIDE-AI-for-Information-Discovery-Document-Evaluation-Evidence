@@ -1,0 +1,34 @@
+{
+ "source": "vbpl",
+ "url": "https://vbpl.vn/van-ban/chi-tiet/thong-tu-so-93-2025-tt-btc-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-so-219-2010-tt-btc-ngay-30-thang-12-nam-2010-cua-bo-truong-bo-tai-chinh-huong-dan-tieu-chi-xac-dinh-to-chuc-bao-hiem-co-uy-tin-trong-linh-vuc-hang-hai-theo-quy-dinh-tai-phap-lenh-thu-tuc-bat-giu-tau-bien--187375",
+ "doc_number": "93/2025/TT-BTC",
+ "title": "Thông tư số 93/2025/TT-BTC Sửa đổi, bổ sung một sổ điều của Thông tư số 219/2010/TT-BTC ngày 30 tháng 12 năm 2010 của Bộ trưởng Bộ Tài chính hướng dẫn tiêu chí xác dịnh tố chức bảo hiềm có uy tín trong lĩnh vực hàng hải theo quy dịnh tại Pháp lệnh Thủ tục bắt giữ tàu biến",
+ "doc_type": "THONG_TU",
+ "issuer": "Bộ Tài chính",
+ "issued_date": "2025-10-13",
+ "effective_date": null,
+ "expiry_date": null,
+ "status": "Còn hiệu lực",
+ "full_text": "Thông tư số 93/2025/TT-BTC Sửa đổi, bổ sung một sổ điều của Thông tư số 219/2010/TT-BTC ngày 30 tháng 12 năm 2010 của Bộ trưởng Bộ Tài chính hướng dẫn tiêu chí xác dịnh tố chức bảo hiềm có uy tín trong lĩnh vực hàng hải theo quy dịnh tại Pháp lệnh Thủ tục bắt giữ tàu biến",
+ "relations": [
+  {
+   "type": "AMENDS",
+   "target_doc_number": "219/2010/TT-BTC",
+   "target_title": null,
+   "target_url": null
+  }
+ ],
+ "raw_path": null,
+ "fetched_at": "2026-07-18T01:46:29.950863",
+ "is_banking": true,
+ "fields": {
+  "item_id": "187375",
+  "slug": "thong-tu-so-93-2025-tt-btc-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-so-219-2010-tt-btc-ngay-30-thang-12-nam-2010-cua-bo-truong-bo-tai-chinh-huong-dan-tieu-chi-xac-dinh-to-chuc-bao-hiem-co-uy-tin-trong-linh-vuc-hang-hai-theo-quy-dinh-tai-phap-lenh-thu-tuc-bat-giu-tau-bien",
+  "legislation_type": "Thông tư",
+  "legislation_legal_force": "InForce",
+  "full_text_available": false,
+  "full_text_note": "Full document text is served from vbpl.vn/api/ (robots-Disallowed) via a client-side XHR; not fetchable. Title used as content proxy.",
+  "relations_source": "slug",
+  "json_ld_found": true
+ }
+}

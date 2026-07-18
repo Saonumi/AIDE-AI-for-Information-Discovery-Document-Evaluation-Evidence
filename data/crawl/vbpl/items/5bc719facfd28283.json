@@ -1,0 +1,40 @@
+{
+ "source": "vbpl",
+ "url": "https://vbpl.vn/van-ban/chi-tiet/thong-tu-so-151-2025-tt-bt-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-so-69-2022-tt-btc-ngay-16-thang-11-nam-2022-cua-bo-truong-bo-tai-chinh-quy-dinh-chi-tiet-ve-chung-chi-bao-hiem-chung-chi-dai-ly-bao-hiem-chung-chi-moi-gioi-bao-hiem-chung-chi-ve-phu-tro-bao-hiem-duoc-sua-doi-bo-sung-boi-thong-tu-so-85-2024-tt-bt--187046",
+ "doc_number": "151/2025/TT-BTC",
+ "title": "Thông tư số 151/2025/TT-BTC Sửa đổi, bổ sung một số điều của Thông tư số 69/2022/TT-BTC ngày 16 tháng 11 năm 2022 của Bộ trưởng Bộ Tài chính quy định chi tiết về chứng chỉ bảo hiểm, chứng chỉ đại lý bảo hiểm, chứng chỉ môi giới bảo hiểm, chứng chỉ về phụ trợ bảo hiểm được sửa đổi, bổ sung bởi Thông tư số 85/2024/TT-BTC",
+ "doc_type": "THONG_TU",
+ "issuer": "Bộ Tài chính",
+ "issued_date": "2025-12-31",
+ "effective_date": null,
+ "expiry_date": null,
+ "status": "Còn hiệu lực",
+ "full_text": "Thông tư số 151/2025/TT-BTC Sửa đổi, bổ sung một số điều của Thông tư số 69/2022/TT-BTC ngày 16 tháng 11 năm 2022 của Bộ trưởng Bộ Tài chính quy định chi tiết về chứng chỉ bảo hiểm, chứng chỉ đại lý bảo hiểm, chứng chỉ môi giới bảo hiểm, chứng chỉ về phụ trợ bảo hiểm được sửa đổi, bổ sung bởi Thông tư số 85/2024/TT-BTC",
+ "relations": [
+  {
+   "type": "AMENDS",
+   "target_doc_number": "69/2022/TT-BTC",
+   "target_title": null,
+   "target_url": null
+  },
+  {
+   "type": "AMENDED_BY",
+   "target_doc_number": "85/2024/TT-BT",
+   "target_title": null,
+   "target_url": null
+  }
+ ],
+ "raw_path": null,
+ "fetched_at": "2026-07-18T01:46:29.849123",
+ "is_banking": true,
+ "fields": {
+  "item_id": "187046",
+  "slug": "thong-tu-so-151-2025-tt-bt-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-so-69-2022-tt-btc-ngay-16-thang-11-nam-2022-cua-bo-truong-bo-tai-chinh-quy-dinh-chi-tiet-ve-chung-chi-bao-hiem-chung-chi-dai-ly-bao-hiem-chung-chi-moi-gioi-bao-hiem-chung-chi-ve-phu-tro-bao-hiem-duoc-sua-doi-bo-sung-boi-thong-tu-so-85-2024-tt-bt",
+  "legislation_type": "Thông tư",
+  "legislation_legal_force": "InForce",
+  "full_text_available": false,
+  "full_text_note": "Full document text is served from vbpl.vn/api/ (robots-Disallowed) via a client-side XHR; not fetchable. Title used as content proxy.",
+  "relations_source": "slug",
+  "json_ld_found": true
+ }
+}

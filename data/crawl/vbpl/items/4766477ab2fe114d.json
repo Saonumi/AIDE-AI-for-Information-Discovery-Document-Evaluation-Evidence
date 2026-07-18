@@ -1,0 +1,34 @@
+{
+ "source": "vbpl",
+ "url": "https://vbpl.vn/van-ban/chi-tiet/thong-tu-so-96-2025-tt-btc-bai-bo-thong-tu-so-19-2003-tt-btc-ngay-20-thang-3-nam-2003-cua-bo-tai-chinh-huong-dan-dieu-chinh-tang-giam-von-dieu-le-va-quan-ly-co-phieu-quy-trong-cong-ty-co-phan--187383",
+ "doc_number": "96/2025/TT-BTC",
+ "title": "Thông tư số 96/2025/TT-BTC Bãi bỏ Thông tư số 19/2003/TT-BTC ngày 20 tháng 3 năm 2003 của Bộ Tài chính hướng dẫn điều chỉnh tăng, giảm vốn điều lệ và quản lý cổ phiếu quỹ trong công ty cổ phần",
+ "doc_type": "THONG_TU",
+ "issuer": "Bộ Tài chính",
+ "issued_date": "2025-10-24",
+ "effective_date": null,
+ "expiry_date": null,
+ "status": "Còn hiệu lực",
+ "full_text": "Thông tư số 96/2025/TT-BTC Bãi bỏ Thông tư số 19/2003/TT-BTC ngày 20 tháng 3 năm 2003 của Bộ Tài chính hướng dẫn điều chỉnh tăng, giảm vốn điều lệ và quản lý cổ phiếu quỹ trong công ty cổ phần",
+ "relations": [
+  {
+   "type": "SUPERSEDES",
+   "target_doc_number": "19/2003/TT-BTC",
+   "target_title": null,
+   "target_url": null
+  }
+ ],
+ "raw_path": null,
+ "fetched_at": "2026-07-18T01:46:30.008554",
+ "is_banking": true,
+ "fields": {
+  "item_id": "187383",
+  "slug": "thong-tu-so-96-2025-tt-btc-bai-bo-thong-tu-so-19-2003-tt-btc-ngay-20-thang-3-nam-2003-cua-bo-tai-chinh-huong-dan-dieu-chinh-tang-giam-von-dieu-le-va-quan-ly-co-phieu-quy-trong-cong-ty-co-phan",
+  "legislation_type": "Thông tư",
+  "legislation_legal_force": "InForce",
+  "full_text_available": false,
+  "full_text_note": "Full document text is served from vbpl.vn/api/ (robots-Disallowed) via a client-side XHR; not fetchable. Title used as content proxy.",
+  "relations_source": "slug",
+  "json_ld_found": true
+ }
+}

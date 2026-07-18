@@ -1,0 +1,34 @@
+{
+ "source": "vbpl",
+ "url": "https://vbpl.vn/van-ban/chi-tiet/thong-tu-so-71-2025-tt-nhnn-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-so-21-2021-tt-nhnn-quy-dinh-ve-viec-cac-to-chuc-tin-dung-nha-nuoc-duy-tri-so-du-tien-gui-tai-ngan-hang-chinh-sach-xa-hoi--185577",
+ "doc_number": "71/2025/TT-NHNN",
+ "title": "Thông tư số 71/2025/TT-NHNN Sửa đổi, bổ sung một số điều của Thông tư số 21/2021/TT-NHNN quy định về việc các tổ chức tín dụng nhà nước duy trì số dư tiền gửi tại Ngân hàng Chính sách xã hội",
+ "doc_type": "THONG_TU",
+ "issuer": "Ngân hàng Nhà nước Việt Nam",
+ "issued_date": "2025-12-31",
+ "effective_date": null,
+ "expiry_date": null,
+ "status": "Còn hiệu lực",
+ "full_text": "Thông tư số 71/2025/TT-NHNN Sửa đổi, bổ sung một số điều của Thông tư số 21/2021/TT-NHNN quy định về việc các tổ chức tín dụng nhà nước duy trì số dư tiền gửi tại Ngân hàng Chính sách xã hội",
+ "relations": [
+  {
+   "type": "AMENDS",
+   "target_doc_number": "21/2021/TT-NHNN",
+   "target_title": null,
+   "target_url": null
+  }
+ ],
+ "raw_path": null,
+ "fetched_at": "2026-07-18T01:46:30.063716",
+ "is_banking": true,
+ "fields": {
+  "item_id": "185577",
+  "slug": "thong-tu-so-71-2025-tt-nhnn-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-so-21-2021-tt-nhnn-quy-dinh-ve-viec-cac-to-chuc-tin-dung-nha-nuoc-duy-tri-so-du-tien-gui-tai-ngan-hang-chinh-sach-xa-hoi",
+  "legislation_type": "Thông tư",
+  "legislation_legal_force": "InForce",
+  "full_text_available": false,
+  "full_text_note": "Full document text is served from vbpl.vn/api/ (robots-Disallowed) via a client-side XHR; not fetchable. Title used as content proxy.",
+  "relations_source": "slug",
+  "json_ld_found": true
+ }
+}

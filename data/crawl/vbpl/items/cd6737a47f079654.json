@@ -1,0 +1,34 @@
+{
+ "source": "vbpl",
+ "url": "https://vbpl.vn/van-ban/chi-tiet/thong-tu-so-115-2025-tt-btc-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-so-118-2020-tt-btc-ngay-31-thang-12-nam-2020-cua-bo-truong-bo-tai-chinh-huong-dan-mot-se-noi-dung-ve-chao-ban-phat-hanh-chung-khoan-chao-mua-cong-khai-mua-lai-co-phieu-dang-ky-cong-ty-dai-chung-va-huy-tu-cach-cong-ty-dai-chung--186392",
+ "doc_number": "115/2025/TT-BTC",
+ "title": "Thông tư số 115/2025/TT-BTC Sửa đổi, bổ sung một số điều của Thông tư số 118/2020/TT-BTC ngày 31 tháng 12 nãm 2020 của Bộ trưởng Bộ Tài chính hướng dẫn một sé nội dung về chào bán, phát hành chứng khoán, chào mua công khai, mua lại cô phiếu, đãng kỷ công ty dại chúng và hủy tư cách công ty đại chúng",
+ "doc_type": "THONG_TU",
+ "issuer": "Bộ Tài chính",
+ "issued_date": "2025-12-15",
+ "effective_date": null,
+ "expiry_date": null,
+ "status": "Còn hiệu lực",
+ "full_text": "Thông tư số 115/2025/TT-BTC Sửa đổi, bổ sung một số điều của Thông tư số 118/2020/TT-BTC ngày 31 tháng 12 nãm 2020 của Bộ trưởng Bộ Tài chính hướng dẫn một sé nội dung về chào bán, phát hành chứng khoán, chào mua công khai, mua lại cô phiếu, đãng kỷ công ty dại chúng và hủy tư cách công ty đại chúng",
+ "relations": [
+  {
+   "type": "AMENDS",
+   "target_doc_number": "118/2020/TT-BTC",
+   "target_title": null,
+   "target_url": null
+  }
+ ],
+ "raw_path": null,
+ "fetched_at": "2026-07-18T01:46:30.382354",
+ "is_banking": true,
+ "fields": {
+  "item_id": "186392",
+  "slug": "thong-tu-so-115-2025-tt-btc-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-so-118-2020-tt-btc-ngay-31-thang-12-nam-2020-cua-bo-truong-bo-tai-chinh-huong-dan-mot-se-noi-dung-ve-chao-ban-phat-hanh-chung-khoan-chao-mua-cong-khai-mua-lai-co-phieu-dang-ky-cong-ty-dai-chung-va-huy-tu-cach-cong-ty-dai-chung",
+  "legislation_type": "Thông tư",
+  "legislation_legal_force": "InForce",
+  "full_text_available": false,
+  "full_text_note": "Full document text is served from vbpl.vn/api/ (robots-Disallowed) via a client-side XHR; not fetchable. Title used as content proxy.",
+  "relations_source": "slug",
+  "json_ld_found": true
+ }
+}

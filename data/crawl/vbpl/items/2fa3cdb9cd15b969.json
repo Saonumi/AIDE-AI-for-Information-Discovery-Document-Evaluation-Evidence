@@ -1,0 +1,27 @@
+{
+ "source": "vbpl",
+ "url": "https://vbpl.vn/van-ban/chi-tiet/van-ban-hop-nhat-so-27-vbhn-nhnn-quy-dinh-ve-phan-loai-tai-san-co-trong-hoat-dong-cua-ngan-hang-thuong-mai-to-chuc-tin-dung-phi-ngan-hang-chi-nhanh-ngan-hang-nuoc-ngoai--186076",
+ "doc_number": "27/VBHN-NHNN",
+ "title": "Văn bản hợp nhất số 27/VBHN-NHNN Quy định về phân loại tài sản có trong hoạt động của ngân hàng thương mại, tổ chức tín dụng phi ngân hàng, chi nhánh ngân hàng nước ngoài",
+ "doc_type": "VAN_BAN_HOP_NHAT",
+ "issuer": "Ngân hàng Nhà nước Việt Nam",
+ "issued_date": "2025-11-21",
+ "effective_date": null,
+ "expiry_date": null,
+ "status": "Còn hiệu lực",
+ "full_text": "Văn bản hợp nhất số 27/VBHN-NHNN Quy định về phân loại tài sản có trong hoạt động của ngân hàng thương mại, tổ chức tín dụng phi ngân hàng, chi nhánh ngân hàng nước ngoài",
+ "relations": [],
+ "raw_path": null,
+ "fetched_at": "2026-07-18T01:46:30.140789",
+ "is_banking": true,
+ "fields": {
+  "item_id": "186076",
+  "slug": "van-ban-hop-nhat-so-27-vbhn-nhnn-quy-dinh-ve-phan-loai-tai-san-co-trong-hoat-dong-cua-ngan-hang-thuong-mai-to-chuc-tin-dung-phi-ngan-hang-chi-nhanh-ngan-hang-nuoc-ngoai",
+  "legislation_type": "Văn bản hợp nhất",
+  "legislation_legal_force": "InForce",
+  "full_text_available": false,
+  "full_text_note": "Full document text is served from vbpl.vn/api/ (robots-Disallowed) via a client-side XHR; not fetchable. Title used as content proxy.",
+  "relations_source": "slug",
+  "json_ld_found": true
+ }
+}

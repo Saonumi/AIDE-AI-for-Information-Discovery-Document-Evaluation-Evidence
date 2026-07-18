@@ -1,0 +1,34 @@
+{
+ "source": "vbpl",
+ "url": "https://vbpl.vn/van-ban/chi-tiet/thong-tu-so-51-2025-tt-nhnn-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-so-16-2021-tt-nhnn-ngay-10-thang-11-nam-2021-cua-thong-doc-ngan-hang-nha-nuoc-viet-nam-quy-dinh-viec-to-chuc-tin-dung-chi-nhanh-ngan-hang-nuoc-ngoai-mua-ban-trai-phieu-doanh-nghiep--185227",
+ "doc_number": "51/2025/TT-NHNN",
+ "title": "Thông tư số 51/2025/TT-NHNN Sửa đổi, bổ sung một số điều của Thông tư số 16/2021/TT-NHNN ngày 10 tháng 11 năm 2021 của Thống đốc Ngân hàng Nhà nước Việt Nam quy định việc tổ chức tín dụng, chi nhánh ngân hàng nước ngoài mua, bán trái phiếu doanh nghiệp",
+ "doc_type": "THONG_TU",
+ "issuer": "Ngân hàng Nhà nước Việt Nam",
+ "issued_date": "2025-12-25",
+ "effective_date": null,
+ "expiry_date": null,
+ "status": "Còn hiệu lực",
+ "full_text": "Thông tư số 51/2025/TT-NHNN Sửa đổi, bổ sung một số điều của Thông tư số 16/2021/TT-NHNN ngày 10 tháng 11 năm 2021 của Thống đốc Ngân hàng Nhà nước Việt Nam quy định việc tổ chức tín dụng, chi nhánh ngân hàng nước ngoài mua, bán trái phiếu doanh nghiệp",
+ "relations": [
+  {
+   "type": "AMENDS",
+   "target_doc_number": "16/2021/TT-NHNN",
+   "target_title": null,
+   "target_url": null
+  }
+ ],
+ "raw_path": null,
+ "fetched_at": "2026-07-18T01:46:30.197044",
+ "is_banking": true,
+ "fields": {
+  "item_id": "185227",
+  "slug": "thong-tu-so-51-2025-tt-nhnn-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-so-16-2021-tt-nhnn-ngay-10-thang-11-nam-2021-cua-thong-doc-ngan-hang-nha-nuoc-viet-nam-quy-dinh-viec-to-chuc-tin-dung-chi-nhanh-ngan-hang-nuoc-ngoai-mua-ban-trai-phieu-doanh-nghiep",
+  "legislation_type": "Thông tư",
+  "legislation_legal_force": "InForce",
+  "full_text_available": false,
+  "full_text_note": "Full document text is served from vbpl.vn/api/ (robots-Disallowed) via a client-side XHR; not fetchable. Title used as content proxy.",
+  "relations_source": "slug",
+  "json_ld_found": true
+ }
+}

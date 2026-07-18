@@ -1,0 +1,40 @@
+{
+ "source": "vbpl",
+ "url": "https://vbpl.vn/van-ban/chi-tiet/thong-tu-so-06-2026-tt-bt-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-so-13-2015-tt-btc-ngay-30-thang-01-nam-2015-cua-bo-truong-bo-tai-chinh-quy-dinh-ve-kiem-tra-giam-sat-tam-dung-lam-thu-tuc-hai-quan-doi-voi-hang-hoa-xuat-khau-nhap-khau-co-yeu-cau-bao-ve-quyen-so-huu-tri-tue-kiem-soat-hang-gia-va-hang-hoa-xam-pham-quyen-so-huu-tri-tue-duoc-sua-doi-bo-sung-boi-thong-tu-so-13-2020-tt-btc--186984",
+ "doc_number": "06/2026/TT-BTC",
+ "title": "Thông tư số 06/2026/TT-BTC Sửa đổi, bố sung một số điều của Thông tư số 13/2015/TT-BTC ngày 30 tháng 01 năm 2015 của Bộ trưởng Bộ Tài chính quy định về kiểm tra, giám sát, tạm dừng làm thủ tục hải quan đối với hàng hóa xuất khẩu, nhập khẩu có yêu cầu bảo vệ quyền sở hữu trí tuệ; kiểm soát hàng giả và hàng hóa xâm phạm quyền sở hữu trí tuệ được sửa đổi, bổ sung bởi Thông tư số 13/2020/TT-BTC",
+ "doc_type": "THONG_TU",
+ "issuer": "Bộ Tài chính",
+ "issued_date": "2026-01-26",
+ "effective_date": null,
+ "expiry_date": null,
+ "status": "Còn hiệu lực",
+ "full_text": "Thông tư số 06/2026/TT-BTC Sửa đổi, bố sung một số điều của Thông tư số 13/2015/TT-BTC ngày 30 tháng 01 năm 2015 của Bộ trưởng Bộ Tài chính quy định về kiểm tra, giám sát, tạm dừng làm thủ tục hải quan đối với hàng hóa xuất khẩu, nhập khẩu có yêu cầu bảo vệ quyền sở hữu trí tuệ; kiểm soát hàng giả và hàng hóa xâm phạm quyền sở hữu trí tuệ được sửa đổi, bổ sung bởi Thông tư số 13/2020/TT-BTC",
+ "relations": [
+  {
+   "type": "AMENDS",
+   "target_doc_number": "13/2015/TT-BTC",
+   "target_title": null,
+   "target_url": null
+  },
+  {
+   "type": "AMENDED_BY",
+   "target_doc_number": "13/2020/TT-BTC",
+   "target_title": null,
+   "target_url": null
+  }
+ ],
+ "raw_path": null,
+ "fetched_at": "2026-07-18T01:46:29.828057",
+ "is_banking": true,
+ "fields": {
+  "item_id": "186984",
+  "slug": "thong-tu-so-06-2026-tt-bt-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-so-13-2015-tt-btc-ngay-30-thang-01-nam-2015-cua-bo-truong-bo-tai-chinh-quy-dinh-ve-kiem-tra-giam-sat-tam-dung-lam-thu-tuc-hai-quan-doi-voi-hang-hoa-xuat-khau-nhap-khau-co-yeu-cau-bao-ve-quyen-so-huu-tri-tue-kiem-soat-hang-gia-va-hang-hoa-xam-pham-quyen-so-huu-tri-tue-duoc-sua-doi-bo-sung-boi-thong-tu-so-13-2020-tt-btc",
+  "legislation_type": "Thông tư",
+  "legislation_legal_force": "InForce",
+  "full_text_available": false,
+  "full_text_note": "Full document text is served from vbpl.vn/api/ (robots-Disallowed) via a client-side XHR; not fetchable. Title used as content proxy.",
+  "relations_source": "slug",
+  "json_ld_found": true
+ }
+}

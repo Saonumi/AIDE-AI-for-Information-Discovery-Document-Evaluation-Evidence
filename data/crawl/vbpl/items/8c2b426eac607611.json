@@ -1,0 +1,34 @@
+{
+ "source": "vbpl",
+ "url": "https://vbpl.vn/van-ban/chi-tiet/thong-tu-so-102-2025-tt-btc-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-so-91-2020-tt-btc-quy-dinh-chi-tieu-an-toan-tai-chinh-va-bien-phap-xu-ly-dai-voi-to-chuc-kinh-doanh-chung-khoan-khong-dap-ung-chi-tieu-an-toan-tai-chinh--186390",
+ "doc_number": "102/2025/TT-BTC",
+ "title": "Thông tư số 102/2025/TT-BTC Sửa đổi, bổ sung một số điều của Thông tư số 91/2020/TT-BTC quy định chỉ tiêu an toàn tài chính và biện pháp xử lý dái với tổ chức kỉnh doanh chứng khoán không đáp ứng chí tiêu an toàn tài chính",
+ "doc_type": "THONG_TU",
+ "issuer": "Bộ Tài chính",
+ "issued_date": "2025-10-29",
+ "effective_date": null,
+ "expiry_date": null,
+ "status": "Còn hiệu lực",
+ "full_text": "Thông tư số 102/2025/TT-BTC Sửa đổi, bổ sung một số điều của Thông tư số 91/2020/TT-BTC quy định chỉ tiêu an toàn tài chính và biện pháp xử lý dái với tổ chức kỉnh doanh chứng khoán không đáp ứng chí tiêu an toàn tài chính",
+ "relations": [
+  {
+   "type": "AMENDS",
+   "target_doc_number": "91/2020/TT-BTC",
+   "target_title": null,
+   "target_url": null
+  }
+ ],
+ "raw_path": null,
+ "fetched_at": "2026-07-18T01:46:30.328236",
+ "is_banking": true,
+ "fields": {
+  "item_id": "186390",
+  "slug": "thong-tu-so-102-2025-tt-btc-sua-doi-bo-sung-mot-so-dieu-cua-thong-tu-so-91-2020-tt-btc-quy-dinh-chi-tieu-an-toan-tai-chinh-va-bien-phap-xu-ly-dai-voi-to-chuc-kinh-doanh-chung-khoan-khong-dap-ung-chi-tieu-an-toan-tai-chinh",
+  "legislation_type": "Thông tư",
+  "legislation_legal_force": "InForce",
+  "full_text_available": false,
+  "full_text_note": "Full document text is served from vbpl.vn/api/ (robots-Disallowed) via a client-side XHR; not fetchable. Title used as content proxy.",
+  "relations_source": "slug",
+  "json_ld_found": true
+ }
+}
