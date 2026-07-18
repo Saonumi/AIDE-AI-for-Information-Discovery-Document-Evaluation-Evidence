@@ -28,7 +28,7 @@ _FOLLOWUP_HINTS = (
     "đó", "này", "ấy", "nó", "vậy", "thì sao", "khi nào", "bao giờ",
     "trước đây", "trước đó", "còn", "cũ",
 )
-_ATTACHMENT_HINTS = ("đính kèm", "tệp", "file", "tài liệu tôi gửi")
+_ATTACHMENT_HINTS = ("đính kèm", "tệp", "file", "tài liệu tôi gửi", "tài liệu này", "tài liệu", "nội dung này", "văn bản này")
 
 
 def _ensure_db() -> None:
@@ -200,7 +200,10 @@ def post_message(
         resp = answer_query(ctx_query, query_date, username, role)
         answer_text = resp.answer.text
         if attachment_ctx:
-            answer_text = f"{attachment_ctx}\n\n{answer_text}"
+            if answer_text == "INSUFFICIENT_EVIDENCE":
+                answer_text = attachment_ctx
+            else:
+                answer_text = f"{attachment_ctx}\n\n{answer_text}"
         citations = [c.model_dump(mode="json") for c in resp.answer.citations]
         extra = {"status": resp.answer.status.value,
                  "query_date": resp.answer.query_date.isoformat()

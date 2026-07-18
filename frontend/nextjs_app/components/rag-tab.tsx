@@ -296,10 +296,13 @@ function renderCitedContent(content: string, idToNum: Map<string, number>): Reac
   return out.length ? out : [content]
 }
 
+const INSUFFICIENT_VN = "Không tìm thấy văn bản quy phạm pháp luật phù hợp trong kho dữ liệu. Thử đặt câu hỏi khác hoặc kiểm tra kho văn bản đã có tài liệu liên quan chưa."
+
 function ChatBubble({ role, content, citations }: {
   role: string; content: string; citations: ChatCitation[]
 }) {
   const isUser = role === "user"
+  const display = (!isUser && content === "INSUFFICIENT_EVIDENCE") ? INSUFFICIENT_VN : content
   const idToNum = React.useMemo(() => {
     const map = new Map<string, number>()
     citations.forEach((c, i) => { if (!map.has(c.source_id)) map.set(c.source_id, i + 1) })
@@ -310,7 +313,7 @@ function ChatBubble({ role, content, citations }: {
       <div className={`border p-3 text-sm whitespace-pre-wrap leading-relaxed ${
         isUser ? "border-orange-500/30 bg-orange-500/10" : "border-border bg-muted/30"
       }`}>
-        {isUser ? content : renderCitedContent(content, idToNum)}
+        {isUser ? display : renderCitedContent(display, idToNum)}
       </div>
       {!isUser && citations.length > 0 && <EvidencePanel citations={citations} />}
     </div>
