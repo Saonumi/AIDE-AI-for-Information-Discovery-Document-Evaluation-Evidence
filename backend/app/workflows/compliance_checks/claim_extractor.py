@@ -56,11 +56,8 @@ def mine_facts(text: str) -> StructuredFacts:
 
 
 def extract(text: str, target_document_id: str) -> List[ComplianceClaim]:
-    """LLM identifies actual legal claims; rule-based regex as fallback."""
-    llm_claims = _extract_with_llm(text, target_document_id)
-    if llm_claims:
-        return llm_claims
-    return _extract_rule_based(text, target_document_id)
+    """LLM identifies actual legal claims. Empty list if LLM unavailable."""
+    return _extract_with_llm(text, target_document_id)
 
 
 def _extract_with_llm(text: str, target_document_id: str) -> List[ComplianceClaim]:

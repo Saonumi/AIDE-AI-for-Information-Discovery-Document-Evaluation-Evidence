@@ -80,7 +80,7 @@ def extract_all_money(text: str) -> List[int]:
             continue
         unit = (m.group("unit") or "").lower()
         # Skip bare integers with no unit that are actually part of a date etc.
-        if unit == "" and num < 1000:
+        if unit == "" and (num < 1000 or 1900 <= num <= 2100):
             continue
         out.append(int(round(num * _UNIT_MULT.get(unit, 1))))
     return out

@@ -9,7 +9,7 @@ import * as React from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
-  api, ApiError, type DocumentRow, type ReviewTask, type ReviewDecision,
+  api, ApiError, type DocumentRow, type ReviewTask, type ReviewDecision, type Provision,
 } from "@/lib/api"
 
 const TYPE_LABEL: Record<string, string> = {
@@ -347,6 +347,9 @@ function PendingActivationSection({ docs, loaded, onActivated }: {
 function PendingDocRow({ doc, onActivated }: { doc: DocumentRow; onActivated: () => void }) {
   const [busy, setBusy] = React.useState(false)
   const [reasons, setReasons] = React.useState<string[] | null>(null)
+  const [open, setOpen] = React.useState(false)
+  const [provisions, setProvisions] = React.useState<Provision[] | null>(null)
+  const [provErr, setProvErr] = React.useState<string | null>(null)
 
   const activate = async () => {
     if (busy) return
@@ -361,10 +364,35 @@ function PendingDocRow({ doc, onActivated }: { doc: DocumentRow; onActivated: ()
     }
   }
 
+  const doDelete = async () => {
+    if (busy || !confirm(`Xóa "${doc.document_number || doc.filename}"?`)) return
+    setBusy(true)
+    try {
+      await api.deleteDocument(doc.document_id)
+      onActivated()
+    } catch (e) {
+      setReasons([e instanceof Error ? e.message : String(e)])
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const toggleProvisions = async () => {
+    if (open) { setOpen(false); return }
+    setOpen(true)
+    if (provisions !== null) return
+    try {
+      const p = await api.documentProvisions(doc.document_id)
+      setProvisions(p)
+    } catch (e) {
+      setProvErr(e instanceof Error ? e.message : String(e))
+    }
+  }
+
   const rejected = doc.approval_status === "REJECTED"
   return (
-    <div className="px-4 py-2.5 bg-card">
-      <div className="flex items-center gap-3">
+    <div className="bg-card">
+      <div className="flex items-center gap-3 px-4 py-2.5">
         <div className="min-w-0 flex-1">
           <div className="text-sm font-medium truncate">{doc.document_number || doc.filename}</div>
           <div className="text-[11px] text-muted-foreground truncate">
@@ -381,17 +409,69 @@ function PendingDocRow({ doc, onActivated }: { doc: DocumentRow; onActivated: ()
         }`}>
           {APPROVAL_LABEL[doc.approval_status] ?? doc.approval_status}
         </Badge>
+        <Button size="sm" variant="ghost" onClick={toggleProvisions} disabled={busy}
+                className="shrink-0 text-xs text-muted-foreground hover:text-foreground">
+          {open ? "▴ điều khoản" : "▾ điều khoản"}
+        </Button>
         {!rejected && (
           <Button size="sm" variant="outline" onClick={activate} disabled={busy}
                   className="shrink-0 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10">
-            {busy ? "Đang kích hoạt…" : "Kích hoạt"}
+            {busy ? "…" : "Kích hoạt"}
           </Button>
         )}
+        <Button size="sm" variant="ghost" onClick={doDelete} disabled={busy}
+                className="shrink-0 text-red-500 hover:bg-red-500/10 hover:text-red-500">
+          Xóa
+        </Button>
       </div>
+
+      {open && (
+        <div className="border-t border-border px-4 py-3">
+          {provisions === null && !provErr && (
+            <p className="text-xs text-muted-foreground">Đang tải điều khoản…</p>
+          )}
+          {provErr && <p className="text-xs text-red-500">{provErr}</p>}
+          {provisions?.length === 0 && (
+            <p className="text-xs text-muted-foreground italic">
+              Chưa có điều khoản nào được trích xuất (LLM chưa chạy hoặc tài liệu không có điều khoản quy phạm).
+            </p>
+          )}
+          {provisions && provisions.length > 0 && (
+            <div className="space-y-2 max-h-72 overflow-y-auto">
+              <p className="text-[11px] text-muted-foreground mb-1">{provisions.length} điều khoản trích xuất được:</p>
+              {provisions.map((p) => (
+                <ProvisionItem key={p.version_id} provision={p} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {reasons && (
-        <div className="mt-2 border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-500 space-y-0.5">
-          <div className="font-semibold">Chưa kích hoạt được:</div>
+        <div className="mx-4 mb-2 border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-500 space-y-0.5">
           {reasons.map((r, i) => <div key={i}>• {r}</div>)}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ProvisionItem({ provision }: { provision: Provision }) {
+  const [expanded, setExpanded] = React.useState(false)
+  const heading = provision.heading_path.length > 0
+    ? provision.heading_path.join(" > ")
+    : provision.article ? `Điều ${provision.article}${provision.clause ? `, khoản ${provision.clause}` : ""}` : "—"
+
+  return (
+    <div className="border border-border bg-muted/30 text-xs">
+      <button className="w-full flex items-start gap-2 px-3 py-2 text-left hover:bg-muted/50"
+              onClick={() => setExpanded(!expanded)}>
+        <span className="font-medium min-w-0 flex-1 truncate">{heading}</span>
+        <span className="text-muted-foreground shrink-0">{expanded ? "▴" : "▾"}</span>
+      </button>
+      {expanded && (
+        <div className="px-3 pb-2 text-muted-foreground whitespace-pre-wrap leading-relaxed border-t border-border pt-2">
+          {provision.content}
         </div>
       )}
     </div>

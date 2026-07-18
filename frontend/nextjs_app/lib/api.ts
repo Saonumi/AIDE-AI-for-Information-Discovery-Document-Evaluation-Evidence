@@ -172,6 +172,19 @@ export interface ReviewTask {
 
 export type ReviewDecision = "APPROVE" | "EDIT" | "REJECT"
 
+export interface Provision {
+  version_id: string
+  provision_id: string
+  heading_path: string[]
+  article: string | null
+  clause: string | null
+  point: string | null
+  content: string
+  page: number | null
+  valid_from: string | null
+  approval_status: string
+}
+
 // ─── RAG: mode-based chat + Review Runs (Mode spec §12.2) ────────────────────
 
 export type ChatMode = "REGULATORY_ASSISTANT" | "DOCUMENT_REVIEW"
@@ -288,6 +301,10 @@ export const api = {
   documents: () => req<DocumentRow[]>("GET", "/documents"),
   activateDocument: (documentId: string) =>
     req<Record<string, unknown>>("POST", `/documents/${documentId}/activate`),
+  deleteDocument: (documentId: string) =>
+    req<{ deleted: string }>("DELETE", `/documents/${documentId}`),
+  documentProvisions: (documentId: string) =>
+    req<Provision[]>("GET", `/documents/${documentId}/provisions`),
   reviewTasks: (status?: string) =>
     req<ReviewTask[]>("GET", `/review-tasks${status ? `?status=${status}` : ""}`),
   decideReviewTask: (taskId: string, decision: ReviewDecision, edited_payload?: Record<string, unknown>) =>
