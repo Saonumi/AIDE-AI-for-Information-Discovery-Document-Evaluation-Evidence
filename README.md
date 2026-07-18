@@ -31,11 +31,11 @@ Không cần Docker, không cần API key. `DEMO_MODE=true` dùng stub in-memory
 
 | Tài khoản | Mật khẩu | Vai trò |
 |---|---|---|
-| `compliance` | `compliance123` | COMPLIANCE_OFFICER |
-| `user` | `user123` | COMPLIANCE_OFFICER |
-| `employee` | `employee123` | COMPLIANCE_OFFICER |
+| `compliance` | `compliance123` | EMPLOYEE |
+| `user` | `user123` | EMPLOYEE |
+| `employee` | `employee123` | EMPLOYEE |
 
-Cả ba đều là `COMPLIANCE_OFFICER` — Final spec §6.1 khai tử `USER` và `EMPLOYEE`, giữ đúng một persona nghiệp vụ.
+Cả ba đều là `EMPLOYEE` — vai trò nghiệp vụ duy nhất được hỗ trợ.
 
 ---
 

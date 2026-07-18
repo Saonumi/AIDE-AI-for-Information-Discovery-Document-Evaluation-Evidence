@@ -9,9 +9,7 @@ from enum import Enum
 
 
 class Role(str, Enum):
-    EMPLOYEE = "EMPLOYEE"                      # deprecated alias of COMPLIANCE_OFFICER (Final spec §6.1)
-    COMPLIANCE_OFFICER = "COMPLIANCE_OFFICER"  # persona duy nhất (Final spec §1.2)
-    SYSTEM_ADMIN = "SYSTEM_ADMIN"              # role kỹ thuật, không phải persona
+    EMPLOYEE = "EMPLOYEE"
 
 
 class DocumentType(str, Enum):

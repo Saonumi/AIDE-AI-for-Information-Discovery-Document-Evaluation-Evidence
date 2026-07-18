@@ -90,11 +90,9 @@ def require_authenticated(creds: Optional[HTTPAuthorizationCredentials] = Depend
 
 
 def require_employee(user: CurrentUser = Depends(require_authenticated)) -> CurrentUser:
-    # Final spec §6.1: COMPLIANCE_OFFICER is the business persona; EMPLOYEE is its
-    # deprecated alias kept until the legacy tree is retired.
-    if user.role not in (Role.EMPLOYEE, Role.COMPLIANCE_OFFICER):
+    if user.role != Role.EMPLOYEE:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                            detail="Compliance Officer role required")
+                            detail="Employee role required")
     return user
 
 
@@ -111,20 +109,11 @@ def authenticate(username: str, password: str) -> Optional[CurrentUser]:
 
 
 def seed_users() -> None:
-    """Idempotent demo accounts.
-
-    All three are COMPLIANCE_OFFICER — Final spec §6.1 retires USER and EMPLOYEE,
-    and `require_employee` rejects USER outright, so an account seeded with that
-    role could log in but reach no business screen at all.
-
-    Existing rows are reconciled, not just created: a database seeded before this
-    change still holds the retired role, and create-if-missing would leave it
-    stranded forever.
-    """
+    """Idempotent demo accounts. All three are EMPLOYEE."""
     demo = [
-        ("compliance", "compliance123", Role.COMPLIANCE_OFFICER),
-        ("employee", "employee123", Role.COMPLIANCE_OFFICER),
-        ("user", "user123", Role.COMPLIANCE_OFFICER),
+        ("compliance", "compliance123", Role.EMPLOYEE),
+        ("employee", "employee123", Role.EMPLOYEE),
+        ("user", "user123", Role.EMPLOYEE),
     ]
     with session_scope() as ses:
         for username, pw, role in demo:

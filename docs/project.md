@@ -286,9 +286,9 @@ python -m pytest tests/ -q      # 76 passed
 python -m eval.run_eval         # bảng benchmark head-to-head
 ```
 Tài khoản demo:
-- `compliance/compliance123` (COMPLIANCE_OFFICER)
-- `user/user123` (COMPLIANCE_OFFICER)
-- `employee/employee123` (COMPLIANCE_OFFICER)
+- `compliance/compliance123` (EMPLOYEE)
+- `user/user123` (EMPLOYEE)
+- `employee/employee123` (EMPLOYEE)
 
 ---
 

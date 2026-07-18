@@ -163,12 +163,8 @@ def page_login() -> None:
 
     with st.form("login"):
         col1, col2 = st.columns(2)
-        username = col1.text_input("Tài khoản", value="compliance")
-        password = col2.text_input("Mật khẩu", value="compliance123", type="password")
-        st.caption("Tài khoản demo:")
-        st.caption("• compliance / compliance123 (COMPLIANCE_OFFICER)")
-        st.caption("• user / user123 (COMPLIANCE_OFFICER)")
-        st.caption("• employee / employee123 (COMPLIANCE_OFFICER)")
+        username = col1.text_input("Tài khoản", value="employee")
+        password = col2.text_input("Mật khẩu", value="employee123", type="password")
         submitted = st.form_submit_button("Đăng nhập")
     if submitted:
         res = api.login(username, password)
@@ -564,7 +560,7 @@ def main() -> None:
         page_login()
         return
 
-    role = st.session_state.get("role", "COMPLIANCE_OFFICER")
+    role = st.session_state.get("role", "EMPLOYEE")
     st.sidebar.success(f"{st.session_state.get('username')} · {role}")
     if st.sidebar.button("Đăng xuất"):
         for k in ("token", "role", "username"):
@@ -572,8 +568,7 @@ def main() -> None:
         _rerun()
         return
 
-    # COMPLIANCE_OFFICER is the business persona (Final spec §6.1); EMPLOYEE = alias
-    pages = _EMPLOYEE_PAGES if role in ("EMPLOYEE", "COMPLIANCE_OFFICER") else _USER_PAGES
+    pages = _EMPLOYEE_PAGES if role == "EMPLOYEE" else _USER_PAGES
     choice = st.sidebar.radio("Trang", list(pages.keys()))
     pages[choice]()
 

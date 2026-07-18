@@ -62,31 +62,7 @@ export function LoginView({ onLogin }: { onLogin: (s: Session) => void }) {
                   disabled={busy || !username.trim() || !password}>
             {busy ? "Đang đăng nhập…" : "Đăng nhập"}
           </Button>
-          <div className="mt-4 border-t border-border/60 pt-4">
-            <p className="text-[11px] font-medium text-muted-foreground mb-2 text-center">Tài khoản demo</p>
-            <div className="text-[10px] bg-muted/40 border border-border p-2.5 rounded space-y-1.5 font-mono text-muted-foreground">
-              <div className="grid grid-cols-3 gap-1 border-b border-border/60 pb-1 font-bold text-foreground text-[9px] uppercase tracking-wider">
-                <span>Tài khoản</span>
-                <span>Mật khẩu</span>
-                <span>Vai trò</span>
-              </div>
-              <div className="grid grid-cols-3 gap-1">
-                <span className="text-foreground/80">compliance</span>
-                <span>compliance123</span>
-                <span className="text-orange-600 dark:text-orange-400 font-semibold text-[9px]">COMPLIANCE_OFFICER</span>
-              </div>
-              <div className="grid grid-cols-3 gap-1">
-                <span className="text-foreground/80">user</span>
-                <span>user123</span>
-                <span className="text-orange-600 dark:text-orange-400 font-semibold text-[9px]">COMPLIANCE_OFFICER</span>
-              </div>
-              <div className="grid grid-cols-3 gap-1">
-                <span className="text-foreground/80">employee</span>
-                <span>employee123</span>
-                <span className="text-orange-600 dark:text-orange-400 font-semibold text-[9px]">COMPLIANCE_OFFICER</span>
-              </div>
-            </div>
-          </div>
+
         </form>
       </div>
     </div>

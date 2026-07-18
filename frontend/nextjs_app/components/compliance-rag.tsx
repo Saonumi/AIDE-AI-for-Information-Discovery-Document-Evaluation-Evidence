@@ -35,10 +35,9 @@ const TABS: { id: Tab; label: string; hint: string }[] = [
   { id: "rag", label: "RAG", hint: "Tra cứu quy định · Nhận xét tài liệu" },
 ]
 
-// Vai trò backend (EMPLOYEE/COMPLIANCE_OFFICER) → nhãn tiếng Việt
+// Vai trò backend (EMPLOYEE) → nhãn tiếng Việt
 const ROLE_LABEL: Record<string, string> = {
   EMPLOYEE: "Chuyên viên tuân thủ",
-  COMPLIANCE_OFFICER: "Chuyên viên tuân thủ",
 }
 
 export function ComplianceRAG() {

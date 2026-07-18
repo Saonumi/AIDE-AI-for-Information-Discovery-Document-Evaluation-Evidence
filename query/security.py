@@ -71,11 +71,11 @@ def check_query(text: str, role: str) -> SecurityDecision:
 
     injection = bool(_INJECTION_RE.search(q))
 
-    # Only EMPLOYEE/COMPLIANCE_OFFICER may reference admin/write verbs as an *operation*. A USER asking
+    # Only EMPLOYEE may reference admin/write verbs as an *operation*. A USER asking
     # a normal question that merely contains the word is fine; we only block when the
     # query is clearly an admin instruction (starts with an admin verb).
     first = q.lower().split()[0] if q.split() else ""
-    if role_norm not in ("EMPLOYEE", "COMPLIANCE_OFFICER") and first in _ADMIN_TOKENS:
+    if role_norm != "EMPLOYEE" and first in _ADMIN_TOKENS:
         return SecurityDecision(
             allowed=False,
             query=q,
