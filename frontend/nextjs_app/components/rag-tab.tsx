@@ -192,52 +192,56 @@ function AskMode() {
         </div>
       </aside>
 
-      {/* Nội dung hội thoại */}
+      {/* Nội dung hội thoại — column ChatGPT-style, căn giữa */}
       <div className="flex flex-1 flex-col min-w-0">
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
-          {turns.length === 0 && <AskEmptyState onPick={setText} />}
-          {turns.map((t) => (
-            <ChatBubble key={t.id} role={t.role} content={t.content} citations={t.citations} />
-          ))}
-          {busy && <div className="text-xs text-muted-foreground animate-pulse">Đang tra cứu kho quy định…</div>}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto">
+          <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+            {turns.length === 0 && <AskEmptyState onPick={setText} />}
+            {turns.map((t) => (
+              <ChatBubble key={t.id} role={t.role} content={t.content} citations={t.citations} />
+            ))}
+            {busy && <div className="text-xs text-muted-foreground animate-pulse pl-1">Đang tra cứu kho quy định…</div>}
+          </div>
         </div>
 
-        <div className="p-3 pt-2 shrink-0">
-          {attachments.length > 0 && (
-            <div className="flex gap-1.5 flex-wrap mb-2">
-              {attachments.map((a) => (
-                <Badge key={a.id} variant="outline" className="text-[10px] text-amber-600 dark:text-amber-400 border-amber-500/40">
-                  {a.filename} · context cục bộ, không phải nguồn pháp lý
-                </Badge>
-              ))}
-            </div>
-          )}
-          <PromptShell>
-            <label className="cursor-pointer shrink-0 rounded-full p-2 text-muted-foreground hover:text-orange-500 hover:bg-muted/60 transition-colors" title="Đính kèm file context cục bộ (.txt/.md)" aria-label="Thêm file">
-              <IconPlus />
-              <input type="file" accept=".txt,.md" className="hidden"
-                onChange={(e) => e.target.files?.[0] && attach(e.target.files[0])} />
-            </label>
-            <textarea rows={1}
-              className="flex-1 resize-none bg-transparent outline-none text-sm leading-relaxed py-1.5 max-h-40 placeholder:text-muted-foreground/70"
-              placeholder="Nhập câu hỏi về quy định…"
-              value={text} onChange={(e) => setText(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send() } }} />
-            <div className="flex items-center gap-1 shrink-0 pb-0.5">
-              <input type="date"
-                className="w-[118px] rounded-lg border border-border bg-background/60 px-2 py-1 text-xs outline-none focus:border-orange-500"
-                value={queryDate} onChange={(e) => setQueryDate(e.target.value)}
-                title="Hỏi quy định tại một thời điểm (tùy chọn)" aria-label="Ngày truy vấn" />
-              <Button size="icon" onClick={send} disabled={busy || !text.trim()}
-                className="size-9 rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-sm disabled:opacity-40"
-                aria-label="Gửi câu hỏi">
-                <IconSend />
-              </Button>
-            </div>
-          </PromptShell>
-          <p className="text-[10px] text-muted-foreground/60 text-center mt-1.5">
-            SHB · AIDE — câu trả lời luôn kèm bằng chứng truy vết được
-          </p>
+        <div className="shrink-0 border-t border-border bg-background/80 backdrop-blur-sm py-4">
+          <div className="max-w-3xl mx-auto px-4 space-y-2">
+            {attachments.length > 0 && (
+              <div className="flex gap-1.5 flex-wrap">
+                {attachments.map((a) => (
+                  <Badge key={a.id} variant="outline" className="text-[10px] text-amber-600 dark:text-amber-400 border-amber-500/40">
+                    {a.filename} · context cục bộ, không phải nguồn pháp lý
+                  </Badge>
+                ))}
+              </div>
+            )}
+            <PromptShell>
+              <label className="cursor-pointer shrink-0 rounded-full p-2 text-muted-foreground hover:text-orange-500 hover:bg-muted/60 transition-colors" title="Đính kèm file context cục bộ (.txt/.md)" aria-label="Thêm file">
+                <IconPlus />
+                <input type="file" accept=".txt,.md" className="hidden"
+                  onChange={(e) => e.target.files?.[0] && attach(e.target.files[0])} />
+              </label>
+              <textarea rows={1}
+                className="flex-1 resize-none bg-transparent outline-none text-sm leading-relaxed py-1.5 max-h-40 placeholder:text-muted-foreground/70"
+                placeholder="Nhập câu hỏi về quy định…"
+                value={text} onChange={(e) => setText(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send() } }} />
+              <div className="flex items-center gap-1 shrink-0 pb-0.5">
+                <input type="date"
+                  className="w-[118px] rounded-lg border border-border bg-background/60 px-2 py-1 text-xs outline-none focus:border-orange-500"
+                  value={queryDate} onChange={(e) => setQueryDate(e.target.value)}
+                  title="Hỏi quy định tại một thời điểm (tùy chọn)" aria-label="Ngày truy vấn" />
+                <Button size="icon" onClick={send} disabled={busy || !text.trim()}
+                  className="size-9 rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-sm disabled:opacity-40"
+                  aria-label="Gửi câu hỏi">
+                  <IconSend />
+                </Button>
+              </div>
+            </PromptShell>
+            <p className="text-[10px] text-muted-foreground/60 text-center">
+              SHB · AIDE — câu trả lời luôn kèm bằng chứng truy vết được
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -251,7 +255,7 @@ function AskEmptyState({ onPick }: { onPick: (q: string) => void }) {
     "Lịch sử sửa đổi tỷ lệ vốn ngắn hạn cho vay trung dài hạn?",
   ]
   return (
-    <div className="max-w-md mx-auto text-center pt-10 space-y-4">
+    <div className="text-center pt-12 space-y-5">
       <div>
         <h3 className="text-sm font-semibold">Tra cứu quy định hiện hành</h3>
         <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
@@ -308,14 +312,23 @@ function ChatBubble({ role, content, citations }: {
     citations.forEach((c, i) => { if (!map.has(c.source_id)) map.set(c.source_id, i + 1) })
     return map
   }, [citations])
-  return (
-    <div className={`max-w-[85%] ${isUser ? "ml-auto" : ""}`}>
-      <div className={`border p-3 text-sm whitespace-pre-wrap leading-relaxed ${
-        isUser ? "border-orange-500/30 bg-orange-500/10" : "border-border bg-muted/30"
-      }`}>
-        {isUser ? display : renderCitedContent(display, idToNum)}
+
+  if (isUser) {
+    return (
+      <div className="flex justify-end">
+        <div className="max-w-[75%] rounded-2xl rounded-tr-sm bg-orange-500 text-white px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap shadow-sm">
+          {display}
+        </div>
       </div>
-      {!isUser && citations.length > 0 && <EvidencePanel citations={citations} />}
+    )
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
+        {renderCitedContent(display, idToNum)}
+      </div>
+      {citations.length > 0 && <EvidencePanel citations={citations} />}
     </div>
   )
 }
