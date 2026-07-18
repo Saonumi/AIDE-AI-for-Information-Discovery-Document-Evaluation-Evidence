@@ -1,3 +1,7 @@
+# packages bắt buộc với pnpm 9 (Railway/Railpack) — thiếu là "packages field missing or empty"
+packages:
+  - "."
+
 allowBuilds:
   msw: false   # dev mock lib — no build needed
   sharp: true  # Next.js image optimization native binary
