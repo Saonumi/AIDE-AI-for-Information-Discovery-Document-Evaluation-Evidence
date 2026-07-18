@@ -135,9 +135,13 @@ def create_batch_review(
         for f in files:
             item_id = new_id("bri")
             item_ids.append(item_id)
+            # strip NUL (0x00): PostgreSQL text không lưu được — file nhị phân/PDF
+            # đọc nhầm sẽ làm INSERT crash 500 (mất CORS). File nhị phân còn lại sẽ
+            # bị create_review_run bắt và đánh item FAILED, không làm sập cả batch.
             ses.add(BatchReviewItemRow(
                 id=item_id, batch_id=batch_id, filename=f.get("filename", item_id),
-                target_text=f.get("text", ""), status=BatchItemStatus.QUEUED.value))
+                target_text=(f.get("text") or "").replace("\x00", ""),
+                status=BatchItemStatus.QUEUED.value))
         if conversation_id:
             conv = ses.query(ConversationRow).filter_by(
                 id=conversation_id, owner_id=owner_id).one_or_none()
