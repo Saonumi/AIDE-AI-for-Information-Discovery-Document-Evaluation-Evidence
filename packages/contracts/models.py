@@ -262,7 +262,6 @@ class Citation(BaseModel):
     content: Optional[str] = None
     valid_from: Optional[date] = None
     valid_to_exclusive: Optional[date] = None
-    score: float = 0.0
 
 
 class Answer(BaseModel):

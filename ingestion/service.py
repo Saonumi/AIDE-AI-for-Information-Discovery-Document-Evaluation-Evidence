@@ -262,20 +262,6 @@ def delete_document(document_id: str, deleted_by: str) -> dict:
     return {"deleted": document_id}
 
 
-def update_provision_content(version_id: str, content: str) -> dict:
-    """Cập nhật nội dung điều khoản (trước khi kích hoạt)."""
-    _ensure_db()
-    with session_scope() as session:
-        row = session.execute(
-            select(ProvisionVersionRow).where(ProvisionVersionRow.version_id == version_id)
-        ).scalar_one_or_none()
-        if row is None:
-            from fastapi import HTTPException
-            raise HTTPException(status_code=404, detail="Provision version not found.")
-        row.content = content.strip()
-    return {"updated": version_id}
-
-
 def list_document_provisions(document_id: str) -> list:
     """Trả về tất cả điều khoản đã trích xuất cho một document."""
     _ensure_db()
