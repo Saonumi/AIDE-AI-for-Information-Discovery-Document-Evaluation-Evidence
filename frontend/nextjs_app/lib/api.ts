@@ -206,6 +206,7 @@ export interface ChatCitation {
   valid_from?: string
   valid_to_exclusive?: string | null
   content?: string | null
+  score?: number
 }
 
 export interface ChatTurnT {
@@ -305,6 +306,8 @@ export const api = {
     req<{ deleted: string }>("DELETE", `/documents/${documentId}`),
   documentProvisions: (documentId: string) =>
     req<Provision[]>("GET", `/documents/${documentId}/provisions`),
+  updateProvision: (documentId: string, versionId: string, content: string) =>
+    req<{ updated: string }>("PATCH", `/documents/${documentId}/provisions/${versionId}`, { content }),
   reviewTasks: (status?: string) =>
     req<ReviewTask[]>("GET", `/review-tasks${status ? `?status=${status}` : ""}`),
   decideReviewTask: (taskId: string, decision: ReviewDecision, edited_payload?: Record<string, unknown>) =>

@@ -9,7 +9,7 @@ import * as React from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
-  api, ApiError, type DocumentRow, type ReviewTask, type ReviewDecision, type Provision,
+  api, ApiError, type DocumentRow, type Provision,
 } from "@/lib/api"
 
 const TYPE_LABEL: Record<string, string> = {
@@ -55,12 +55,11 @@ function extractReasons(e: unknown): string[] {
 
 export function AddSourceTab() {
   const [docs, setDocs] = React.useState<DocumentRow[] | null>(null)
-  const [tasks, setTasks] = React.useState<ReviewTask[] | null>(null)
   const [loadErr, setLoadErr] = React.useState<string | null>(null)
 
   const refresh = React.useCallback(() => {
-    Promise.all([api.documents(), api.reviewTasks("PENDING")])
-      .then(([d, t]) => { setDocs(d); setTasks(t); setLoadErr(null) })
+    api.documents()
+      .then((d) => { setDocs(d); setLoadErr(null) })
       .catch((e) => setLoadErr(e instanceof Error ? e.message : String(e)))
   }, [])
   React.useEffect(refresh, [refresh])
@@ -71,7 +70,6 @@ export function AddSourceTab() {
   return (
     <div className="flex-1 overflow-y-auto p-4 md:p-6">
       <div className="max-w-4xl mx-auto space-y-8">
-        {/* Trust rule — vì sao phải review trước khi nguồn được dùng */}
         <div className="border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-600 dark:text-amber-300 leading-relaxed">
           Nguồn upload ở đây là <strong>tài liệu chờ xác minh</strong> — chưa được dùng
           làm căn cứ pháp lý. Chỉ nguồn <strong>đã duyệt &amp; đang hoạt động</strong> (đã qua kiểm tra
@@ -85,7 +83,6 @@ export function AddSourceTab() {
         )}
 
         <UploadCard onUploaded={refresh} />
-        <PendingReviewSection tasks={tasks} docs={docs} onDecided={refresh} />
         <PendingActivationSection docs={pendingDocs} loaded={docs !== null} onActivated={refresh} />
         <ActiveSourcesSection docs={activeDocs} loaded={docs !== null} />
       </div>
@@ -164,164 +161,7 @@ function UploadCard({ onUploaded }: { onUploaded: () => void }) {
   )
 }
 
-// ─── Pending Review (HITL) ────────────────────────────────────────────────────
-
-function PendingReviewSection({ tasks, docs, onDecided }: {
-  tasks: ReviewTask[] | null
-  docs: DocumentRow[] | null
-  onDecided: () => void
-}) {
-  const docName = React.useCallback((id: string | null) => {
-    if (!id) return null
-    const d = docs?.find((x) => x.document_id === id)
-    return d ? (d.document_number || d.filename) : id
-  }, [docs])
-
-  return (
-    <section>
-      <SectionHeading
-        title="Chờ kiểm tra"
-        count={tasks?.length}
-        hint="Kết quả AI trích xuất — cán bộ duyệt, chỉnh sửa hoặc từ chối từng mục"
-      />
-      {tasks === null && <ListSkeleton rows={2} />}
-      {tasks?.length === 0 && (
-        <EmptyRow>
-          Không có mục nào chờ kiểm tra. Tải lên nguồn mới ở trên — kết quả trích xuất sẽ vào đây.
-        </EmptyRow>
-      )}
-      <div className="space-y-2">
-        {tasks?.map((t) => (
-          <ReviewTaskCard key={t.task_id} task={t} docName={docName(t.document_id)} onDecided={onDecided} />
-        ))}
-      </div>
-    </section>
-  )
-}
-
-function ReviewTaskCard({ task, docName, onDecided }: {
-  task: ReviewTask; docName: string | null; onDecided: () => void
-}) {
-  const [open, setOpen] = React.useState(false)
-  const [editing, setEditing] = React.useState(false)
-  const [payload, setPayload] = React.useState("")
-  const [busy, setBusy] = React.useState(false)
-  const [err, setErr] = React.useState<string | null>(null)
-
-  const decide = async (decision: ReviewDecision) => {
-    if (busy) return
-    setBusy(true); setErr(null)
-    try {
-      let edited: Record<string, unknown> | undefined
-      if (decision === "EDIT") {
-        try { edited = JSON.parse(payload) } catch { throw new Error("Nội dung chỉnh sửa phải là JSON hợp lệ.") }
-      }
-      await api.decideReviewTask(task.task_id, decision, edited)
-      onDecided()
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : String(e))
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const confidencePct = Math.round(task.confidence * 100)
-  const injection = task.task_type === "INJECTION_REVIEW"
-
-  return (
-    <div className={`border bg-card ${injection ? "border-red-500/40" : "border-border"}`}>
-      <button className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/40 transition-colors"
-              onClick={() => setOpen(!open)} aria-expanded={open}>
-        <Badge variant="outline" className={`text-[10px] shrink-0 ${
-          injection ? "text-red-500 border-red-500/40" : "text-blue-500 border-blue-500/40"
-        }`}>
-          {TASK_LABEL[task.task_type] ?? task.task_type}
-        </Badge>
-        <span className="text-sm min-w-0 truncate flex-1">
-          {docName ?? task.source_ref ?? task.task_id}
-          {task.source_ref && docName && (
-            <span className="text-muted-foreground text-xs"> · {task.source_ref}</span>
-          )}
-        </span>
-        <span className="text-[11px] text-muted-foreground shrink-0">độ tin cậy {confidencePct}%</span>
-        <span className="text-muted-foreground text-xs shrink-0">{open ? "▴" : "▾"}</span>
-      </button>
-
-      {open && (
-        <div className="border-t border-border px-4 py-3 space-y-3">
-          {/* Thông tin AI trích xuất */}
-          {Object.keys(task.extracted).length > 0 && (
-            <dl className="text-xs space-y-1">
-              {Object.entries(task.extracted).map(([k, v]) => (
-                <div key={k} className="flex gap-2">
-                  <dt className="text-muted-foreground w-40 shrink-0 truncate">{k}</dt>
-                  <dd className="min-w-0 break-words flex-1">
-                    {typeof v === "string" ? v : JSON.stringify(v)}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          )}
-
-          {(task.diff_before || task.diff_after) && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-              <div className="border border-red-500/20 bg-red-500/5 p-2.5">
-                <div className="text-[10px] font-bold text-red-500 uppercase mb-1.5">Trước</div>
-                <p className="whitespace-pre-wrap leading-relaxed">{task.diff_before ?? "—"}</p>
-              </div>
-              <div className="border border-emerald-500/20 bg-emerald-500/5 p-2.5">
-                <div className="text-[10px] font-bold text-emerald-500 uppercase mb-1.5">
-                  Sau{task.valid_from ? ` · hiệu lực ${task.valid_from}` : ""}
-                </div>
-                <p className="whitespace-pre-wrap leading-relaxed">{task.diff_after ?? "—"}</p>
-              </div>
-            </div>
-          )}
-
-          {editing && (
-            <textarea rows={6} value={payload} onChange={(e) => setPayload(e.target.value)}
-              className="w-full bg-background border border-border px-3 py-2 text-xs font-mono outline-none focus:border-orange-500"
-              aria-label="Nội dung trích xuất đã chỉnh sửa (JSON)" />
-          )}
-
-          {err && <p className="text-xs text-red-500">{err}</p>}
-
-          <div className="flex flex-wrap gap-2">
-            {!editing ? (
-              <>
-                <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                        onClick={() => decide("APPROVE")} disabled={busy}>
-                  Duyệt
-                </Button>
-                <Button size="sm" variant="outline" disabled={busy}
-                        onClick={() => { setEditing(true); setPayload(JSON.stringify(task.extracted, null, 2)) }}>
-                  Chỉnh sửa
-                </Button>
-                <Button size="sm" variant="outline" className="text-red-500 border-red-500/40 hover:bg-red-500/10"
-                        onClick={() => decide("REJECT")} disabled={busy}>
-                  Từ chối
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                        onClick={() => decide("EDIT")} disabled={busy}>
-                  Lưu chỉnh sửa & duyệt
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => setEditing(false)} disabled={busy}>
-                  Hủy
-                </Button>
-              </>
-            )}
-            {busy && <span className="text-xs text-muted-foreground self-center">Đang ghi quyết định…</span>}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ─── Documents: chờ kích hoạt / đã kích hoạt ─────────────────────────────────
+// ─── Documents: chờ duyệt / đã kích hoạt ────────────────────────────────────
 
 function PendingActivationSection({ docs, loaded, onActivated }: {
   docs: DocumentRow[]; loaded: boolean; onActivated: () => void
@@ -329,13 +169,13 @@ function PendingActivationSection({ docs, loaded, onActivated }: {
   return (
     <section>
       <SectionHeading
-        title="Chờ kích hoạt"
+        title="Chờ duyệt"
         count={loaded ? docs.length : undefined}
-        hint="Đã upload nhưng chưa vào kho RAG — kích hoạt sau khi duyệt xong các mục kiểm tra"
+        hint="Xem và chỉnh sửa điều khoản AI trích xuất, sau đó kích hoạt để đưa vào kho RAG"
       />
       {!loaded && <ListSkeleton rows={2} />}
       {loaded && docs.length === 0 && (
-        <EmptyRow>Không có nguồn nào chờ kích hoạt.</EmptyRow>
+        <EmptyRow>Không có nguồn nào chờ duyệt.</EmptyRow>
       )}
       <div className="border border-border divide-y divide-border empty:border-0">
         {docs.map((d) => <PendingDocRow key={d.document_id} doc={d} onActivated={onActivated} />)}
@@ -440,7 +280,7 @@ function PendingDocRow({ doc, onActivated }: { doc: DocumentRow; onActivated: ()
             <div className="space-y-2 max-h-72 overflow-y-auto">
               <p className="text-[11px] text-muted-foreground mb-1">{provisions.length} điều khoản trích xuất được:</p>
               {provisions.map((p) => (
-                <ProvisionItem key={p.version_id} provision={p} />
+                <ProvisionItem key={p.version_id} provision={p} documentId={doc.document_id} />
               ))}
             </div>
           )}
@@ -456,22 +296,60 @@ function PendingDocRow({ doc, onActivated }: { doc: DocumentRow; onActivated: ()
   )
 }
 
-function ProvisionItem({ provision }: { provision: Provision }) {
+function ProvisionItem({ provision, documentId }: { provision: Provision; documentId: string }) {
   const [expanded, setExpanded] = React.useState(false)
+  const [editing, setEditing] = React.useState(false)
+  const [draft, setDraft] = React.useState(provision.content)
+  const [saving, setSaving] = React.useState(false)
+  const [saveErr, setSaveErr] = React.useState<string | null>(null)
+
   const heading = provision.heading_path.length > 0
     ? provision.heading_path.join(" > ")
     : provision.article ? `Điều ${provision.article}${provision.clause ? `, khoản ${provision.clause}` : ""}` : "—"
 
+  const save = async () => {
+    setSaving(true); setSaveErr(null)
+    try {
+      await api.updateProvision(documentId, provision.version_id, draft)
+      setEditing(false)
+    } catch (e) {
+      setSaveErr(e instanceof Error ? e.message : String(e))
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <div className="border border-border bg-muted/30 text-xs">
       <button className="w-full flex items-start gap-2 px-3 py-2 text-left hover:bg-muted/50"
-              onClick={() => setExpanded(!expanded)}>
+              onClick={() => { setExpanded(!expanded); if (editing) setEditing(false) }}>
         <span className="font-medium min-w-0 flex-1 truncate">{heading}</span>
         <span className="text-muted-foreground shrink-0">{expanded ? "▴" : "▾"}</span>
       </button>
-      {expanded && (
-        <div className="px-3 pb-2 text-muted-foreground whitespace-pre-wrap leading-relaxed border-t border-border pt-2">
-          {provision.content}
+      {expanded && !editing && (
+        <div className="px-3 pb-2 border-t border-border pt-2 space-y-2">
+          <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{draft}</p>
+          <Button size="sm" variant="outline" className="text-xs h-6 px-2"
+                  onClick={(e) => { e.stopPropagation(); setEditing(true) }}>
+            Chỉnh sửa
+          </Button>
+        </div>
+      )}
+      {expanded && editing && (
+        <div className="px-3 pb-2 border-t border-border pt-2 space-y-2">
+          <textarea rows={6} value={draft} onChange={(e) => setDraft(e.target.value)}
+            className="w-full bg-background border border-orange-500 px-2 py-1.5 text-xs outline-none leading-relaxed resize-y" />
+          {saveErr && <p className="text-red-500">{saveErr}</p>}
+          <div className="flex gap-2">
+            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white h-6 px-2 text-xs"
+                    onClick={save} disabled={saving}>
+              {saving ? "Đang lưu…" : "Lưu"}
+            </Button>
+            <Button size="sm" variant="ghost" className="h-6 px-2 text-xs"
+                    onClick={() => { setEditing(false); setDraft(provision.content) }} disabled={saving}>
+              Hủy
+            </Button>
+          </div>
         </div>
       )}
     </div>
