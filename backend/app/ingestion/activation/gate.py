@@ -10,6 +10,7 @@ from packages.contracts.enums import ProcessingStatus, ReviewStatus, ReviewTaskT
 
 _CRITICAL_TASK_TYPES = {
     ReviewTaskType.INJECTION_REVIEW.value,
+    ReviewTaskType.PARSING_REVIEW.value,
     ReviewTaskType.REFERENCE_REVIEW.value,
 }
 

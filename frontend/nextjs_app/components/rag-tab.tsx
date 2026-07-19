@@ -377,14 +377,9 @@ function EvidencePanel({ citations }: { citations: ChatCitation[] }) {
                       {c.heading_path.join(" › ")}
                     </div>
                   )}
-                  <div className="text-[10px] text-muted-foreground/70 mt-0.5 flex gap-2 flex-wrap">
+                  <div className="text-[10px] text-muted-foreground/70 mt-0.5 flex gap-2">
                     {c.valid_from && <span>Hiệu lực: {fmtDate(c.valid_from)}{c.valid_to_exclusive ? ` → ${fmtDate(c.valid_to_exclusive)}` : " → nay"}</span>}
                     {typeof c.page === "number" && <span>Trang {c.page}</span>}
-                    {typeof c.score === "number" && c.score > 0 && (
-                      <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-                        Độ phù hợp {Math.round(c.score * 100)}%
-                      </span>
-                    )}
                   </div>
                 </div>
                 <span className="shrink-0 text-[10px] text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity mt-0.5">

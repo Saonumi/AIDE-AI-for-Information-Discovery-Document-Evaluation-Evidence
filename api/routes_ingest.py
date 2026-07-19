@@ -47,10 +47,3 @@ def delete_document(document_id: str, user: CurrentUser = Depends(require_employ
 @router.get("/documents/{document_id}/provisions")
 def list_document_provisions(document_id: str, user: CurrentUser = Depends(require_authenticated)):
     return call("ingestion.service", "list_document_provisions", document_id)
-
-
-@router.patch("/documents/{document_id}/provisions/{version_id}")
-def update_provision(document_id: str, version_id: str,
-                     body: dict, user: CurrentUser = Depends(require_employee)):
-    content = body.get("content", "")
-    return call("ingestion.service", "update_provision_content", version_id, content)
