@@ -10,7 +10,7 @@
 
 <br/>
 
-**Top 10 — Vietnam AI Innovation Challenge 2026**  
+**Vietnam AI Innovation Challenge 2026**  
 **Sản phẩm hoàn thiện trong 48 giờ · Team AIDE · Banking Legal & Compliance**
 
 <br/>
