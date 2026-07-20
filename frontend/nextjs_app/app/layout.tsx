@@ -4,7 +4,7 @@ import { JetBrains_Mono } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 
-const fontSans = JetBrains_Mono({ subsets: ["latin"], variable: "--font-sans" })
+const fontSans = JetBrains_Mono({ subsets: ["latin", "latin-ext"], variable: "--font-sans" })
 
 export const metadata: Metadata = {
   title: "AIDE (AI for Information Discovery, Document Evaluation & Evidence) — Trợ lý Tuân thủ SHB",
@@ -18,6 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" className={fontSans.variable} suppressHydrationWarning>
+      <head><meta charSet="utf-8" /></head>
       <body className="antialiased">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem storageKey="shb-theme">
           {children}
